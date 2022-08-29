@@ -48,8 +48,7 @@ operation ServerStatus {
 }
 
 intEnum Status {
-    @enumValue(0)
-    PENDING
+    PENDING = 0
     RUNNING = 16
     SHUTTING_DOWN = 32
     TERMINATED = 48
@@ -57,7 +56,6 @@ intEnum Status {
     STOPPED = 80
 }
 
-@output
 structure ServerStatusOutput {
     
     status: Status
