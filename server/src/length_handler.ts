@@ -1,4 +1,4 @@
-import { getLengthHandler } from "@smithy-demo/string-wizard-service-ssdk";
+import { getLengthHandler } from "@smithy-demo/iron-spider-service-ssdk";
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { LengthOperation } from "./length";
 import { getApiGatewayHandler } from "./apigateway";

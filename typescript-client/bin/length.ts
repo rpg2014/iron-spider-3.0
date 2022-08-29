@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import {LengthCommand, StringWizardClient} from "@smithy-demo/string-client";
+import {LengthCommand, IronSpiderClient} from "@smithy-demo/string-client";
 
-const client = new StringWizardClient({endpoint: process.argv[2]});
+const client = new IronSpiderClient({endpoint: process.argv[2]});
 
 client.send(new LengthCommand({
     string: process.argv[3]

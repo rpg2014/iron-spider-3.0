@@ -11,7 +11,7 @@ import {
   SpecRestApi,
 } from "@aws-cdk/aws-apigateway";
 import { Construct, Stack, StackProps } from "@aws-cdk/core";
-import { StringWizardServiceOperations } from "@smithy-demo/string-wizard-service-ssdk";
+import { IronSpiderServiceOperations } from "@smithy-demo/iron-spider-service-ssdk";
 import {Runtime} from "@aws-cdk/aws-lambda";
 
 export class CdkStack extends Stack {
@@ -20,12 +20,13 @@ export class CdkStack extends Stack {
 
     const logGroup = new LogGroup(this, "ApiLogs");
 
-    const entry_points: { [op in StringWizardServiceOperations]: string } = {
+    const entry_points: { [op in IronSpiderServiceOperations]: string } = {
       Echo: "echo_handler",
       Length: "length_handler",
+      ServerStatus: "server_handler"
     };
 
-    const functions = (Object.keys(entry_points) as StringWizardServiceOperations[]).reduce(
+    const functions = (Object.keys(entry_points) as IronSpiderServiceOperations[]).reduce(
       (acc, operation) => ({
         ...acc,
         [operation]: new NodejsFunction(this, operation + "Function", {
@@ -46,7 +47,7 @@ export class CdkStack extends Stack {
         }),
       }),
       {}
-    ) as { [op in StringWizardServiceOperations]: NodejsFunction };
+    ) as { [op in IronSpiderServiceOperations]: NodejsFunction };
 
     const api = new SpecRestApi(this, "StringWizardApi", {
       apiDefinition: ApiDefinition.fromInline(this.getOpenApiDef(functions)),
@@ -78,7 +79,7 @@ export class CdkStack extends Stack {
     }
   }
 
-  private getOpenApiDef(functions: { [op in StringWizardServiceOperations]?: NodejsFunction }) {
+  private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction }) {
     const openapi = JSON.parse(
       readFileSync(
         path.join(__dirname, "../codegen/build/smithyprojections/server-codegen/apigateway/openapi/StringWizard.openapi.json"),
@@ -93,7 +94,7 @@ export class CdkStack extends Stack {
         if (integration !== null && integration !== undefined && integration["type"] === "mock") {
           continue;
         }
-        const functionArn = functions[op.operationId as StringWizardServiceOperations]?.functionArn;
+        const functionArn = functions[op.operationId as IronSpiderServiceOperations]?.functionArn;
         if (functionArn === null || functionArn === undefined) {
           throw new Error("no function for " + op.operationId);
         }

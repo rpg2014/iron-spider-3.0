@@ -2250,6 +2250,46 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy-demo/iron-spider-service-ssdk@workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen":
+  version: 0.0.0-use.local
+  resolution: "@smithy-demo/iron-spider-service-ssdk@workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
+  dependencies:
+    "@aws-crypto/sha256-browser": 2.0.0
+    "@aws-crypto/sha256-js": 2.0.0
+    "@aws-sdk/config-resolver": 3.58.0
+    "@aws-sdk/fetch-http-handler": 3.58.0
+    "@aws-sdk/hash-node": 3.55.0
+    "@aws-sdk/invalid-dependency": 3.55.0
+    "@aws-sdk/middleware-content-length": 3.58.0
+    "@aws-sdk/middleware-retry": 3.58.0
+    "@aws-sdk/middleware-serde": 3.55.0
+    "@aws-sdk/middleware-stack": 3.55.0
+    "@aws-sdk/node-http-handler": 3.58.0
+    "@aws-sdk/protocol-http": 3.58.0
+    "@aws-sdk/service-client-documentation-generator": 3.58.0
+    "@aws-sdk/smithy-client": 3.55.0
+    "@aws-sdk/types": 3.55.0
+    "@aws-sdk/url-parser": 3.55.0
+    "@aws-sdk/util-base64-browser": 3.58.0
+    "@aws-sdk/util-base64-node": 3.55.0
+    "@aws-sdk/util-body-length-browser": 3.55.0
+    "@aws-sdk/util-body-length-node": 3.55.0
+    "@aws-sdk/util-defaults-mode-browser": 3.55.0
+    "@aws-sdk/util-defaults-mode-node": 3.58.0
+    "@aws-sdk/util-utf8-browser": 3.55.0
+    "@aws-sdk/util-utf8-node": 3.55.0
+    "@aws-smithy/server-common": 1.0.0-alpha.5
+    "@tsconfig/recommended": 1.0.1
+    "@types/node": ^12.7.5
+    concurrently: 7.0.0
+    downlevel-dts: 0.7.0
+    rimraf: ^3.0.0
+    tslib: ^2.3.1
+    typedoc: ^0.19.2
+    typescript: ~4.6.2
+  languageName: unknown
+  linkType: soft
+
 "@smithy-demo/string-client@workspace:typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen":
   version: 0.0.0-use.local
   resolution: "@smithy-demo/string-client@workspace:typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
@@ -2287,46 +2327,6 @@ __metadata:
     "@aws-sdk/util-user-agent-node": 3.58.0
     "@aws-sdk/util-utf8-browser": 3.55.0
     "@aws-sdk/util-utf8-node": 3.55.0
-    "@tsconfig/recommended": 1.0.1
-    "@types/node": ^12.7.5
-    concurrently: 7.0.0
-    downlevel-dts: 0.7.0
-    rimraf: ^3.0.0
-    tslib: ^2.3.1
-    typedoc: ^0.19.2
-    typescript: ~4.6.2
-  languageName: unknown
-  linkType: soft
-
-"@smithy-demo/string-wizard-service-ssdk@workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen":
-  version: 0.0.0-use.local
-  resolution: "@smithy-demo/string-wizard-service-ssdk@workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
-  dependencies:
-    "@aws-crypto/sha256-browser": 2.0.0
-    "@aws-crypto/sha256-js": 2.0.0
-    "@aws-sdk/config-resolver": 3.58.0
-    "@aws-sdk/fetch-http-handler": 3.58.0
-    "@aws-sdk/hash-node": 3.55.0
-    "@aws-sdk/invalid-dependency": 3.55.0
-    "@aws-sdk/middleware-content-length": 3.58.0
-    "@aws-sdk/middleware-retry": 3.58.0
-    "@aws-sdk/middleware-serde": 3.55.0
-    "@aws-sdk/middleware-stack": 3.55.0
-    "@aws-sdk/node-http-handler": 3.58.0
-    "@aws-sdk/protocol-http": 3.58.0
-    "@aws-sdk/service-client-documentation-generator": 3.58.0
-    "@aws-sdk/smithy-client": 3.55.0
-    "@aws-sdk/types": 3.55.0
-    "@aws-sdk/url-parser": 3.55.0
-    "@aws-sdk/util-base64-browser": 3.58.0
-    "@aws-sdk/util-base64-node": 3.55.0
-    "@aws-sdk/util-body-length-browser": 3.55.0
-    "@aws-sdk/util-body-length-node": 3.55.0
-    "@aws-sdk/util-defaults-mode-browser": 3.55.0
-    "@aws-sdk/util-defaults-mode-node": 3.58.0
-    "@aws-sdk/util-utf8-browser": 3.55.0
-    "@aws-sdk/util-utf8-node": 3.55.0
-    "@aws-smithy/server-common": 1.0.0-alpha.5
     "@tsconfig/recommended": 1.0.1
     "@types/node": ^12.7.5
     concurrently: 7.0.0
@@ -7650,7 +7650,7 @@ __metadata:
     "@aws-cdk/core": 1.149.0
     "@aws-smithy/server-apigateway": ^1.0.0-alpha.5
     "@aws-smithy/server-common": ^1.0.0-alpha.5
-    "@smithy-demo/string-wizard-service-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
+    "@smithy-demo/iron-spider-service-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
     "@tsconfig/node14": ^1.0.1
     "@types/aws-lambda": ^8.10.85
     "@types/jest": ^26.0.24
@@ -7712,7 +7712,7 @@ __metadata:
     "@smithy-demo/string-client": "workspace:typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
     "@tsconfig/node12": ^1.0.9
     rimraf: ^3.0.0
-    typescript: ~4.6.2
+    typescript: ~4.6.3
   bin:
     str-length: ./dist/length.js
   languageName: unknown
@@ -8133,6 +8133,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:~4.6.3":
+  version: 4.6.4
+  resolution: "typescript@npm:4.6.4"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: e7bfcc39cd4571a63a54e5ea21f16b8445268b9900bf55aee0e02ad981be576acc140eba24f1af5e3c1457767c96cea6d12861768fb386cf3ffb34013718631a
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@^4.1.0-dev.20201026#~builtin<compat/typescript>, typescript@patch:typescript@~4.6.2#~builtin<compat/typescript>":
   version: 4.6.3
   resolution: "typescript@patch:typescript@npm%3A4.6.3#~builtin<compat/typescript>::version=4.6.3&hash=493e53"
@@ -8140,6 +8150,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: fe6bdc1afb2f145ddb7b0a3a31f96352209f6a5704d97f038414ea22ff9d8dd42f32cfb6652e30458d7d958d2d4e85de2df11c574899c6f750a6b3c0e90a3a76
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@~4.6.3#~builtin<compat/typescript>":
+  version: 4.6.4
+  resolution: "typescript@patch:typescript@npm%3A4.6.4#~builtin<compat/typescript>::version=4.6.4&hash=493e53"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 8cff08bf66d9ecfbf9fcc5edde04a5a7923e6cac3b21d99b4e9a06973bf5bd7f9a83ec7eed24129c1b9e13fd861de8c1070110d4b9ce9f18ab57c6999e9c9a6f
   languageName: node
   linkType: hard
 

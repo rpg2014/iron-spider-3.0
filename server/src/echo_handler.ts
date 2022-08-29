@@ -1,4 +1,4 @@
-import { getEchoHandler } from "@smithy-demo/string-wizard-service-ssdk";
+import { getEchoHandler } from "@smithy-demo/iron-spider-service-ssdk";
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { EchoOperation } from "./echo";
 import { getApiGatewayHandler } from "./apigateway";

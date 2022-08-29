@@ -4,7 +4,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'string-wizard-service'
+rootProject.name = 'iron-spider-service'
 
 includeBuild('./model')
 

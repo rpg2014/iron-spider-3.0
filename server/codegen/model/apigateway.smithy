@@ -1,4 +1,4 @@
-namespace software.amazon.smithy.demo
+namespace com.rpg2014.cloud
 
 apply Echo @aws.apigateway#integration(
     type: "aws_proxy",
@@ -7,6 +7,12 @@ apply Echo @aws.apigateway#integration(
 )
 
 apply Length @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
+apply ServerStatus @aws.apigateway#integration(
     type: "aws_proxy",
     httpMethod: "POST",
     uri: ""

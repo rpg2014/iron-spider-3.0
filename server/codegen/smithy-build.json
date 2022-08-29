@@ -5,7 +5,7 @@
     "ts-server" : {
       "plugins": {
         "typescript-ssdk-codegen" : {
-          "package" : "@smithy-demo/string-wizard-service-ssdk",
+          "package" : "@smithy-demo/iron-spider-service-ssdk",
           "packageVersion": "0.0.1"
         }
       }
@@ -14,7 +14,7 @@
       "imports" : ["model/"],
       "plugins" : {
         "openapi": {
-          "service": "software.amazon.smithy.demo#StringWizard",
+          "service": "com.rpg2014.cloud#IronSpider",
           "protocol": "aws.protocols#restJson1",
           "apiGatewayType" : "REST"
         }

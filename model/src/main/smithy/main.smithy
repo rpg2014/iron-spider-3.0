@@ -1,5 +1,5 @@
 $version: "2"
-namespace software.amazon.smithy.demo
+namespace com.rpg2014.cloud
 
 use aws.auth#sigv4
 use aws.protocols#restJson1
@@ -20,7 +20,7 @@ use smithy.framework#ValidationException
 // it prob makes more sense to have a resource for Journal, but MC is a set of operations, really.
 service IronSpider {
     version: "2018-05-10",
-    operations: [Echo, Length],
+    operations: [Echo, Length, ServerStatus],
 }
 
 /// Echo operation that receives input from body.
@@ -43,7 +43,8 @@ operation Length {
 @readonly
 @http(code: 200, method: "GET", uri: "/server/status")
 operation ServerStatus {
-    output: ServerStatusOutput
+    output: ServerStatusOutput,
+    errors: [ValidationException],
 }
 
 intEnum Status {
@@ -60,6 +61,8 @@ structure ServerStatusOutput {
     
     status: Status
 }
+
+
 
 
 // @http(code: 200, method: "POST", "/journal/new")
