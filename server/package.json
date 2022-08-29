@@ -1,7 +1,7 @@
 {
-  "name": "string-server",
+  "name": "iron-spider",
   "version": "0.0.1",
-  "description": "The server for StringWizard service",
+  "description": "The serverless backend implementation for my website",
   "packageManager": "yarn@3.1.1",
   "author": "",
   "license": "Apache-2.0",

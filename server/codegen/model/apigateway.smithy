@@ -14,6 +14,6 @@ apply Length @aws.apigateway#integration(
 
 apply ServerStatus @aws.apigateway#integration(
     type: "aws_proxy",
-    httpMethod: "POST",
+    httpMethod: "GET",
     uri: ""
 )

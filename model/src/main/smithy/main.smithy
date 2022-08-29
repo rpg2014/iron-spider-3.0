@@ -57,6 +57,7 @@ intEnum Status {
     STOPPED = 80
 }
 
+@output
 structure ServerStatusOutput {
     
     status: Status

@@ -1,7 +1,7 @@
 {
-  "name": "string-service-build",
+  "name": "iron-spider-build",
   "version": "0.0.1",
-  "description": "A yarn project for the string service monorepo",
+  "description": "A yarn project for the iron spider monorepo",
   "packageManager": "yarn@3.1.1",
   "author": "",
   "license": "Apache-2.0",

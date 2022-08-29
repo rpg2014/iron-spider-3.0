@@ -23,7 +23,7 @@ export class CdkStack extends Stack {
     const entry_points: { [op in IronSpiderServiceOperations]: string } = {
       Echo: "echo_handler",
       Length: "length_handler",
-      ServerStatus: "server_handler"
+      ServerStatus: "server_status_handler"
     };
 
     const functions = (Object.keys(entry_points) as IronSpiderServiceOperations[]).reduce(
@@ -82,7 +82,7 @@ export class CdkStack extends Stack {
   private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction }) {
     const openapi = JSON.parse(
       readFileSync(
-        path.join(__dirname, "../codegen/build/smithyprojections/server-codegen/apigateway/openapi/StringWizard.openapi.json"),
+        path.join(__dirname, "../codegen/build/smithyprojections/server-codegen/apigateway/openapi/IronSpider.openapi.json"),
         "utf8"
       )
     );

@@ -37,7 +37,7 @@ plugins {
 }
 
 dependencies {
-    implementation "software.amazon.smithy:smithy-aws-traits:1.19.0"
+    implementation "software.amazon.smithy:smithy-aws-traits:1.23.0"
     implementation "software.amazon.smithy:smithy-aws-apigateway-openapi:1.23.0"
     implementation 'com.rpg2014.cloud:iron-spider-model:1.0-SNAPSHOT'
 }
