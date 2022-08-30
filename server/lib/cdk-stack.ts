@@ -20,6 +20,7 @@ export class CdkStack extends Stack {
 
     const logGroup = new LogGroup(this, "ApiLogs");
 
+    // might want to figure out how to combine several handlers in a single file.. 
     const entry_points: { [op in IronSpiderServiceOperations]: string } = {
       Echo: "echo_handler",
       Length: "length_handler",
@@ -49,7 +50,7 @@ export class CdkStack extends Stack {
       {}
     ) as { [op in IronSpiderServiceOperations]: NodejsFunction };
 
-    const api = new SpecRestApi(this, "StringWizardApi", {
+    const api = new SpecRestApi(this, "IronSpiderApi", {
       apiDefinition: ApiDefinition.fromInline(this.getOpenApiDef(functions)),
       deploy: true,
       deployOptions: {
