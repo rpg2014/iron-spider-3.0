@@ -36,11 +36,11 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
 
     const code: number = response.Reservations[0]?.Instances[0]?.State?.Code;
                         // if
-    let status: string = response.Reservations?.length === 0 
+    let status: string = response.Reservations?.length === 0 || code === undefined
         // then
         ? Status[Status.Terminated]
         // else
-        : Status[]
+        : Status[code]
     
     return {
         status
