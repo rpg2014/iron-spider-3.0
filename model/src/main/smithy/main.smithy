@@ -2,6 +2,7 @@ $version: "2"
 namespace com.rpg2014.cloud
 
 use aws.auth#sigv4
+use aws.api#service
 use aws.protocols#restJson1
 use smithy.framework#ValidationException
 
