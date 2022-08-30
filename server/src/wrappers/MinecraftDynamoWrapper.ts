@@ -3,11 +3,16 @@ import { InternalServerError } from "@smithy-demo/iron-spider-service-ssdk";
 
 const ITEM_ID = "itemId";
 const VALUE = "value";
-const SERVER_RUNNING = "serverRunning";
-const INSTANCE_ID = "instanceId";
-const SNAPSHOT_ID = "snapshotId";
-const AMI_ID = "amiId"
-const TABLE_NAME = 'minecraftServerDetails';
+const SERVER_RUNNING: string = "serverRunning";
+const INSTANCE_ID: string = "instanceId";
+const SNAPSHOT_ID: string = "snapshotId";
+const AMI_ID: string = "amiId"
+const TABLE_NAME: string = 'minecraftServerDetails';
+
+type GetItemOptions = {
+    consistantRead?: boolean ;
+    // type: "BOOL" | "S"
+}
 export class MinecraftDBWrapper {
     dynamoClient: DynamoDBClient;
     constructor() {
@@ -18,10 +23,7 @@ export class MinecraftDBWrapper {
      * 
      */
     public async isServerRunning(): Promise<boolean> {
-        const isServerRunning: boolean | undefined = await this.getItem(SERVER_RUNNING).then(item => item[INSTANCE_ID].BOOL)
-        if (!isServerRunning) {
-            throw new InternalServerError(`Unable to fetch instance id from Dynamo`)
-        }
+        const isServerRunning: boolean = await this.getItemB(SERVER_RUNNING)
         return isServerRunning
     }
 
@@ -33,20 +35,24 @@ export class MinecraftDBWrapper {
         await this.setItem(SERVER_RUNNING, false)
     }
 
-    public async getInstanceId(): Promise<string | undefined>{
-        return await this.getItem(INSTANCE_ID).then(item => item[INSTANCE_ID].S)
+    public async getInstanceId(): Promise<string>{
+        const instanceId = await this.getItemS(INSTANCE_ID)
+        if (!instanceId) {
+            throw new InternalServerError(`Unable to fetch instance id from Dynamo`)
+        }
+        return instanceId
     }
     public async setInstanceId(instanceId: string) {
         await this.setItem(INSTANCE_ID, instanceId);
     }
     public async getSnapshotId(): Promise<string | undefined> {
-        return await this.getItem(SNAPSHOT_ID).then(item => item[SNAPSHOT_ID].S);   
+        return await this.getItemS(SNAPSHOT_ID)  
     }
     public async setSnapshotId(snapshotId: string) {
         await this.setItem(SNAPSHOT_ID, snapshotId);
     }
     public async getAmiId(): Promise<string | undefined> {
-        return await this.getItem(AMI_ID).then(item => item[AMI_ID].S)
+        return await this.getItemS(AMI_ID)
     }
     /**
      * setAmiId
@@ -56,22 +62,36 @@ export class MinecraftDBWrapper {
     }
 
 
+    private async getItemB(itemId: string, options?: GetItemOptions): Promise<boolean>{
+        const item = await this.getItem(itemId, "BOOL", options || {consistantRead: false} )
+        if(item.BOOL === undefined){
+            throw new InternalServerError(`Unable to fetch ${itemId} from table ${TABLE_NAME}`)
+        }
+        return item.BOOL;
+    }
+    private async getItemS(itemId: string, options?: GetItemOptions): Promise<string> {
+        const item = await this.getItem(itemId, "S", options || {consistantRead: false} )
+        if(item.S === undefined){
+            throw new InternalServerError(`Unable to fetch ${itemId} from table ${TABLE_NAME}`)
+        }
+        return item.S
+    }
 
-    private async getItem(itemId: string, consistantRead: boolean = false): Promise<Record<string, AttributeValue>> {
+    private async getItem(itemId: string, type: "BOOL" | "S", options?: GetItemOptions): Promise<AttributeValue> {
     
         const input: GetItemCommandInput = {
             TableName: TABLE_NAME,
             Key: {
                 itemId: {"S": itemId}
             },
-            ConsistentRead: consistantRead
+            ConsistentRead: options?.consistantRead
         }
         const command = new GetItemCommand(input)
         const response =  await this.dynamoClient.send(command);
-        if(!response.Item) {
+        if(!response.Item ) {
             throw new InternalServerError("Unable to get item: "+ itemId)
         }
-        return response.Item
+        return response.Item[itemId]
     }
 
     private async setItem(itemId: string, value: boolean | string): Promise<void> {
