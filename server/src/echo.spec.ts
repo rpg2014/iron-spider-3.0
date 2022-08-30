@@ -14,12 +14,12 @@ describe("Echo tests", () => {
     expect(output.string).toBeUndefined();
   });
 
-  it("throws on palindrome", async () => {
-    expect.assertions(1);
-    try {
-      await EchoOperation({ string: "kayak" }, context);
-    } catch (e) {
-      expect(e).toBeInstanceOf(PalindromeException);
-    }
-  });
+//   it("throws on palindrome", async () => {
+//     expect.assertions(1);
+//     try {
+//       await EchoOperation({ string: "kayak" }, context);
+//     } catch (e) {
+//       expect(e).toBeInstanceOf(PalindromeException);
+//     }
+//   });
 });

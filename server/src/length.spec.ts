@@ -14,12 +14,12 @@ describe("Length tests", () => {
     expect(output.length).toBeUndefined();
   });
 
-  it("throws on palindrome", async () => {
-    expect.assertions(1);
-    try {
-      await LengthOperation({ string: "kayak" }, context);
-    } catch (e) {
-      expect(e).toBeInstanceOf(PalindromeException);
-    }
-  });
+//   it("throws on palindrome", async () => {
+//     expect.assertions(1);
+//     try {
+//       await LengthOperation({ string: "kayak" }, context);
+//     } catch (e) {
+//       expect(e).toBeInstanceOf(PalindromeException);
+//     }
+//   });
 });
