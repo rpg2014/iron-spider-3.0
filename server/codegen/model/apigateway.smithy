@@ -17,3 +17,7 @@ apply ServerStatus @aws.apigateway#integration(
     httpMethod: "GET",
     uri: ""
 )
+
+apply ServerStatus @cognitoUserPools(
+    providerArns: ["test"]
+)

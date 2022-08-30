@@ -1,3 +1,12 @@
+## Design
+
+* This server + client will replicate iron-spider-2.0.  Some changes will need to be made to fit the serverless platform better like probably removing the task runner
+* auth lambda to authorize from cognito, or figure out how to do it automagically
+
+
+
+
+
 ## Smithy Server Generator for TypeScript Example Service
 
 ### Overview
@@ -29,7 +38,7 @@ Before beginning:
     ```
    After this initial build, `yarn build` in the root of the project will regenerate the client and server and recompile
    all of the code.
-2. To deploy the service, run `yarn workspace string-server cdk deploy`. When complete, the CDK will print out the endpoint URL
+2. To deploy the service, run `yarn workspace iron-spider cdk deploy`. When complete, the CDK will print out the endpoint URL
    for your newly deployed service.
    >   Note: this step will create resources in your AWS account that may incur charges.
 3. To test your service, switch to the `typescript-client` directory and use `yarn str-length` to call the `Length`

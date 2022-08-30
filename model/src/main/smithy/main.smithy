@@ -44,20 +44,19 @@ operation Length {
 @http(code: 200, method: "GET", uri: "/server/status")
 operation ServerStatus {
     output: ServerStatusOutput,
-    errors: [ValidationException],
+    errors: [ValidationException, InternalServerError],
 }
 
-intEnum Status {
-    PENDING = 0
-    RUNNING = 16
-    SHUTTING_DOWN = 32
-    TERMINATED = 48
-    STOPPING = 64
-    STOPPED = 80
+enum Status {
+    PENDING = "Pending"
+    RUNNING = "Running"
+    SHUTTING_DOWN = "ShuttingDown"
+    TERMINATED = "Terminated"
+    STOPPING = "Stopping"
+    STOPPED = "Stopped"
 }
 
 structure ServerStatusOutput {
-    
     status: Status
 }
 
@@ -104,4 +103,10 @@ structure LengthOutput {
 @error("client")
 structure PalindromeException {
     message: String,
+}
+
+@httpError(500)
+@error("server")
+structure InternalServerError {
+    message: String
 }
