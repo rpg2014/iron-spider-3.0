@@ -1,1 +1,1 @@
-export const reverse = (string: any) => { return string}
+export const reverse = (string: any) => { return string+"1"}
