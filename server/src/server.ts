@@ -1,7 +1,8 @@
 import { Operation } from "@aws-smithy/server-common";
 import {
   ServerStatusOutput,
-  Status
+  
+  InternalServerError
 } from "@smithy-demo/iron-spider-service-ssdk";
 import { HandlerContext } from "./apigateway";
 import {EC2Client, DescribeInstancesCommand, DescribeInstancesCommandInput} from '@aws-sdk/client-ec2'
@@ -33,12 +34,13 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
     const command = new DescribeInstancesCommand(describeInstanceInput);
     const response = await client.send(command);
 
+    const code: number = response.Reservations[0]?.Instances[0]?.State?.Code;
                         // if
-    let status: string = response.Reservations.length === 0 
+    let status: string = response.Reservations?.length === 0 
         // then
         ? Status[Status.Terminated]
         // else
-        : Status[response.Reservations[0].Instances[0].State.Code]
+        : Status[]
     
     return {
         status

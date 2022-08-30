@@ -18,6 +18,6 @@ apply ServerStatus @aws.apigateway#integration(
     uri: ""
 )
 
-apply ServerStatus @cognitoUserPools(
-    providerArns: ["test"]
-)
+// apply IronSpider @aws.auth#cognitoUserPools(
+//     providerArns: ["test"]
+// )

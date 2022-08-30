@@ -1,4 +1,5 @@
 import {AttributeValue, DynamoDBClient, GetItemCommand, GetItemCommandInput, UpdateItemCommand, UpdateItemCommandInput}  from '@aws-sdk/client-dynamodb';
+import { InternalServerError } from "@smithy-demo/iron-spider-service-ssdk";
 
 const ITEM_ID = "itemId";
 const VALUE = "value";
@@ -29,7 +30,7 @@ export class MinecraftDBWrapper {
         await this.setItem(SERVER_RUNNING, false)
     }
 
-    public async getInstanceId(){
+    public async getInstanceId(): Promise<string>{
         return await this.getItem(INSTANCE_ID).then(item => item[INSTANCE_ID].S)
     }
     public async setInstanceId(instanceId: string) {
@@ -63,7 +64,7 @@ export class MinecraftDBWrapper {
             ConsistentRead: consistantRead
         }
         const command = new GetItemCommand(input)
-        const response =  await dynamoClient.send(command);
+        const response =  await this.dynamoClient.send(command);
         if(!response.Item) {
             throw new InternalServerError("Unable to get item: "+ itemId)
         }
@@ -79,7 +80,7 @@ export class MinecraftDBWrapper {
             }
         }
         try {
-            const response = await dynamoClient.send(new UpdateItemCommand(input));
+            const response = await this.dynamoClient.send(new UpdateItemCommand(input));
         }catch (e) {
             throw new InternalServerError(`Unable to set item: ${itemId} to value: ${value}`)
         }

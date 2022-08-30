@@ -15,6 +15,7 @@ use smithy.framework#ValidationException
 
 @sigv4(name: "execute-api")
 @restJson1
+@service(sdkId: "IronSpider")
 // Can only have 1 service, so look into resources to have journal + MC paths https://awslabs.github.io/smithy/2.0/spec/service-types.html#service-resources
 //Smithy defines a resource as an entity with an identity that has a set of operations.
 // it prob makes more sense to have a resource for Journal, but MC is a set of operations, really.
