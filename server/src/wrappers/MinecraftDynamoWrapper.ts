@@ -18,8 +18,11 @@ export class MinecraftDBWrapper {
      * 
      */
     public async isServerRunning(): Promise<boolean> {
-        const item = await this.getItem(SERVER_RUNNING)
-        return item[SERVER_RUNNING].BOOL
+        const isServerRunning: boolean | undefined = await this.getItem(SERVER_RUNNING).then(item => item[INSTANCE_ID].BOOL)
+        if (!isServerRunning) {
+            throw new InternalServerError(`Unable to fetch instance id from Dynamo`)
+        }
+        return isServerRunning
     }
 
     public async setServerRunning(): Promise<void> {
@@ -30,19 +33,19 @@ export class MinecraftDBWrapper {
         await this.setItem(SERVER_RUNNING, false)
     }
 
-    public async getInstanceId(): Promise<string>{
+    public async getInstanceId(): Promise<string | undefined>{
         return await this.getItem(INSTANCE_ID).then(item => item[INSTANCE_ID].S)
     }
     public async setInstanceId(instanceId: string) {
         await this.setItem(INSTANCE_ID, instanceId);
     }
-    public async getSnapshotId() {
+    public async getSnapshotId(): Promise<string | undefined> {
         return await this.getItem(SNAPSHOT_ID).then(item => item[SNAPSHOT_ID].S);   
     }
     public async setSnapshotId(snapshotId: string) {
         await this.setItem(SNAPSHOT_ID, snapshotId);
     }
-    public async getAmiId() {
+    public async getAmiId(): Promise<string | undefined> {
         return await this.getItem(AMI_ID).then(item => item[AMI_ID].S)
     }
     /**

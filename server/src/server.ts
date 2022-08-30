@@ -1,7 +1,6 @@
 import { Operation } from "@aws-smithy/server-common";
 import {
   ServerStatusOutput,
-  
   InternalServerError
 } from "@smithy-demo/iron-spider-service-ssdk";
 import { HandlerContext } from "./apigateway";
@@ -28,13 +27,16 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
     const dbWrapper = new MinecraftDBWrapper()
     const client = new EC2Client({ region: "us-east-1" });
 
+
+    
+
     const describeInstanceInput: DescribeInstancesCommandInput = {
         InstanceIds: [await dbWrapper.getInstanceId()]
     }
     const command = new DescribeInstancesCommand(describeInstanceInput);
     const response = await client.send(command);
 
-    const code: number = response.Reservations[0]?.Instances[0]?.State?.Code;
+    const code: number | undefined = response.Reservations?.[0].Instances?.[0].State?.Code;
                         // if
     let status: string = response.Reservations?.length === 0 || code === undefined
         // then
