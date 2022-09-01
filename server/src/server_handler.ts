@@ -1,4 +1,4 @@
-import { getServerStatusHandler } from "@smithy-demo/iron-spider-service-ssdk";
+import { getServerStatusHandler } from "@test/iron-spider-ssdk";
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { ServerStatusOperation } from "./server";
 import { getApiGatewayHandler } from "./apigateway";

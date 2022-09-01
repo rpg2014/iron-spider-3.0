@@ -23,20 +23,20 @@
     "dist"
   ],
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.159.0",
+    "@aws-sdk/client-ec2": "3.159.0",
     "@aws-smithy/server-apigateway": "^1.0.0-alpha.5",
     "@aws-smithy/server-common": "^1.0.0-alpha.5",
-    "@smithy-demo/iron-spider-service-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen",
+    "@test/iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen",
     "@types/aws-lambda": "^8.10.85"
   },
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "3.159.0",
-    "@aws-sdk/client-ec2": "3.159.0",
-    "aws-cdk-lib": "^2.40.0",
-    "constructs": "^10.1.93",
     "@tsconfig/node14": "^1.0.1",
     "@types/jest": "^26.0.24",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
+    "aws-cdk-lib": "^2.40.0",
+    "constructs": "^10.1.93",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-prettier": "3.4.1",
