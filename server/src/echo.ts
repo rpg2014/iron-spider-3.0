@@ -1,5 +1,5 @@
 import { Operation } from "@aws-smithy/server-common";
-import { EchoServerInput, EchoServerOutput, PalindromeException } from "@smithy-demo/iron-spider-service-ssdk";
+import { EchoServerInput, EchoServerOutput, PalindromeException } from "iron-spider-ssdk";
 import { HandlerContext } from "./apigateway";
 import { reverse } from "./util";
 

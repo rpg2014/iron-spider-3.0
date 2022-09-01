@@ -1,5 +1,5 @@
 import {AttributeValue, DynamoDBClient, GetItemCommand, GetItemCommandInput, UpdateItemCommand, UpdateItemCommandInput}  from '@aws-sdk/client-dynamodb';
-import { InternalServerError } from "@smithy-demo/iron-spider-service-ssdk";
+import { InternalServerError } from "iron-spider-ssdk";
 
 const ITEM_ID = "itemId";
 const VALUE = "value";
@@ -38,7 +38,7 @@ export class MinecraftDBWrapper {
     public async getInstanceId(): Promise<string>{
         const instanceId = await this.getItemS(INSTANCE_ID)
         if (!instanceId) {
-            throw new InternalServerError(`Unable to fetch instance id from Dynamo`)
+            throw new InternalServerError({message: `Unable to fetch instance id from Dynamo`})
         }
         return instanceId
     }
@@ -65,14 +65,14 @@ export class MinecraftDBWrapper {
     private async getItemB(itemId: string, options?: GetItemOptions): Promise<boolean>{
         const item = await this.getItem(itemId, "BOOL", options || {consistantRead: false} )
         if(item.BOOL === undefined){
-            throw new InternalServerError(`Unable to fetch ${itemId} from table ${TABLE_NAME}`)
+            throw new InternalServerError({message: `Unable to fetch ${itemId} from table ${TABLE_NAME}`})
         }
         return item.BOOL;
     }
     private async getItemS(itemId: string, options?: GetItemOptions): Promise<string> {
         const item = await this.getItem(itemId, "S", options || {consistantRead: false} )
         if(item.S === undefined){
-            throw new InternalServerError(`Unable to fetch ${itemId} from table ${TABLE_NAME}`)
+            throw new InternalServerError({message: `Unable to fetch ${itemId} from table ${TABLE_NAME}`})
         }
         return item.S
     }
@@ -89,9 +89,10 @@ export class MinecraftDBWrapper {
         const command = new GetItemCommand(input)
         const response =  await this.dynamoClient.send(command);
         if(!response.Item ) {
-            throw new InternalServerError("Unable to get item: "+ itemId)
+            throw new InternalServerError({message: "Unable to get item: "+ itemId})
         }
-        return response.Item[itemId]
+        console.log(`Got Item {} from dynamo`, JSON.stringify(response.Item))
+        return response.Item[VALUE]
     }
 
     private async setItem(itemId: string, value: boolean | string): Promise<void> {
@@ -105,7 +106,7 @@ export class MinecraftDBWrapper {
         try {
             const response = await this.dynamoClient.send(new UpdateItemCommand(input));
         }catch (e) {
-            throw new InternalServerError(`Unable to set item: ${itemId} to value: ${value}`)
+            throw new InternalServerError({message: `Unable to set item: ${itemId} to value: ${value}`})
         }
     }
 }

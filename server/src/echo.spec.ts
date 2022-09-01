@@ -1,5 +1,4 @@
 import { EchoOperation } from "./echo";
-import { PalindromeException } from "@smithy-demo/iron-spider-service-ssdk";
 
 describe("Echo tests", () => {
   const context = { user: "user123" };

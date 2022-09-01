@@ -5,7 +5,7 @@
     "ts-client": {
       "plugins": {
         "typescript-codegen": {
-          "package" : "@smithy-demo/iron-spider-client",
+          "package" : "iron-spider-client",
           "packageVersion": "0.0.1"
         }
       }

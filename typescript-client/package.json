@@ -15,7 +15,7 @@
     "str-length": "./dist/length.js"
   },
   "dependencies": {
-    "@smithy-demo/iron-spider-client": "workspace:typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
+    "iron-spider-client": "workspace:typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
   },
   "devDependencies": {
     "@tsconfig/node12": "^1.0.9",

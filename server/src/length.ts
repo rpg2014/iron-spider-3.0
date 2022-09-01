@@ -3,7 +3,7 @@ import {
   LengthServerInput,
   LengthServerOutput,
   PalindromeException,
-} from "@smithy-demo/iron-spider-service-ssdk";
+} from "iron-spider-ssdk";
 import { HandlerContext } from "./apigateway";
 import { reverse } from "./util";
 

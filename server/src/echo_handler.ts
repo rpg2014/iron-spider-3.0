@@ -1,4 +1,4 @@
-import { getEchoHandler } from "@smithy-demo/iron-spider-service-ssdk";
+import { getEchoHandler } from "iron-spider-ssdk";
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { EchoOperation } from "./echo";
 import { getApiGatewayHandler } from "./apigateway";

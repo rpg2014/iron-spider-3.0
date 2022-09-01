@@ -1,5 +1,4 @@
 import { LengthOperation } from "./length";
-import { PalindromeException } from "@smithy-demo/iron-spider-service-ssdk";
 
 describe("Length tests", () => {
   const context = { user: "user123" };

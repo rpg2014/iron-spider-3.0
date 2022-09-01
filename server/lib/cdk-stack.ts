@@ -7,12 +7,14 @@ import { AccessLogFormat, ApiDefinition, LogGroupLogDestination, MethodLoggingLe
 import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
-import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal, Role, Policy, ManagedPolicy, IPolicy, IManagedPolicy } from "aws-cdk-lib/aws-iam";
 
 export type IronSpiderServiceOperations = "Echo" | "Length" | "ServerStatus";
 type EntryMetadata = {
     handlerFile: string,
     handlerFunction?: string,
+    policies?: IManagedPolicy[],
+    memorySize?: number;
 }
 type IEntryPoints = {
     [operation in IronSpiderServiceOperations]: EntryMetadata
@@ -23,7 +25,7 @@ export class CdkStack extends Stack {
         super(scope, id, props);
 
         const logGroup = new LogGroup(this, "ApiLogs");
-
+        
         // might want to figure out how to combine several handlers in a single file.. 
         const operationData: IEntryPoints = {
             Echo: {
@@ -34,19 +36,31 @@ export class CdkStack extends Stack {
             },
             ServerStatus: {
                 handlerFile: "server_handler",
-                handlerFunction: "status_handler"
+                handlerFunction: "statusHandler",
+                memorySize: 256,
+                policies: [
+                    //Get policies from aws iam console for iron-spider-2.0 user, and copy them here.  
+                    ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"),
+                    ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess")
+                ], 
+                // test: new Policy(this, "ServerStatusPolicy", {
+                //     statements: [
+                //         new PolicyStatement
+                //     ]
+                // })
             }
         };
 
         const functions = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce(
-            (acc, operation) => ({
-                ...acc,
-                [operation]: new NodejsFunction(this, operation + "Function", {
+            (acc, operation) => {
+                const op = operationData[operation];
+                const fn = new NodejsFunction(this, operation + "Function", {
                     entry: path.join(__dirname, `../src/${operationData[operation].handlerFile}.ts`),
-                    handler: !!operationData[operation].handlerFunction 
-                        ? operationData[operation].handlerFunction 
+                    handler: !!op.handlerFunction 
+                        ? op.handlerFunction 
                         : "lambdaHandler",
                     runtime: Runtime.NODEJS_16_X,
+                    memorySize: !!op.memorySize ? op.memorySize : undefined,
                     bundling: {
                         minify: true,
                         tsconfig: path.join(__dirname, "../tsconfig.json"),
@@ -58,8 +72,15 @@ export class CdkStack extends Stack {
                         // sourceMap: true,
                         // sourceMapMode: SourceMapMode.INLINE
                     },
-                }),
-            }),
+                });
+                if (operationData[operation].policies) {
+                    operationData[operation].policies?.forEach(policy => fn.role?.addManagedPolicy(policy))
+                }
+                return {
+                    ...acc,
+                    [operation]: fn,
+                }
+            },
             {}
         ) as { [op in IronSpiderServiceOperations]: NodejsFunction };
 

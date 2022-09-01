@@ -23,12 +23,12 @@
     "dist"
   ],
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.159.0",
-    "@aws-sdk/client-ec2": "3.159.0",
+    "@aws-sdk/client-dynamodb": "^3.159.0",
+    "@aws-sdk/client-ec2": "^3.159.0",
     "@aws-smithy/server-apigateway": "^1.0.0-alpha.5",
     "@aws-smithy/server-common": "^1.0.0-alpha.5",
-    "@test/iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen",
-    "@types/aws-lambda": "^8.10.85"
+    "@types/aws-lambda": "^8.10.85",
+    "iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",

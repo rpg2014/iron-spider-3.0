@@ -5,7 +5,7 @@
     "ts-server" : {
       "plugins": {
         "typescript-ssdk-codegen" : {
-          "package" : "@test/iron-spider-ssdk",
+          "package" : "iron-spider-ssdk",
           "packageVersion": "0.0.1"
         }
       }

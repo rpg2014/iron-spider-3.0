@@ -1,4 +1,7 @@
+$version: "2"
 namespace com.rpg2014.cloud
+
+use aws.apigateway#integration
 
 apply Echo @aws.apigateway#integration(
     type: "aws_proxy",
@@ -14,7 +17,7 @@ apply Length @aws.apigateway#integration(
 
 apply ServerStatus @aws.apigateway#integration(
     type: "aws_proxy",
-    httpMethod: "GET",
+    httpMethod: "POST",
     uri: ""
 )
 
