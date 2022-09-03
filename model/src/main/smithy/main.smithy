@@ -4,6 +4,8 @@ namespace com.rpg2014.cloud
 use aws.auth#sigv4
 use aws.api#service
 use aws.protocols#restJson1
+use aws.apigateway#authorizer
+use aws.apigateway#authorizers
 use smithy.framework#ValidationException
 
 @title("Lambda backend for spiderman")
@@ -14,12 +16,20 @@ use smithy.framework#ValidationException
 // Uncomment the line below to enable cross-origin resource sharing
 @cors()
 
+
 @sigv4(name: "execute-api")
 @restJson1
 @service(sdkId: "IronSpider")
 // Can only have 1 service, so look into resources to have journal + MC paths https://awslabs.github.io/smithy/2.0/spec/service-types.html#service-resources
 //Smithy defines a resource as an entity with an identity that has a set of operations.
 // it prob makes more sense to have a resource for Journal, but MC is a set of operations, really.
+@authorizers(
+    "iron-auth": {
+        scheme: sigv4,
+        type: "request",
+        identitySource: "method.request.header.spider-access-token"
+    }
+)
 service IronSpider {
     version: "2018-05-10",
     operations: [Echo, Length, ServerStatus],
