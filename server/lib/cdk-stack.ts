@@ -39,7 +39,7 @@ export class CdkStack extends Stack {
                 handlerFunction: "statusHandler",
                 memorySize: 256,
                 policies: [
-                    //Get policies from aws iam console for iron-spider-2.0 user, and copy them here.  
+                    //TODO: Get policies from aws iam console for iron-spider-2.0 user, and copy them here.  
                     ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"),
                     ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess")
                 ], 
@@ -51,6 +51,7 @@ export class CdkStack extends Stack {
             }
         };
 
+        // Define all the lambda functions, 1 per operation above
         const functions = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce(
             (acc, operation) => {
                 const op = operationData[operation];
@@ -84,9 +85,11 @@ export class CdkStack extends Stack {
             {}
         ) as { [op in IronSpiderServiceOperations]: NodejsFunction };
 
+        //Define APIG 
         const api = new SpecRestApi(this, "IronSpiderApi", {
             apiDefinition: ApiDefinition.fromInline(this.getOpenApiDef(functions)),
             deploy: true,
+            
             deployOptions: {
                 accessLogDestination: new LogGroupLogDestination(logGroup),
                 accessLogFormat: AccessLogFormat.jsonWithStandardFields(),
@@ -105,7 +108,7 @@ export class CdkStack extends Stack {
                 ],
             }),
         });
-
+        // Give APIG execution permissions on the functions
         for (const [k, v] of Object.entries(functions)) {
             v.addPermission(`${k}Permission`, {
                 principal: new ServicePrincipal("apigateway.amazonaws.com"),

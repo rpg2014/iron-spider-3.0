@@ -20,6 +20,8 @@ export interface HandlerContext {
 export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): APIGatewayProxyHandler {
   return async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // Extract anything from the APIGateway requestContext that you'd need in your operation handler
+
+    //TODO: might need to get the user name from a header or context as parsed by the lambda authorizor.  
     const userArn = event.requestContext.identity.userArn;
     if (!userArn) {
       throw new Error("IAM Auth is not enabled");

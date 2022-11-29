@@ -27,9 +27,12 @@ use smithy.framework#ValidationException
     "iron-auth": {
         scheme: sigv4,
         type: "request",
-        identitySource: "method.request.header.spider-access-token"
+        identitySource: "method.request.header.spider-access-token",
+        uri: ""//lambda authorizor ARN, will be created later
+
     }
 )
+@authorizer("iron-auth")
 service IronSpider {
     version: "2018-05-10",
     operations: [Echo, Length, ServerStatus],
@@ -72,7 +75,16 @@ structure ServerStatusOutput {
     status: Status
 }
 
+@readonly
+@http(code: 200, method: "GET", uri: "/server/details")
+operation ServerDetails {
+    output: ServerDetailsOutput,
+    errors: [ValidationException, InternalServerError]
+}
 
+structure ServerDetailsOutput {
+    domainName: String
+}
 
 
 // @http(code: 200, method: "POST", "/journal/new")

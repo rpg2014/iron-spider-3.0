@@ -55,3 +55,19 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
         throw new InternalServerError({message: log})
     }
 };
+
+
+export const ServerDetailsOperation: Operation<{}, ServerStatusOutput, HandlerContext> = async (
+    input,
+    context
+) => {
+    console.log(`Received Status operation from: ${context.user}`);
+    const dbWrapper = new MinecraftDBWrapper()
+    if(await dbWrapper.isServerRunning()){
+        return {
+            domainName: 'mc.parkergiven.com'
+        }
+    } else {
+        throw new InternalServerError({message: "The Server is not running at the moment."})
+    }
+};

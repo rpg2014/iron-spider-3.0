@@ -3,6 +3,8 @@
 * This server + client will replicate iron-spider-2.0.  Some changes will need to be made to fit the serverless platform better like probably removing the task runner
 * auth lambda to authorize from cognito, or figure out how to do it automagically
 
+## How to deploy
+how do i deploy this shit?
 
 
 

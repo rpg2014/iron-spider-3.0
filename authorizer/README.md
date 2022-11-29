@@ -1,8 +1,6 @@
-# Welcome to your CDK TypeScript project
+# About
 
-This is a blank project for CDK development with TypeScript.
-
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+This is a lambda authorizor that verifies the header against the cognito user pool and passes on the username in the context. 
 
 ## Useful commands
 
