@@ -5,6 +5,7 @@
 
 ## How to deploy
 how do i deploy this shit?
+`cdk deploy --profile personal`
 
 
 
