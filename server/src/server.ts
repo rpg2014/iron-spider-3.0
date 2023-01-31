@@ -1,10 +1,13 @@
 import { Operation } from "@aws-smithy/server-common";
 import {
   ServerStatusOutput,
-  InternalServerError
+  InternalServerError,
+  ServerDetailsOutput,
+  StartServerOutput,
+  StopServerOutput
 } from "iron-spider-ssdk";
 import { HandlerContext } from "./apigateway";
-import {EC2Client, DescribeInstancesCommand, DescribeInstancesCommandInput} from '@aws-sdk/client-ec2'
+import {EC2Client, DescribeInstancesCommand, DescribeInstancesCommandInput, EC2ServiceException} from '@aws-sdk/client-ec2'
 import {MinecraftDBWrapper} from "./wrappers/MinecraftDynamoWrapper";
 
 enum Status {
@@ -50,14 +53,21 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
         };
 
     }catch(error: any) {
-        const log = `Error from EC2 ${JSON.stringify(error)}`
-        console.log(log)
-        throw new InternalServerError({message: log})
+        
+        if(error instanceof EC2ServiceException && error.name === 'InvalidInstanceID.NotFound') {
+            return {
+                status: Status[Status.Terminated]
+            }
+        } else {
+            const log = `Error when getting status ${JSON.stringify(error)}`
+            console.log(log)
+            throw new InternalServerError({message: log})
+        }
     }
 };
 
 
-export const ServerDetailsOperation: Operation<{}, ServerStatusOutput, HandlerContext> = async (
+export const ServerDetailsOperation: Operation<{}, ServerDetailsOutput, HandlerContext> = async (
     input,
     context
 ) => {
@@ -71,3 +81,19 @@ export const ServerDetailsOperation: Operation<{}, ServerStatusOutput, HandlerCo
         throw new InternalServerError({message: "The Server is not running at the moment."})
     }
 };
+
+export const StartServerOperation: Operation<{}, StartServerOutput, HandlerContext> = async (input, context) => {
+    //Todo: replicate logic from here: 
+    //https://github.com/rpg2014/iron-spider-2.0/blob/master/src/main/java/com/rpg2014/MinecraftServerController.java#L79
+    return {
+        serverStarted: false,
+    }
+}
+
+export const StopServerOperation: Operation<{}, StopServerOutput, HandlerContext> = async (input, context) => {
+    //Todo: replicate logic from here: 
+    //https://github.com/rpg2014/iron-spider-2.0/blob/master/src/main/java/com/rpg2014/MinecraftServerController.java#L92
+    return {
+        serverStopping: false
+    }
+}

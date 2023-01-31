@@ -2,10 +2,13 @@
 
 * This server + client will replicate iron-spider-2.0.  Some changes will need to be made to fit the serverless platform better like probably removing the task runner
 * auth lambda to authorize from cognito, or figure out how to do it automagically
+  * Will prob want to create a custom lambda authorizor with allow listed apis that don't need auth (eg. status). Then attach the custom authorizor to either the service or to the individual operations that need auth (in this case wouldn't need allowlist in lambda)
 
 ## How to deploy
 how do i deploy this shit?
-`cdk deploy --profile personal`
+`cdk deploy --profile personal` 
+or
+`yarn workspace iron-spider cdk deploy --profile personal`?
 
 
 

@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import * as path from "path";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
@@ -15,6 +16,7 @@ export class AuthorizerStack extends cdk.Stack {
     // const queue = new sqs.Queue(this, 'AuthorizerQueue', {
     //   visibilityTimeout: cdk.Duration.seconds(300)
     // });
+    const logGroup = new LogGroup(this, "IronSpiderAuthorizorLogs");
     const AuthorizerFunction = new NodejsFunction(this, 'IronAuthFunction', {
       entry: path.join(__dirname, '../src/Authorizer.ts'),
       handler: 'authHandler',

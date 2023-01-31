@@ -27,6 +27,16 @@ apply ServerDetails @aws.apigateway#integration(
     uri: ""
 )
 
+apply StartServer @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+apply StopServer @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
 // apply IronSpider @aws.auth#cognitoUserPools(
 //     providerArns: ["test"]
 // )

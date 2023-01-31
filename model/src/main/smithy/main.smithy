@@ -25,17 +25,20 @@ use smithy.framework#ValidationException
 // it prob makes more sense to have a resource for Journal, but MC is a set of operations, really.
 @authorizers(
     "iron-auth": {
-        scheme: sigv4,
+        scheme: httpBearerAuth,
         type: "request",
         identitySource: "method.request.header.spider-access-token",
-        uri: ""//lambda authorizor ARN, will be created later
-
+        //lambda authorizor ARN, will be created later
+        uri: "",
+        // Need to put the IAM role that the APIG can assume to call the auth function. 
+        credentials: ""
     }
 )
 @authorizer("iron-auth")
+@httpBearerAuth
 service IronSpider {
     version: "2018-05-10",
-    operations: [Echo, Length, ServerStatus],
+    operations: [Echo, Length, ServerStatus, ServerDetails, StartServer, StopServer],
 }
 
 /// Echo operation that receives input from body.
@@ -84,6 +87,26 @@ operation ServerDetails {
 
 structure ServerDetailsOutput {
     domainName: String
+}
+
+structure StartServerOutput {
+    serverStarted: Boolean
+}
+
+@http(code: 200, method: "POST", uri: "/server/start")
+operation StartServer {
+    output: StartServerOutput,
+    errors: [ValidationException, InternalServerError],
+}
+
+structure StopServerOutput {
+    serverStopping: Boolean,
+}
+
+@http(code:200, method: "POST", uri: "/server/stop")
+operation StopServer {
+    output: StopServerOutput,
+    errors: [ValidationException, InternalServerError],
 }
 
 

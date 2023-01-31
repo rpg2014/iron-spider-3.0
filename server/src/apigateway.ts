@@ -23,6 +23,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
     //TODO: might need to get the user name from a header or context as parsed by the lambda authorizor.  
     const userArn = event.requestContext.identity.userArn;
+    console.log(event)
     if (!userArn) {
       throw new Error("IAM Auth is not enabled");
     }

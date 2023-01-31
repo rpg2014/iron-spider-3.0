@@ -2,14 +2,13 @@ import { readFileSync } from "fs";
 import * as path from "path";
 import { Stack, StackProps } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-// import { IronSpiderServiceOperations } from "@smithy-demo/iron-spider-service-ssdk";
-import { AccessLogFormat, ApiDefinition, LogGroupLogDestination, MethodLoggingLevel, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
+import { IronSpiderServiceOperations } from "iron-spider-ssdk";
+import { AccessLogFormat, ApiDefinition, AuthorizationType, LogGroupLogDestination, MethodLoggingLevel, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal, Role, Policy, ManagedPolicy, IPolicy, IManagedPolicy } from "aws-cdk-lib/aws-iam";
 
-export type IronSpiderServiceOperations = "Echo" | "Length" | "ServerStatus";
 type EntryMetadata = {
     handlerFile: string,
     handlerFunction?: string,
@@ -38,16 +37,22 @@ export class CdkStack extends Stack {
                 handlerFile: "server_handler",
                 handlerFunction: "statusHandler",
                 memorySize: 256,
-                policies: [
-                    //TODO: Get policies from aws iam console for iron-spider-2.0 user, and copy them here.  
-                    ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"),
-                    ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess")
-                ], 
-                // test: new Policy(this, "ServerStatusPolicy", {
-                //     statements: [
-                //         new PolicyStatement
-                //     ]
-                // })
+                policies: getMinecraftPolicies(), 
+            },
+            ServerDetails: {
+                handlerFile: 'server_handler',
+                handlerFunction: 'detailsHandler',
+                policies: getMinecraftPolicies(),
+            },
+            StartServer: {
+                handlerFile: 'server_handler',
+                handlerFunction: 'startHandler',
+                policies: getMinecraftPolicies(),
+            },
+            StopServer: {
+                handlerFile: 'server_handler',
+                handlerFunction: 'stopHandler',
+                policies: getMinecraftPolicies(),
             }
         };
 
@@ -148,4 +153,13 @@ export class CdkStack extends Stack {
         }
         return openapi;
     }
+}
+
+
+const getMinecraftPolicies = () => {
+    return [
+        //TODO: Get policies from aws iam console for iron-spider-2.0 user, and copy them here.  
+        ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"),
+        ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess")
+    ]
 }
