@@ -4,7 +4,7 @@ import { Stack, StackProps } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import { IronSpiderServiceOperations } from "iron-spider-ssdk";
 import { AccessLogFormat, ApiDefinition, AuthorizationType, LogGroupLogDestination, MethodLoggingLevel, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
-import { LogGroup } from "aws-cdk-lib/aws-logs";
+import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal, Role, Policy, ManagedPolicy, IPolicy, IManagedPolicy } from "aws-cdk-lib/aws-iam";
@@ -67,6 +67,7 @@ export class CdkStack extends Stack {
                         : "lambdaHandler",
                     runtime: Runtime.NODEJS_16_X,
                     memorySize: !!op.memorySize ? op.memorySize : undefined,
+                    // logRetention: RetentionDays.THREE_MONTHS,
                     bundling: {
                         minify: true,
                         tsconfig: path.join(__dirname, "../tsconfig.json"),

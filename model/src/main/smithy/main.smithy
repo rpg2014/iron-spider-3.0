@@ -23,19 +23,10 @@ use smithy.framework#ValidationException
 // Can only have 1 service, so look into resources to have journal + MC paths https://awslabs.github.io/smithy/2.0/spec/service-types.html#service-resources
 //Smithy defines a resource as an entity with an identity that has a set of operations.
 // it prob makes more sense to have a resource for Journal, but MC is a set of operations, really.
-@authorizers(
-    "iron-auth": {
-        scheme: httpBearerAuth,
-        type: "request",
-        identitySource: "method.request.header.spider-access-token",
-        //lambda authorizor ARN, will be created later
-        uri: "",
-        // Need to put the IAM role that the APIG can assume to call the auth function. 
-        credentials: ""
-    }
+@httpApiKeyAuth(
+    name: "spider-access-token",
+    in: "header"
 )
-@authorizer("iron-auth")
-@httpBearerAuth
 service IronSpider {
     version: "2018-05-10",
     operations: [Echo, Length, ServerStatus, ServerDetails, StartServer, StopServer],

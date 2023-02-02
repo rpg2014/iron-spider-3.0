@@ -30,8 +30,6 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
     const dbWrapper = new MinecraftDBWrapper()
     const client = new EC2Client({ region: "us-east-1" });
 
-
-    
     const describeInstanceInput: DescribeInstancesCommandInput = {
         InstanceIds: [await dbWrapper.getInstanceId()]
     }
@@ -41,7 +39,7 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
     
 
         const code: number | undefined = response.Reservations?.[0].Instances?.[0].State?.Code;
-                            // if
+        
         let status: string = response.Reservations?.length === 0 || code === undefined
             // then
             ? Status[Status.Terminated]
@@ -71,7 +69,7 @@ export const ServerDetailsOperation: Operation<{}, ServerDetailsOutput, HandlerC
     input,
     context
 ) => {
-    console.log(`Received Status operation from: ${context.user}`);
+    console.log(`Received Details operation from: ${context.user}`);
     const dbWrapper = new MinecraftDBWrapper()
     if(await dbWrapper.isServerRunning()){
         return {

@@ -25,14 +25,16 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.159.0",
     "@aws-sdk/client-ec2": "^3.159.0",
-    "@aws-smithy/server-apigateway": "^1.0.0-alpha.5",
-    "@aws-smithy/server-common": "^1.0.0-alpha.5",
+    "@aws-sdk/client-route-53": "^3.261.0",
+    "@aws-smithy/server-apigateway": "^1.0.0-alpha.7",
+    "@aws-smithy/server-common": "^1.0.0-alpha.7",
     "@types/aws-lambda": "^8.10.85",
     "iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",
     "@types/jest": "^26.0.24",
+    "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "aws-cdk-lib": "^2.40.0",

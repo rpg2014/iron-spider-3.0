@@ -2,7 +2,11 @@ $version: "2"
 namespace com.rpg2014.cloud
 
 use aws.apigateway#integration
+use aws.apigateway#authorizer
+use aws.apigateway#authorizers
+use aws.apigateway#apiKeySource
 
+// All of the http methods MUST be POST, b/c thats how APIG has to call lambda as part of that integration.
 apply Echo @aws.apigateway#integration(
     type: "aws_proxy",
     httpMethod: "POST",
@@ -17,13 +21,13 @@ apply Length @aws.apigateway#integration(
 
 apply ServerStatus @aws.apigateway#integration(
     type: "aws_proxy",
-    httpMethod: "GET",
+    httpMethod: "POST",
     uri: ""
 )
 
 apply ServerDetails @aws.apigateway#integration(
     type: "aws_proxy",
-    httpMethod: "GET",
+    httpMethod: "POST",
     uri: ""
 )
 
@@ -37,6 +41,19 @@ apply StopServer @aws.apigateway#integration(
     httpMethod: "POST",
     uri: ""
 )
+
+//Auth stuff
+apply IronSpider @authorizers(
+    "iron-auth": {
+        scheme: httpApiKeyAuth,
+        type: "request",
+        identitySource: "method.request.header.spider-access-token",
+        //lambda authorizor ARN, will be created later
+        }
+)
+apply IronSpider @authorizer("iron-auth")
+
+apply IronSpider @apiKeySource("AUTHORIZER")
 // apply IronSpider @aws.auth#cognitoUserPools(
 //     providerArns: ["test"]
 // )

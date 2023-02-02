@@ -10,6 +10,16 @@ how do i deploy this shit?
 or
 `yarn workspace iron-spider cdk deploy --profile personal`?
 
+## how to build 
+1. ./gradlew build && yarn install && yarn build
+   1. this will fail, probably on the yarn build part
+2. cd server
+   1. start here on subsuquent builds
+3. yarn run regenerate:ssdk
+   1. this will also fail
+4. `yarn run build:ssdk`
+5. `cdk diff --profile personal`?
+   1. the cdk tool will build the typescript I think.
 
 
 
