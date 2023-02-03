@@ -18,9 +18,15 @@ type EntryMetadata = {
 type IEntryPoints = {
     [operation in IronSpiderServiceOperations]: EntryMetadata
 }
+type OtherProps = {
+    authorizerInfo: {
+        fnArn: string,
+        roleArn: string,
+    }
+}
 
 export class CdkStack extends Stack {
-    constructor(scope: Construct, id: string, props?: StackProps) {
+    constructor(scope: Construct, id: string, props: StackProps  & OtherProps) {
         super(scope, id, props);
 
         const logGroup = new LogGroup(this, "ApiLogs");
@@ -92,8 +98,10 @@ export class CdkStack extends Stack {
         ) as { [op in IronSpiderServiceOperations]: NodejsFunction };
 
         //Define APIG 
+        const apiDef = ApiDefinition.fromInline(this.getOpenApiDef(functions, props?.authorizerInfo))
+        
         const api = new SpecRestApi(this, "IronSpiderApi", {
-            apiDefinition: ApiDefinition.fromInline(this.getOpenApiDef(functions)),
+            apiDefinition: apiDef,
             deploy: true,
             
             deployOptions: {
@@ -123,13 +131,15 @@ export class CdkStack extends Stack {
         }
     }
 
-    private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction }) {
+    private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction}, authorizerInfo: {fnArn: string, roleArn: string}) {
         const openapi = JSON.parse(
             readFileSync(
                 path.join(__dirname, "../codegen/build/smithyprojections/server-codegen/apigateway/openapi/IronSpider.openapi.json"),
                 "utf8"
             )
         );
+
+        //Add CDK generated function arns to the open api definition
         for (const path in openapi.paths) {
             for (const operation in openapi.paths[path]) {
                 const op = openapi.paths[path][operation];
@@ -152,7 +162,15 @@ export class CdkStack extends Stack {
                 ].uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
             }
         }
-        return openapi;
+
+        //Add authorizer fn and role to the open API def, easy way
+        let openapiString = JSON.stringify(openapi).replace("{{AUTH_FUNCTION_ARN}}", `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${authorizerInfo.fnArn}/invocations`)
+            .replace("{{AUTH_ROLE_ARN}}", authorizerInfo.roleArn)
+        return JSON.parse(openapiString)
+        // or in a different way
+        // openapi['components']['securitySchemes']['iron-auth']['x-amazon-apigateway-authorizer'].authorizerUri = authorizerInfo.fnArn
+        // openapi['components']['securitySchemes']['iron-auth']['x-amazon-apigateway-authorizer'].credentials = authorizerInfo.roleArn
+        // return openapi
     }
 }
 

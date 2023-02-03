@@ -1741,7 +1741,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-smithy/server-apigateway@npm:^1.0.0-alpha.5":
+"@aws-smithy/server-apigateway@npm:^1.0.0-alpha.7":
   version: 1.0.0-alpha.7
   resolution: "@aws-smithy/server-apigateway@npm:1.0.0-alpha.7"
   dependencies:
@@ -3781,10 +3781,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"constructs@npm:^10.1.93":
-  version: 10.1.238
-  resolution: "constructs@npm:10.1.238"
-  checksum: abc4b1d5a6338eb3d8546172c146df8a9714be3b045a91425e7c60eb1596fb9470298713e9673c575c5670f4ee3bb82ba7ec82a4fbe5bf478afd050ca2da4d75
+"constructs@npm:10.1.93":
+  version: 10.1.93
+  resolution: "constructs@npm:10.1.93"
+  checksum: 28047464cfdfebf718ed0de2105eb880353503d3015719efe8ee1bab32d91977e22d98f29b5a72e67b62cec9c2ba014c287730933bc97c46e8265fc229f49e7d
   languageName: node
   linkType: hard
 
@@ -5526,7 +5526,7 @@ __metadata:
     "@aws-sdk/client-dynamodb": ^3.159.0
     "@aws-sdk/client-ec2": ^3.159.0
     "@aws-sdk/client-route-53": ^3.261.0
-    "@aws-smithy/server-apigateway": ^1.0.0-alpha.5
+    "@aws-smithy/server-apigateway": ^1.0.0-alpha.7
     "@aws-smithy/server-common": ^1.0.0-alpha.7
     "@tsconfig/node14": ^1.0.1
     "@types/aws-lambda": ^8.10.85
@@ -5535,7 +5535,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.6.0
     "@typescript-eslint/parser": ^5.6.0
     aws-cdk-lib: ^2.40.0
-    constructs: ^10.1.93
+    constructs: 10.1.93
     eslint: 7.32.0
     eslint-config-prettier: 8.3.0
     eslint-plugin-prettier: 3.4.1

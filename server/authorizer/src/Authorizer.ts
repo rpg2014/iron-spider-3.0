@@ -2,7 +2,12 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { event } from "./model/models";
 import { generateAllow, generateDeny } from "./utils";
 
-
+const verifier = CognitoJwtVerifier.create({
+    userPoolId: "us-east-1_mX9fI3lzt",
+    tokenUse: "access",
+    clientId: "333d4m712mtbsjpaj5efdj0fh4",
+    includeRawJwtInErrors: true
+  });
 
 export const authHandler = async (event: event, context, callback) => {     
     //Not sure if this is necessary

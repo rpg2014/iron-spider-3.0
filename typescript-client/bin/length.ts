@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import {LengthCommand, IronSpiderClient} from "@smithy-demo/iron-spider-client";
+import {LengthCommand, IronSpiderClient} from "iron-spider-client";
 
 const client = new IronSpiderClient({endpoint: process.argv[2]});
 

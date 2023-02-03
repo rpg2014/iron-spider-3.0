@@ -49,7 +49,10 @@ apply IronSpider @authorizers(
         type: "request",
         identitySource: "method.request.header.spider-access-token",
         //lambda authorizor ARN, will be created later
-        }
+        uri: "{{AUTH_FUNCTION_ARN}}",
+        // Need to put the IAM role that the APIG can assume to call the auth function. 
+        credentials: "{{AUTH_ROLE_ARN}}"
+    }
 )
 apply IronSpider @authorizer("iron-auth")
 
