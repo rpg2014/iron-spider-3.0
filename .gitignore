@@ -6,3 +6,4 @@
 /.yarn/install-state.gz
 /.yarn/cache
 /server/.aws-sam/
+/model/bin/

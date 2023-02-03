@@ -3,11 +3,14 @@ import * as path from "path";
 import { Stack, StackProps } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import { IronSpiderServiceOperations } from "iron-spider-ssdk";
-import { AccessLogFormat, ApiDefinition, AuthorizationType, LogGroupLogDestination, MethodLoggingLevel, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
+import { AccessLogFormat, ApiDefinition, AuthorizationType, DomainName, LogGroupLogDestination, MethodLoggingLevel, SecurityPolicy, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal, Role, Policy, ManagedPolicy, IPolicy, IManagedPolicy } from "aws-cdk-lib/aws-iam";
+import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 
 type EntryMetadata = {
     handlerFile: string,
@@ -73,7 +76,7 @@ export class CdkStack extends Stack {
                         : "lambdaHandler",
                     runtime: Runtime.NODEJS_16_X,
                     memorySize: !!op.memorySize ? op.memorySize : undefined,
-                    // logRetention: RetentionDays.THREE_MONTHS,
+                    logRetention: RetentionDays.SIX_MONTHS,
                     bundling: {
                         minify: true,
                         tsconfig: path.join(__dirname, "../tsconfig.json"),
@@ -121,7 +124,14 @@ export class CdkStack extends Stack {
                     }),
                 ],
             }),
+            // Add Domain name to api. (Do i need a base path mapping?)
+            domainName: {
+                domainName: "api.parkergiven.com",
+                certificate: Certificate.fromCertificateArn(this, "certArn", "arn:aws:acm:us-east-1:593242635608:certificate/e4ad77f4-1e1b-49e4-9afb-ac94e35bc378"),
+                securityPolicy: SecurityPolicy.TLS_1_2
+            }
         });
+        
         // Give APIG execution permissions on the functions
         for (const [k, v] of Object.entries(functions)) {
             v.addPermission(`${k}Permission`, {
@@ -129,6 +139,13 @@ export class CdkStack extends Stack {
                 sourceArn: `arn:${this.partition}:execute-api:${this.region}:${this.account}:${api.restApiId}/*/*/*`,
             });
         }
+
+        // Add route 53 alias record to the hosted zone. 
+        new ARecord(this, "IronSpiderAPIARecord", {
+            recordName: "api.parkergiven.com",
+            zone: HostedZone.fromHostedZoneId(this, "MainHostedZone", "ZSXXJQ44AUHG2"),
+            target: RecordTarget.fromAlias(new ApiGateway(api))
+        })
     }
 
     private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction}, authorizerInfo: {fnArn: string, roleArn: string}) {
