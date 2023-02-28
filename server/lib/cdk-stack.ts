@@ -143,7 +143,10 @@ export class CdkStack extends Stack {
         // Add route 53 alias record to the hosted zone. 
         new ARecord(this, "IronSpiderAPIARecord", {
             recordName: "api.parkergiven.com",
-            zone: HostedZone.fromHostedZoneId(this, "MainHostedZone", "ZSXXJQ44AUHG2"),
+            zone: HostedZone.fromHostedZoneAttributes(this, "MainHostedZone", {
+                zoneName: "parkergiven.com",
+                hostedZoneId: "ZSXXJQ44AUHG2"
+            }),
             target: RecordTarget.fromAlias(new ApiGateway(api))
         })
     }
