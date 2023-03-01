@@ -106,7 +106,7 @@ export class CdkStack extends Stack {
         const api = new SpecRestApi(this, "IronSpiderApi", {
             apiDefinition: apiDef,
             deploy: true,
-            
+            disableExecuteApiEndpoint: true,
             deployOptions: {
                 accessLogDestination: new LogGroupLogDestination(logGroup),
                 accessLogFormat: AccessLogFormat.jsonWithStandardFields(),
@@ -128,7 +128,7 @@ export class CdkStack extends Stack {
             domainName: {
                 domainName: "api.parkergiven.com",
                 certificate: Certificate.fromCertificateArn(this, "certArn", "arn:aws:acm:us-east-1:593242635608:certificate/e4ad77f4-1e1b-49e4-9afb-ac94e35bc378"),
-                securityPolicy: SecurityPolicy.TLS_1_2
+                securityPolicy: SecurityPolicy.TLS_1_2,
             }
         });
         
