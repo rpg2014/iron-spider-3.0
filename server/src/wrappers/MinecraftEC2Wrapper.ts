@@ -14,11 +14,13 @@ import {
 	RunInstancesCommandOutput,
 	Snapshot,
 	StartInstancesCommand,
+	StartInstancesCommandOutput,
 	StopInstancesCommand, StopInstancesCommandInput,
 	TerminateInstancesCommand,
 } from '@aws-sdk/client-ec2';
 import { InternalServerError } from "iron-spider-ssdk";
-import {MinecraftDBWrapper} from './MinecraftDynamoWrapper';
+import { MinecraftDBWrapper } from './MinecraftDynamoWrapper';
+
 
 export class MinecraftEC2Wrapper {
 
@@ -32,7 +34,7 @@ export class MinecraftEC2Wrapper {
     private static readonly SERVER_DETAILS = new MinecraftDBWrapper();
     private static readonly EC2_CLIENT = new EC2Client({region: 'us-east-1'});
 
-    private static IMAGE_ID: string | undefined;
+    // private static IMAGE_ID: string | undefined;
     private static ourInstance: MinecraftEC2Wrapper;
 
     public static getInstance(): MinecraftEC2Wrapper {
@@ -53,7 +55,7 @@ export class MinecraftEC2Wrapper {
                 SecurityGroupIds: [MinecraftEC2Wrapper.SECURITY_GROUP_ID],
                 KeyName: 'Minecraft Server',
             };
-            let runInstancesResponse
+            let runInstancesResponse: RunInstancesCommandOutput;
             try{
                 runInstancesResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new RunInstancesCommand(runInstancesCommandInput));
             }catch (e){
@@ -62,17 +64,16 @@ export class MinecraftEC2Wrapper {
             }
             const instanceId = this.getInstanceId(runInstancesResponse);
             await MinecraftEC2Wrapper.SERVER_DETAILS.setInstanceId(instanceId);
-            let startInstanceResponse;
+            let startInstanceResponse: StartInstancesCommandOutput;
             try {
                 startInstanceResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new StartInstancesCommand({InstanceIds: [instanceId]})); 
             } catch(e){
-                console.error( `Threw error ${JSON.stringify(e)} with input ${JSON.stringify(startInstanceResponse)}`)
-                throw new InternalServerError({message: `Running the instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(startInstanceResponse)}`})
+                console.error( `Threw error ${JSON.stringify(e)} with input ${JSON.stringify(instanceId)}`)
+                throw new InternalServerError({message: `Running the instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(instanceId)}`})
             } 
-            const success = !!(startInstanceResponse.StartingInstances?.[0].CurrentState?.Code && startInstanceResponse.StartingInstances?.[0].CurrentState?.Code < 32);
+            const success = !!(startInstanceResponse.StartingInstances?.[0]?.CurrentState?.Code && startInstanceResponse.StartingInstances?.[0].CurrentState?.Code < 32);
+            console.log(`Success is ${success}`)
             if (success) {
-                console.info('Started server');
-                MinecraftEC2Wrapper.IMAGE_ID = await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId();
                 await MinecraftEC2Wrapper.SERVER_DETAILS.setServerRunning();
             }
             return success;
@@ -102,36 +103,38 @@ export class MinecraftEC2Wrapper {
 
     public async stopInstance(): Promise<boolean> {
         if (await MinecraftEC2Wrapper.SERVER_DETAILS.isServerRunning() || await this.isInstanceUp()) {
+            // Get instance info from dynamo
             const instanceId = await MinecraftEC2Wrapper.SERVER_DETAILS.getInstanceId();
-            const currentAMIId = await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId();
-            const currentSnapshot = await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId();
+            const originalAMIId = await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId();
+            const originalSnapshot = await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId();
 
-            if (MinecraftEC2Wrapper.IMAGE_ID !== currentAMIId) {
-                await console.error(`OLD AMI IS OUT OF DATE, oldami: ${MinecraftEC2Wrapper.IMAGE_ID} , 
-                    dynamoAMI: ${currentAMIId}`);
-            }
 
 			const stopInstancesCommandInput: StopInstancesCommandInput = {
 				InstanceIds: [instanceId]
 			};
+            try {
             await MinecraftEC2Wrapper.EC2_CLIENT.send(new StopInstancesCommand(stopInstancesCommandInput));
+            } catch (e){
+                console.error(`Threw error ${JSON.stringify(e)} with input ${JSON.stringify(stopInstancesCommandInput)}`)
+            }
 
             await this.waitForServerStop(instanceId);
             await MinecraftEC2Wrapper.SERVER_DETAILS.setServerStopped();
-            const amiId = await this.makeAMI(instanceId);
+            const newAMIId = await this.makeAMI(instanceId);
             await this.waitForSnapshotToBeCreated();
             await this.waitForAMIToBeCreated();
 
-            await MinecraftEC2Wrapper.SERVER_DETAILS.setAmiId(amiId);
+            await MinecraftEC2Wrapper.SERVER_DETAILS.setAmiId(newAMIId);
             await MinecraftEC2Wrapper.SERVER_DETAILS.setSnapshotId(await this.getNewestSnapshot());
 
-            await console.info('Server Stopped');
+            console.info('Server Stopped');
 
-            if (currentAMIId && currentSnapshot &&
-                (await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId() !== currentAMIId)
-                && (await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId() !== currentSnapshot)) {
-                await console.info('Deleting old snapshot_id');
-                await this.deleteOldAmi(currentAMIId, currentSnapshot);
+            //Check to make sure that the the ami id and Snapshot id have changed since we started this function, and that new ones have been created
+            if (originalAMIId && originalSnapshot &&
+                (await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId() !== originalAMIId)
+                && (await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId() !== originalSnapshot)) {
+                console.info('Deleting old snapshot_id');
+                await this.deleteOldAmi(originalAMIId, originalSnapshot);
             }
 
 			const terminateInstancesCommandInput = {
@@ -143,7 +146,7 @@ export class MinecraftEC2Wrapper {
             const success = !!(terminateInstancesResult.TerminatingInstances?.[0].CurrentState?.Code &&
                 terminateInstancesResult.TerminatingInstances[0].CurrentState.Code > 32);
             if (success) {
-                await console.info('Terminated Server');
+                 console.info('Terminated Server');
             }
 
             await MinecraftEC2Wrapper.SERVER_DETAILS.setServerStopped();
@@ -153,13 +156,15 @@ export class MinecraftEC2Wrapper {
         }
     }
 
+    /**
+     * We wait until the AMI is created, and that there is more than 1 image avalible
+     */
     private async waitForAMIToBeCreated(): Promise<void> {
         let response: DescribeImagesResult;
-
+        let retryNum: number = 0;
         do {
-            await console.info('Waiting for ami to be created');
+            console.info('Waiting for ami to be created');
             await this.sleep(1000);
-
 			const describeImagesCommandInput: DescribeImagesCommandInput = {
 				ExecutableUsers: ['self'],
 				Filters: [
@@ -170,27 +175,36 @@ export class MinecraftEC2Wrapper {
 				]
 			};
             response = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeImagesCommand(describeImagesCommandInput));
-            await console.info(response.toString());
+            console.info(response.toString());
 
             if (response.Images?.find(image => image.State === ImageState.failed || image.State === ImageState.error)) {
-                await console.error('There is a failed ami');
+                console.error('There is a failed ami');
+                throw new InternalServerError({ message: 'There is a failed ami' });
             }
+            retryNum++
         } while (response.Images?.find(image => image.State === ImageState.pending));
     }
 
+    /**
+     * Snapshot is created when an AMI is created, so we wait until there is more than 1 snapshot, so we can be more confident that 
+     * we aren't deleting the last backup.  We wait until all snapshots are complete, so if there's more than 1 being made at a time, this will
+     * break.  
+     */
     private async waitForSnapshotToBeCreated(): Promise<void> {
         let response: DescribeSnapshotsResult;
         let finishedSnapshots: Snapshot[] = [];
 
         do {
-            await console.info('Waiting for snapshot to be created');
+            console.info('Waiting for snapshot to be created');
             await this.sleep(5000);
 
 			const describeSnapshotsCommandInput: DescribeSnapshotsCommandInput = {
 				OwnerIds: [MinecraftEC2Wrapper.AWS_ACCOUNT_ID.replace(/-/g, '')]
 			};
+
             response = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeSnapshotsCommand(describeSnapshotsCommandInput));
 
+            //If we have a backup snapshot + 1 more
             if (response.Snapshots?.length && response.Snapshots?.length > 1) {
                 finishedSnapshots = response.Snapshots.filter(snapshot => snapshot.Progress?.includes('100'));
             }
@@ -198,16 +212,21 @@ export class MinecraftEC2Wrapper {
     }
 
     private async waitForServerStop(instanceId: string): Promise<void> {
-        await console.info(`Waiting for instance ${instanceId} to stop`);
+        console.info(`Waiting for instance ${instanceId} to stop`);
         do {
             try {
                 await this.sleep(5000);
             } catch (e) {
-                await console.error(e);
+                console.error(e);
+                throw InternalServerError({message: `Error json stringify: ${e} when sleeping, waiting for server to stop`})
             }
         } while (!await this.isInstanceStopped());
     }
 
+    /**
+     * Gets the newest snapshot, and returns the snapshot id. This snapshot id is used to delete the snapshot.
+     * @returns 
+     */
     private async getNewestSnapshot(): Promise<string> {
 		const describeSnapshotsCommandInput: DescribeSnapshotsCommandInput = {
 			OwnerIds: [MinecraftEC2Wrapper.AWS_ACCOUNT_ID.replace(/-/g, '')]
@@ -235,15 +254,26 @@ export class MinecraftEC2Wrapper {
         await MinecraftEC2Wrapper.EC2_CLIENT.send(new DeleteSnapshotCommand(deleteSnapshotCommandInput));
     }
 
+    /**
+     * Creates the AMI from the instance, and returns the AMI id. Creating an AMI also creates a snapshot
+     * @param instanceId 
+     * @returns 
+     */
     private async makeAMI(instanceId: string): Promise<string> {
 		const createImageCommandInput: CreateImageCommandInput = {
 			InstanceId: instanceId,
 			Name: MinecraftEC2Wrapper.AMI_NAME + '-' + Date.now().toString(),
 		};
-        const createImageResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new CreateImageCommand(createImageCommandInput));
-        const amiId = createImageResponse.ImageId!;
-        console.info('Created AMI, image id: ' + amiId);
-        return amiId;
+        console.info(`Making AMI with command ${JSON.stringify(createImageCommandInput)}`);
+        try{
+            const createImageResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new CreateImageCommand(createImageCommandInput));
+            const amiId = createImageResponse.ImageId!;
+            console.info('Created AMI, image id: ' + amiId);
+            return amiId;
+        } catch (e) {
+            console.error(e);
+            throw InternalServerError({ message: `Error json stringify: ${e} when making AMI` })
+        }
     }
 
     public async rebootInstance(): Promise<void> {
@@ -304,7 +334,7 @@ export class MinecraftEC2Wrapper {
         }
         const isDown = response.Reservations?.[0].Instances?.[0].State?.Code === 80;
         if (isDown) {
-            await console.info(
+            console.info(
                 `Server Instance ${await MinecraftEC2Wrapper.SERVER_DETAILS.getInstanceId()} is down`);
         }
         return isDown;
