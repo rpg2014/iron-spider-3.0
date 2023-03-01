@@ -17,7 +17,7 @@ import {
 	StopInstancesCommand, StopInstancesCommandInput,
 	TerminateInstancesCommand,
 } from '@aws-sdk/client-ec2';
-
+import { InternalServerError } from "iron-spider-ssdk";
 import {MinecraftDBWrapper} from './MinecraftDynamoWrapper';
 
 export class MinecraftEC2Wrapper {
@@ -53,20 +53,25 @@ export class MinecraftEC2Wrapper {
                 SecurityGroupIds: [MinecraftEC2Wrapper.SECURITY_GROUP_ID],
                 KeyName: 'Minecraft Server',
             };
-            const runInstancesResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new RunInstancesCommand(runInstancesCommandInput));
-            const instanceId = await this.getInstanceId(runInstancesResponse);
+            let runInstancesResponse
+            try{
+                runInstancesResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new RunInstancesCommand(runInstancesCommandInput));
+            }catch (e){
+                console.error(e)
+                throw new InternalServerError({message: `Running the instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(runInstancesCommandInput)}`})
+            }
+            const instanceId = this.getInstanceId(runInstancesResponse);
             await MinecraftEC2Wrapper.SERVER_DETAILS.setInstanceId(instanceId);
-            const request = new StartInstancesCommand({InstanceIds: [instanceId]});
-            let success = false;
-            await MinecraftEC2Wrapper.EC2_CLIENT
-                .send(request)
-                .then(response => {
-                    success = !!(response.StartingInstances?.[0].CurrentState?.Code &&
-                        response.StartingInstances?.[0].CurrentState?.Code < 32);
-                })
-                .catch(error => console.error(error));
+            let startInstanceResponse;
+            try {
+                startInstanceResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new StartInstancesCommand({InstanceIds: [instanceId]})); 
+            } catch(e){
+                console.error( `Threw error ${JSON.stringify(e)} with input ${JSON.stringify(startInstanceResponse)}`)
+                throw new InternalServerError({message: `Running the instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(startInstanceResponse)}`})
+            } 
+            const success = !!(startInstanceResponse.StartingInstances?.[0].CurrentState?.Code && startInstanceResponse.StartingInstances?.[0].CurrentState?.Code < 32);
             if (success) {
-                await console.info('Started server');
+                console.info('Started server');
                 MinecraftEC2Wrapper.IMAGE_ID = await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId();
                 await MinecraftEC2Wrapper.SERVER_DETAILS.setServerRunning();
             }
@@ -75,8 +80,12 @@ export class MinecraftEC2Wrapper {
             return false;
         }
     }
-
-    private async getInstanceId(runInstancesResponse: RunInstancesCommandOutput): Promise<string> {
+    /**
+     * Used for getting the single instance id out of the response
+     * @param runInstancesResponse 
+     * @returns 
+     */
+    private getInstanceId(runInstancesResponse: RunInstancesCommandOutput): string {
         const instanceList = runInstancesResponse.Instances || [];
         const idList: string[] = [];
         for (const instance of instanceList) {
@@ -84,12 +93,11 @@ export class MinecraftEC2Wrapper {
                 idList.push(instance.InstanceId);
             }
         }
-
         if (idList.length === 1) {
             return idList[0];
         } else {
-            return 'error';
-        }
+            throw new InternalServerError({ message: `There is more than 1 instance id present: ${JSON.stringify(idList)}` })
+        } 
     }
 
     public async stopInstance(): Promise<boolean> {
@@ -234,7 +242,7 @@ export class MinecraftEC2Wrapper {
 		};
         const createImageResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new CreateImageCommand(createImageCommandInput));
         const amiId = createImageResponse.ImageId!;
-        await console.info('Created AMI, image id: ' + amiId);
+        console.info('Created AMI, image id: ' + amiId);
         return amiId;
     }
 
