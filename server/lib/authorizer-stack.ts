@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { CfnOutput } from 'aws-cdk-lib';
+import { CfnOutput, Duration } from 'aws-cdk-lib';
 import { PolicyDocument, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -23,10 +23,14 @@ export class AuthorizerStack extends cdk.Stack {
       entry: path.join(__dirname, '../authorizer/src/Authorizer.ts'),
       handler: 'authHandler',
       runtime: Runtime.NODEJS_16_X,
-      memorySize: 128,
+      memorySize: 256,
+      timeout: Duration.seconds(10),
       bundling: {
         minify: true,
         tsconfig: path.join(__dirname, "../tsconfig.json"),
+        // re2-wasm is used by the SSDK common library to do pattern validation, and uses
+        // a WASM module, so it's excluded from the bundle
+        nodeModules: ["re2-wasm"],
       }
     })
 

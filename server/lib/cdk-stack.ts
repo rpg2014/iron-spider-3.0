@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import * as path from "path";
-import { Stack, StackProps } from 'aws-cdk-lib'
+import { Duration, Stack, StackProps } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import { IronSpiderServiceOperations } from "iron-spider-ssdk";
 import { AccessLogFormat, ApiDefinition, AuthorizationType, DomainName, LogGroupLogDestination, MethodLoggingLevel, SecurityPolicy, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
@@ -13,6 +13,7 @@ import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 
 type EntryMetadata = {
+    timeout?: Duration;
     handlerFile: string,
     handlerFunction?: string,
     policies?: IManagedPolicy[],
@@ -35,13 +36,8 @@ export class CdkStack extends Stack {
         const logGroup = new LogGroup(this, "ApiLogs");
         
         // might want to figure out how to combine several handlers in a single file.. 
+        //List of handlers / operations, and their definitions 
         const operationData: IEntryPoints = {
-            Echo: {
-                handlerFile: "echo_handler"
-            },
-            Length: {
-                handlerFile: "length_handler"
-            },
             ServerStatus: {
                 handlerFile: "server_handler",
                 handlerFunction: "statusHandler",
@@ -51,16 +47,21 @@ export class CdkStack extends Stack {
             ServerDetails: {
                 handlerFile: 'server_handler',
                 handlerFunction: 'detailsHandler',
+                memorySize: 256,
                 policies: getMinecraftPolicies(),
             },
             StartServer: {
                 handlerFile: 'server_handler',
                 handlerFunction: 'startHandler',
+                memorySize: 256,
+                timeout: Duration.minutes(3),
                 policies: getMinecraftPolicies(),
             },
             StopServer: {
                 handlerFile: 'server_handler',
                 handlerFunction: 'stopHandler',
+                timeout: Duration.minutes(5),
+                memorySize: 256,
                 policies: getMinecraftPolicies(),
             }
         };
@@ -76,6 +77,7 @@ export class CdkStack extends Stack {
                         : "lambdaHandler",
                     runtime: Runtime.NODEJS_16_X,
                     memorySize: !!op.memorySize ? op.memorySize : undefined,
+                    timeout: !!op.timeout ? op.timeout: undefined,
                     logRetention: RetentionDays.SIX_MONTHS,
                     bundling: {
                         minify: true,

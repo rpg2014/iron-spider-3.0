@@ -48,7 +48,7 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
             ? Status[Status.Terminated]
             // else
             : Status[code]
-
+        console.log(`Instance status: ${status}`)
         return {
             status
         };

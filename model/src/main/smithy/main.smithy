@@ -14,7 +14,7 @@ use smithy.framework#ValidationException
 // Cors should be enabled for externally facing services and disabled for internally facing services.
 // Enabling cors will modify the OpenAPI spec used to define your API Gateway endpoint.
 // Uncomment the line below to enable cross-origin resource sharing
-@cors(origin: "https://pwa.parkergiven.com")
+@cors(origin: "https://pwa.parkergiven.com",additionalAllowedHeaders: ["Content-Type", "content-type"] )
 @sigv4(name: "execute-api")
 @restJson1
 @service(sdkId: "IronSpider")
@@ -25,6 +25,7 @@ use smithy.framework#ValidationException
     name: "spider-access-token",
     in: "header"
 )
+// need to remove the ui's content type header for inputs with no body, so all of them.  
 service IronSpider {
     version: "2018-05-10",
     operations: [ServerStatus, ServerDetails, StartServer, StopServer],
