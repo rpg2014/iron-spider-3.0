@@ -81,7 +81,7 @@ export class CdkStack extends Stack {
                     timeout: !!op.timeout ? op.timeout: undefined,
                     logRetention: RetentionDays.SIX_MONTHS,
                     environment: {
-                        "AWS_ACCOUNT_ID": process.env.CDK_DEPLOY_ACCOUNT || '',
+                        "AWS_ACCOUNT_ID": process.env.CDK_DEFAULT_ACCOUNT || '',
                         "EC2_INSTANCE_TYPE": "m6i.xlarge"
                     },
                     bundling: {

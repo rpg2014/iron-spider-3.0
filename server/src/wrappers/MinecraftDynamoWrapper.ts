@@ -111,6 +111,7 @@ export class MinecraftDBWrapper {
         try {
             const response = await this.dynamoClient.send(new UpdateItemCommand(input));
         } catch (e) {
+            console.error(JSON.stringify(e))
             throw new InternalServerError({ message: `Unable to set item: ${itemId} to value: ${value}` })
         }
     }

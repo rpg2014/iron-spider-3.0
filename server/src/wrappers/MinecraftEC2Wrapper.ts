@@ -66,9 +66,11 @@ export class MinecraftEC2Wrapper {
                 throw new InternalServerError({ message: `Running the instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(runInstancesCommandInput)}` })
             }
             const instanceId = this.getInstanceId(runInstancesResponse);
+            console.log("Requested server, instance id: " + instanceId + ".  Now setting id in DDB")
             await MinecraftEC2Wrapper.SERVER_DETAILS.setInstanceId(instanceId);
             let startInstanceResponse: StartInstancesCommandOutput;
             try {
+                console.log("Now starting instance " +instanceId);
                 startInstanceResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new StartInstancesCommand({ InstanceIds: [instanceId] }));
             } catch (e) {
                 console.error(`Threw error ${JSON.stringify(e)} with input ${JSON.stringify(instanceId)}`)
