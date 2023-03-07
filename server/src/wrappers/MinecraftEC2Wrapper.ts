@@ -363,7 +363,9 @@ export class MinecraftEC2Wrapper {
     }
 
     /**
-     * Yert: 
+     * Yert: yert
+     * 
+     * Waits for the instance from the ddb to be shutdown.  Sleeps for 5 secs then retries
      */
     public async waitForServerShutdown(): Promise<void> {
         console.info(`Waiting for instance ${await MinecraftEC2Wrapper.SERVER_DETAILS.getInstanceId()} to shutdown`);
@@ -378,7 +380,8 @@ export class MinecraftEC2Wrapper {
                 }
             } while (await this.isInstanceTerminated());
         } else {
-            console.error()
+            console.error("Server isn't in a shutting down state, something is wrong")
+            throw new InternalServerError({message: "Server isn't in a shutting down state, something is wrong "})
         }
     }
 

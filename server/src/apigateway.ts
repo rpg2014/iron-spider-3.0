@@ -32,6 +32,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
     const httpRequest = convertEvent(event);
     const httpResponse = await handler.handle(httpRequest, context);
+    httpResponse.headers['access-control-allow-origin'] = 'https://pwa.parkergiven.com';
     return convertVersion1Response(httpResponse);
   };
 }
