@@ -16,7 +16,7 @@ export const authHandler = async (event: event, context, callback) => {
     
 
     //Bypass auth for these functions 
-    if (event.path === '/server/status') {
+    if (event.path === '/server/status' && !event.headers['spider-access-token'] ) {
         callback(null, generateAllow("user", event.methodArn, { username: "unknown" }))
     }
     const token: string | undefined = event.headers["spider-access-token"];
