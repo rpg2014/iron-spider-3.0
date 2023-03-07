@@ -3,6 +3,7 @@ import { CfnOutput, Duration } from 'aws-cdk-lib';
 import { PolicyDocument, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import * as path from "path";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
@@ -25,6 +26,7 @@ export class AuthorizerStack extends cdk.Stack {
       runtime: Runtime.NODEJS_16_X,
       memorySize: 256,
       timeout: Duration.seconds(10),
+      logRetention: RetentionDays.SIX_MONTHS,
       bundling: {
         minify: true,
         tsconfig: path.join(__dirname, "../tsconfig.json"),

@@ -54,13 +54,13 @@ export class CdkStack extends Stack {
                 handlerFile: 'server_handler',
                 handlerFunction: 'startHandler',
                 memorySize: 256,
-                timeout: Duration.minutes(3),
+                timeout: Duration.minutes(5),
                 policies: getMinecraftPolicies(),
             },
             StopServer: {
                 handlerFile: 'server_handler',
                 handlerFunction: 'stopHandler',
-                timeout: Duration.minutes(5),
+                timeout: Duration.minutes(7),
                 memorySize: 256,
                 policies: getMinecraftPolicies(),
             }
@@ -75,10 +75,15 @@ export class CdkStack extends Stack {
                     handler: !!op.handlerFunction 
                         ? op.handlerFunction 
                         : "lambdaHandler",
+                    // TODO: change this to node 18
                     runtime: Runtime.NODEJS_16_X,
                     memorySize: !!op.memorySize ? op.memorySize : undefined,
                     timeout: !!op.timeout ? op.timeout: undefined,
                     logRetention: RetentionDays.SIX_MONTHS,
+                    environment: {
+                        "AWS_ACCOUNT_ID": process.env.CDK_DEPLOY_ACCOUNT || '',
+                        "EC2_INSTANCE_TYPE": "m6i.xlarge"
+                    },
                     bundling: {
                         minify: true,
                         tsconfig: path.join(__dirname, "../tsconfig.json"),

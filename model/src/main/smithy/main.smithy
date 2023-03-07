@@ -48,12 +48,7 @@ enum Status {
     STOPPED = "Stopped"
 }
 
-@mixin
-structure AllowOriginHeaderMixin {
-    @httpHeader("Access-Control-Allow-Origin") 
-    allowOrigin: string
-}
-structure ServerStatusOutput with [AllowOriginHeaderMixin]  {
+structure ServerStatusOutput  {
     status: Status
 }
 
@@ -64,11 +59,11 @@ operation ServerDetails {
     errors: [ValidationException, InternalServerError]
 }
 
-structure ServerDetailsOutput with [AllowOriginHeaderMixin] {
+structure ServerDetailsOutput {
     domainName: String,
 }
 
-structure StartServerOutput with [AllowOriginHeaderMixin] {
+structure StartServerOutput {
     serverStarted: Boolean,
 }
 
@@ -78,7 +73,7 @@ operation StartServer {
     errors: [ValidationException, InternalServerError],
 }
 
-structure StopServerOutput with [AllowOriginHeaderMixin] {
+structure StopServerOutput {
     serverStopping: Boolean,
 }
 

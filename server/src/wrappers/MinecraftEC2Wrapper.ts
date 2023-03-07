@@ -8,6 +8,7 @@ import {
     DescribeSnapshotsCommand, DescribeSnapshotsCommandInput,
     DescribeSnapshotsResult,
     EC2Client,
+    EC2ServiceException,
     ImageState,
     RebootInstancesCommand, RebootInstancesCommandInput,
     RunInstancesCommand, RunInstancesCommandInput,
@@ -31,9 +32,8 @@ export class MinecraftEC2Wrapper {
     private static readonly SECURITY_GROUP_ID = 'sg-0bcf97234db49f1d4';
     private static readonly AWS_ACCOUNT_ID = process.env.AWS_ACCOUNT_ID || '';
     private static readonly INSTANCE_TYPE = process.env.EC2_INSTANCE_TYPE || '';
-    private static readonly USER_DATA = 'KGNyb250YWIgLWwgMj4vZGV2L251bGw7IGVjaG8gIiovNSAqICAgKiAgICogICAqICAgd2dldCA' +
-        'tcSAtTyAtICJodHRwczovL2lyb24tc3BpZGVyLmhlcm9rdWFwcC5jb20iID4vZGV2L251bGwgMj4mMSIpIHwgY3JvbnRhYiAtCnNoIG1pbm' +
-        'VjcmFmdC9ydW5fc2VydmVyLnNo';
+    // sh minecraft/run_server.sh base64 encoded.
+    private static readonly USER_DATA = 'c2ggbWluZWNyYWZ0L3J1bl9zZXJ2ZXIuc2g=';
     private static readonly SERVER_DETAILS = new MinecraftDBWrapper();
     private static readonly EC2_CLIENT = new EC2Client({ region: 'us-east-1' });
 
@@ -343,6 +343,10 @@ export class MinecraftEC2Wrapper {
         return isInState;
     }
 
+    /**
+     * Gets the instance status
+     * @returns 
+     */
     public async getInstanceStatus(): Promise<number> {
         try {
             const describeInstancesCommandInput: DescribeInstancesCommandInput = {
@@ -352,13 +356,22 @@ export class MinecraftEC2Wrapper {
             if (response.Reservations && response.Reservations.length === 0) {
                 return EC2State.terminated;
             }
-            return response.Reservations?.[0]?.Instances?.[0]?.State?.Code || EC2State.pending;
-        } catch (e: any) {
-            if (e.includes('Invalid id') || e.includes('does not exist')) {
-                return EC2State.terminated;
+            const code: number | undefined = response.Reservations?.[0]?.Instances?.[0]?.State?.Code;
+            if(code !== undefined) {
+                return code;
+            } else {
+                //Cant find the reservation or instance, throw error
+                console.error("Cant find the reservation or instance when trying to get status")
+                throw new InternalServerError({message: "unable to get the instance status, reservation, instance or code is undefined"})
             }
-            console.error('Cannot determine instance status: ', e);
-            throw new InternalServerError({ message: `Cannot determine instance status: ${e}` });
+        } catch (error: any) {
+            if (error instanceof EC2ServiceException && error.name === 'InvalidInstanceID.NotFound') {
+                return EC2State.terminated;
+            } else {
+                const log = `Error when getting status ${JSON.stringify(error)}`
+                console.log(log)
+                throw new InternalServerError({ message: log })
+            }
         }
     }
 
