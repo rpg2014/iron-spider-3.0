@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, Duration } from 'aws-cdk-lib';
-import { PolicyDocument, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { ManagedPolicy, PolicyDocument, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -36,7 +36,7 @@ export class AuthorizerStack extends cdk.Stack {
       }
     })
 
-
+    this.AuthorizerFunction.role?.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"))
 
     this.role = new Role(this, "IronSpiderAuthorizerRole", {
       assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),

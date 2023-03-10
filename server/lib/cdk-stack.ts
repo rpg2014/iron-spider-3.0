@@ -60,7 +60,7 @@ export class CdkStack extends Stack {
             StopServer: {
                 handlerFile: 'server_handler',
                 handlerFunction: 'stopHandler',
-                timeout: Duration.minutes(7),
+                timeout: Duration.minutes(14),
                 memorySize: 256,
                 policies: getMinecraftPolicies(),
             }
@@ -109,7 +109,6 @@ export class CdkStack extends Stack {
 
         //Define APIG 
         const apiDef = ApiDefinition.fromInline(this.getOpenApiDef(functions, props?.authorizerInfo))
-        
         const api = new SpecRestApi(this, "IronSpiderApi", {
             apiDefinition: apiDef,
             deploy: true,
@@ -187,6 +186,20 @@ export class CdkStack extends Stack {
                 op[
                     "x-amazon-apigateway-integration"
                 ].uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
+                // Tried to make the stop function async but it jsut times out instead? or throws a 502. 
+                if(path === '/server/stop'){
+                    op['x-amazon-apigateway-integration'].requestParameters = {
+                        ...op['x-amazon-apigateway-integration'].requestParameters,
+                        "integration.request.header.X-Amz-Invocation-Type": "'Event'"
+                    }
+                    op['x-amazon-apigateway-integration'].responses = {
+                        ...op['x-amazon-apigateway-integration'].responses,
+                        default: {
+                            ...op['x-amazon-apigateway-integration'].responses.default,
+                            "statusCode": 200
+                        }
+                    }
+                }
             }
         }
 

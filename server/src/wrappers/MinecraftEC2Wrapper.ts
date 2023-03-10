@@ -81,7 +81,7 @@ export class MinecraftEC2Wrapper {
             
             const stateCode = startInstanceResponse.StartingInstances?.[0].CurrentState?.Code
             console.log(`Response's first instance state code: ${stateCode}`)
-            const success = (stateCode && stateCode < 32) ? true : false;
+            const success = (stateCode !== undefined && stateCode === EC2State.pending) ? true : false;
 
             console.log(`Success is ${success}`)
             if (success) {
@@ -135,22 +135,26 @@ export class MinecraftEC2Wrapper {
             await this.waitForSnapshotToBeCreated();
             await this.waitForAMIToBeCreated();
 
+            console.info("Setting new AMI and snapshot id's in ddb")
             await MinecraftEC2Wrapper.SERVER_DETAILS.setAmiId(newAMIId);
             await MinecraftEC2Wrapper.SERVER_DETAILS.setSnapshotId(await this.getNewestSnapshot());
 
-            console.info('Server Stopped');
+            console.info('Server Stopped and ami created');
 
             //Check to make sure that the the ami id and Snapshot id have changed since we started this function, and that new ones have been created
             if (originalAMIId && originalSnapshot &&
                 (await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId() !== originalAMIId)
                 && (await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId() !== originalSnapshot)) {
-                console.info('Deleting old snapshot_id');
-                await this.deleteOldAmi(originalAMIId, originalSnapshot);
+                console.info('Deleting old snapshot_id and ami');
+                await this.deleteOldAmiAndSnapshot(originalAMIId, originalSnapshot);
+            } else {
+                console.log("It doens't look like a new ami or snapshot was created")
             }
 
             const terminateInstancesCommandInput: TerminateInstancesCommandInput = {
                 InstanceIds: [instanceId]
             };
+            console.log(`Terminating Instance ${instanceId}`)
             let terminateInstancesResult: TerminateInstancesCommandOutput;
             try {
                 terminateInstancesResult = await MinecraftEC2Wrapper.EC2_CLIENT.send(new TerminateInstancesCommand(terminateInstancesCommandInput));
@@ -159,15 +163,15 @@ export class MinecraftEC2Wrapper {
                 throw new InternalServerError({ message: `Terminate Instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(terminateInstancesCommandInput)}` })
             }
 
-            const success = !!(terminateInstancesResult.TerminatingInstances?.[0].CurrentState?.Code &&
-                terminateInstancesResult.TerminatingInstances[0].CurrentState.Code > 32);
+            const stateCode = terminateInstancesResult.TerminatingInstances?.[0].CurrentState?.Code
+            console.log(`Response's first instance state code: ${stateCode}`)
+            const success = (stateCode !== undefined && stateCode > 32) ? true : false;
             if (success) {
                 console.info('Terminated Server');
+                await MinecraftEC2Wrapper.SERVER_DETAILS.setServerStopped();
             } else {
                 console.error('Terminate Instance failed');
             }
-
-            await MinecraftEC2Wrapper.SERVER_DETAILS.setServerStopped();
             return success;
         } else {
             return false;
@@ -192,8 +196,15 @@ export class MinecraftEC2Wrapper {
                     }
                 ]
             };
-            response = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeImagesCommand(describeImagesCommandInput));
-            console.info(response.toString());
+            try {
+                response = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeImagesCommand(describeImagesCommandInput));
+                console.log("Response from Describe images:")
+                console.info(response);
+            }catch (error) {
+                console.error(error)
+                console.error(JSON.stringify(error))
+                throw new InternalServerError({message: "Unable to wait for ami deletion"})
+            }
 
             if (response.Images?.find(image => image.State === ImageState.failed || image.State === ImageState.error)) {
                 console.error('There is a failed ami');
@@ -238,7 +249,7 @@ export class MinecraftEC2Wrapper {
             OwnerIds: [MinecraftEC2Wrapper.AWS_ACCOUNT_ID.replace(/-/g, '')]
         };
         const response = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeSnapshotsCommand(describeSnapshotsCommandInput));
-        const latestDate = new Date(Number.MIN_SAFE_INTEGER).toISOString();
+        const latestDate = new Date(0).toISOString();
         let newestSnap: Snapshot = {};
         response.Snapshots?.forEach(snapshot => {
             if (snapshot.StartTime && latestDate < snapshot.StartTime.toISOString()) {
@@ -249,15 +260,22 @@ export class MinecraftEC2Wrapper {
         return newestSnap.SnapshotId!;
     }
 
-    private async deleteOldAmi(oldAMIid: string, oldSnapshotId: string): Promise<void> {
+    private async deleteOldAmiAndSnapshot(oldAMIid: string, oldSnapshotId: string): Promise<void> {
         const deregisterImageCommandInput: DeregisterImageCommandInput = {
             ImageId: oldAMIid
         };
-        await MinecraftEC2Wrapper.EC2_CLIENT.send(new DeregisterImageCommand(deregisterImageCommandInput));
-        const deleteSnapshotCommandInput: DeleteSnapshotCommandInput = {
-            SnapshotId: oldSnapshotId
-        };
-        await MinecraftEC2Wrapper.EC2_CLIENT.send(new DeleteSnapshotCommand(deleteSnapshotCommandInput));
+        console.debug(`Deleting the old AMI: ${JSON.stringify(deregisterImageCommandInput)}`)
+        try {
+            await MinecraftEC2Wrapper.EC2_CLIENT.send(new DeregisterImageCommand(deregisterImageCommandInput));
+            const deleteSnapshotCommandInput: DeleteSnapshotCommandInput = {
+                SnapshotId: oldSnapshotId
+            };
+            console.debug(`Deleting old snapshot ${JSON.stringify(deleteSnapshotCommandInput)}`)
+            await MinecraftEC2Wrapper.EC2_CLIENT.send(new DeleteSnapshotCommand(deleteSnapshotCommandInput));
+        } catch(e){
+            console.error("Unable to delete ami or snapshot", e)
+            throw new InternalServerError({message: "Unable to delete ami or snapshot"})
+        }
     }
 
     /**

@@ -96,7 +96,7 @@ export class MinecraftDBWrapper {
         if (!response.Item) {
             throw new InternalServerError({ message: "Unable to get item: " + itemId })
         }
-        console.log(`Got Item from dynamo`, JSON.stringify(response.Item))
+        // console.debug(`Got Item from dynamo`, JSON.stringify(response.Item))
         return response.Item[VALUE]
     }
 
@@ -111,16 +111,17 @@ export class MinecraftDBWrapper {
                 "#val": "value" 
             },
             ExpressionAttributeValues: {
-                ":v": { [typeof value === "boolean" ? "B" : "S"]: value } as unknown as AttributeValue,
+                ":v": { [typeof value === "boolean" ? "BOOL" : "S"]: value } as unknown as AttributeValue,
             },
             ReturnValues: "ALL_NEW"
         }
         try {
-            console.debug(`Dynamo DB UpdateItem input: ${JSON.stringify(input)}`)
+            // console.debug(`Dynamo DB UpdateItem input: ${JSON.stringify(input)}`)
             const response = await this.dynamoClient.send(new UpdateItemCommand(input));
-            console.debug(`Updated value to: ${typeof value === 'boolean' ? response.Attributes?.[VALUE].BOOL :response.Attributes?.[VALUE].S}`);
+            // console.debug("Updated Value")
+            // console.debug(`Updated value to: ${typeof value === 'boolean' ? response.Attributes?.[VALUE].BOOL :response.Attributes?.[VALUE].S}`);
         } catch (e) {
-            console.error(JSON.stringify(e))
+            console.error(`Unable to set item: ${itemId} to value: ${value}`,e , JSON.stringify(e))
             throw new InternalServerError({ message: `Unable to set item: ${itemId} to value: ${value}` })
         }
     }
