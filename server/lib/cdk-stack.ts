@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import * as path from "path";
-import { Stack, StackProps } from 'aws-cdk-lib'
+import { Duration, Stack, StackProps } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import { IronSpiderServiceOperations } from "iron-spider-ssdk";
 import { AccessLogFormat, ApiDefinition, AuthorizationType, DomainName, LogGroupLogDestination, MethodLoggingLevel, SecurityPolicy, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
@@ -13,6 +13,7 @@ import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 
 type EntryMetadata = {
+    timeout?: Duration;
     handlerFile: string,
     handlerFunction?: string,
     policies?: IManagedPolicy[],
@@ -35,13 +36,8 @@ export class CdkStack extends Stack {
         const logGroup = new LogGroup(this, "ApiLogs");
         
         // might want to figure out how to combine several handlers in a single file.. 
+        //List of handlers / operations, and their definitions 
         const operationData: IEntryPoints = {
-            Echo: {
-                handlerFile: "echo_handler"
-            },
-            Length: {
-                handlerFile: "length_handler"
-            },
             ServerStatus: {
                 handlerFile: "server_handler",
                 handlerFunction: "statusHandler",
@@ -51,16 +47,21 @@ export class CdkStack extends Stack {
             ServerDetails: {
                 handlerFile: 'server_handler',
                 handlerFunction: 'detailsHandler',
+                memorySize: 256,
                 policies: getMinecraftPolicies(),
             },
             StartServer: {
                 handlerFile: 'server_handler',
                 handlerFunction: 'startHandler',
+                memorySize: 256,
+                timeout: Duration.minutes(5),
                 policies: getMinecraftPolicies(),
             },
             StopServer: {
                 handlerFile: 'server_handler',
                 handlerFunction: 'stopHandler',
+                timeout: Duration.minutes(14),
+                memorySize: 256,
                 policies: getMinecraftPolicies(),
             }
         };
@@ -74,9 +75,15 @@ export class CdkStack extends Stack {
                     handler: !!op.handlerFunction 
                         ? op.handlerFunction 
                         : "lambdaHandler",
+                    // TODO: change this to node 18
                     runtime: Runtime.NODEJS_16_X,
                     memorySize: !!op.memorySize ? op.memorySize : undefined,
+                    timeout: !!op.timeout ? op.timeout: undefined,
                     logRetention: RetentionDays.SIX_MONTHS,
+                    environment: {
+                        "AWS_ACCOUNT_ID": process.env.CDK_DEFAULT_ACCOUNT || '',
+                        "EC2_INSTANCE_TYPE": "m6i.xlarge"
+                    },
                     bundling: {
                         minify: true,
                         tsconfig: path.join(__dirname, "../tsconfig.json"),
@@ -102,11 +109,10 @@ export class CdkStack extends Stack {
 
         //Define APIG 
         const apiDef = ApiDefinition.fromInline(this.getOpenApiDef(functions, props?.authorizerInfo))
-        
         const api = new SpecRestApi(this, "IronSpiderApi", {
             apiDefinition: apiDef,
             deploy: true,
-            
+            disableExecuteApiEndpoint: true,
             deployOptions: {
                 accessLogDestination: new LogGroupLogDestination(logGroup),
                 accessLogFormat: AccessLogFormat.jsonWithStandardFields(),
@@ -128,7 +134,7 @@ export class CdkStack extends Stack {
             domainName: {
                 domainName: "api.parkergiven.com",
                 certificate: Certificate.fromCertificateArn(this, "certArn", "arn:aws:acm:us-east-1:593242635608:certificate/e4ad77f4-1e1b-49e4-9afb-ac94e35bc378"),
-                securityPolicy: SecurityPolicy.TLS_1_2
+                securityPolicy: SecurityPolicy.TLS_1_2,
             }
         });
         
@@ -180,6 +186,20 @@ export class CdkStack extends Stack {
                 op[
                     "x-amazon-apigateway-integration"
                 ].uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
+                // Tried to make the stop function async but it jsut times out instead? or throws a 502. 
+                if(path === '/server/stop'){
+                    op['x-amazon-apigateway-integration'].requestParameters = {
+                        ...op['x-amazon-apigateway-integration'].requestParameters,
+                        "integration.request.header.X-Amz-Invocation-Type": "'Event'"
+                    }
+                    op['x-amazon-apigateway-integration'].responses = {
+                        ...op['x-amazon-apigateway-integration'].responses,
+                        default: {
+                            ...op['x-amazon-apigateway-integration'].responses.default,
+                            "statusCode": 200
+                        }
+                    }
+                }
             }
         }
 
@@ -199,6 +219,7 @@ const getMinecraftPolicies = () => {
     return [
         //TODO: Get policies from aws iam console for iron-spider-2.0 user, and copy them here.  
         ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"),
-        ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess")
+        ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"),
+        ManagedPolicy.fromAwsManagedPolicyName("AmazonRoute53FullAccess")
     ]
 }

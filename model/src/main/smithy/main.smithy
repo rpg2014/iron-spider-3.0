@@ -14,9 +14,7 @@ use smithy.framework#ValidationException
 // Cors should be enabled for externally facing services and disabled for internally facing services.
 // Enabling cors will modify the OpenAPI spec used to define your API Gateway endpoint.
 // Uncomment the line below to enable cross-origin resource sharing
-@cors()
-
-
+@cors(origin: "https://pwa.parkergiven.com",additionalAllowedHeaders: ["Content-Type", "content-type"] )
 @sigv4(name: "execute-api")
 @restJson1
 @service(sdkId: "IronSpider")
@@ -27,27 +25,12 @@ use smithy.framework#ValidationException
     name: "spider-access-token",
     in: "header"
 )
+// need to remove the ui's content type header for inputs with no body, so all of them.  
 service IronSpider {
     version: "2018-05-10",
-    operations: [Echo, Length, ServerStatus, ServerDetails, StartServer, StopServer],
+    operations: [ServerStatus, ServerDetails, StartServer, StopServer],
 }
 
-/// Echo operation that receives input from body.
-@http(code: 200, method: "POST", uri: "/echo",)
-operation Echo {
-    input: EchoInput,
-    output: EchoOutput,
-    errors: [ValidationException, PalindromeException],
-}
-
-/// Length operation that receives input from path.
-@readonly
-@http(code: 200, method: "GET", uri: "/length/{string}",)
-operation Length {
-    input: LengthInput,
-    output: LengthOutput,
-    errors: [ValidationException, PalindromeException],
-}
 
 @readonly
 @http(code: 200, method: "GET", uri: "/server/status")
@@ -65,7 +48,7 @@ enum Status {
     STOPPED = "Stopped"
 }
 
-structure ServerStatusOutput {
+structure ServerStatusOutput  {
     status: Status
 }
 
@@ -77,11 +60,11 @@ operation ServerDetails {
 }
 
 structure ServerDetailsOutput {
-    domainName: String
+    domainName: String,
 }
 
 structure StartServerOutput {
-    serverStarted: Boolean
+    serverStarted: Boolean,
 }
 
 @http(code: 200, method: "POST", uri: "/server/start")
@@ -116,32 +99,6 @@ operation StopServer {
 // structure JournalCreateOutput {
 //     success: boolean
 // }
-
-
-structure EchoInput {
-    string: String,
-}
-
-structure EchoOutput {
-    string: String,
-}
-
-structure LengthInput {
-    @required
-    @httpLabel
-    string: String,
-}
-
-structure LengthOutput {
-    length: Integer,
-}
-
-/// For some reason, this service does not like palindromes!
-@httpError(400)
-@error("client")
-structure PalindromeException {
-    message: String,
-}
 
 @httpError(500)
 @error("server")

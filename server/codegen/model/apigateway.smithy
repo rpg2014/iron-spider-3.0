@@ -7,18 +7,6 @@ use aws.apigateway#authorizers
 use aws.apigateway#apiKeySource
 
 // All of the http methods MUST be POST, b/c thats how APIG has to call lambda as part of that integration.
-apply Echo @aws.apigateway#integration(
-    type: "aws_proxy",
-    httpMethod: "POST",
-    uri: ""
-)
-
-apply Length @aws.apigateway#integration(
-    type: "aws_proxy",
-    httpMethod: "POST",
-    uri: ""
-)
-
 apply ServerStatus @aws.apigateway#integration(
     type: "aws_proxy",
     httpMethod: "POST",
