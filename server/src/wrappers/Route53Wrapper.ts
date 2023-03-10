@@ -26,7 +26,7 @@ export class Route53Wrapper {
             ChangeBatch: {
                 Changes: [
                     {
-                        Action: ChangeAction.CREATE,
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             Name: url,
                             ResourceRecords: [
@@ -41,6 +41,7 @@ export class Route53Wrapper {
                 ]
             }
         };
+        console.debug(`Calling route 53 with ${JSON.stringify(input)}`)
         const request: ChangeResourceRecordSetsCommand = new ChangeResourceRecordSetsCommand(input);
         let response: ChangeResourceRecordSetsCommandOutput;
         try {

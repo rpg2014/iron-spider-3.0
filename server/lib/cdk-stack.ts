@@ -206,6 +206,7 @@ const getMinecraftPolicies = () => {
     return [
         //TODO: Get policies from aws iam console for iron-spider-2.0 user, and copy them here.  
         ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"),
-        ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess")
+        ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"),
+        ManagedPolicy.fromAwsManagedPolicyName("AmazonRoute53FullAccess")
     ]
 }

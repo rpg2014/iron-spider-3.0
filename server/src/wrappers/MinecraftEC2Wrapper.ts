@@ -19,6 +19,7 @@ import {
     Status,
     StopInstancesCommand, StopInstancesCommandInput,
     TerminateInstancesCommand,
+    TerminateInstancesCommandInput,
     TerminateInstancesCommandOutput,
 } from '@aws-sdk/client-ec2';
 import { InternalServerError } from "iron-spider-ssdk";
@@ -76,7 +77,12 @@ export class MinecraftEC2Wrapper {
                 console.error(`Threw error ${JSON.stringify(e)} with input ${JSON.stringify(instanceId)}`)
                 throw new InternalServerError({ message: `Running the instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(instanceId)}` })
             }
-            const success = !!(startInstanceResponse.StartingInstances?.[0]?.CurrentState?.Code && startInstanceResponse.StartingInstances?.[0].CurrentState?.Code < 32);
+            console.log(`Start Instance response Number of instances returned: ${startInstanceResponse.StartingInstances?.length}`)
+            
+            const stateCode = startInstanceResponse.StartingInstances?.[0].CurrentState?.Code
+            console.log(`Response's first instance state code: ${stateCode}`)
+            const success = (stateCode && stateCode < 32) ? true : false;
+
             console.log(`Success is ${success}`)
             if (success) {
                 await MinecraftEC2Wrapper.SERVER_DETAILS.setServerRunning();
@@ -142,7 +148,7 @@ export class MinecraftEC2Wrapper {
                 await this.deleteOldAmi(originalAMIId, originalSnapshot);
             }
 
-            const terminateInstancesCommandInput = {
+            const terminateInstancesCommandInput: TerminateInstancesCommandInput = {
                 InstanceIds: [instanceId]
             };
             let terminateInstancesResult: TerminateInstancesCommandOutput;
