@@ -137,18 +137,19 @@ export class MinecraftEC2Wrapper {
 
             console.info("Setting new AMI and snapshot id's in ddb")
             await MinecraftEC2Wrapper.SERVER_DETAILS.setAmiId(newAMIId);
-            await MinecraftEC2Wrapper.SERVER_DETAILS.setSnapshotId(await this.getNewestSnapshot());
+            // await MinecraftEC2Wrapper.SERVER_DETAILS.setSnapshotId(await this.getNewestSnapshot());
 
             console.info('Server Stopped and ami created');
 
             //Check to make sure that the the ami id and Snapshot id have changed since we started this function, and that new ones have been created
             if (originalAMIId && originalSnapshot &&
                 (await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId() !== originalAMIId)
-                && (await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId() !== originalSnapshot)) {
+                // && (await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId() !== originalSnapshot)
+                ) {
                 console.info('Deleting old snapshot_id and ami');
                 await this.deleteOldAmiAndSnapshot(originalAMIId, originalSnapshot);
             } else {
-                console.log("It doens't look like a new ami or snapshot was created")
+                console.log("It doens't look like a new ami was created")
             }
 
             const terminateInstancesCommandInput: TerminateInstancesCommandInput = {
