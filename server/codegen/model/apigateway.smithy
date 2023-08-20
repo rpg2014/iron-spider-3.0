@@ -30,6 +30,19 @@ apply StopServer @aws.apigateway#integration(
     uri: ""
 )
 
+
+apply GenerateRegistrationOptions @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
+apply VerifyRegistration @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
 //Auth stuff
 apply IronSpider @authorizers(
     "iron-auth": {

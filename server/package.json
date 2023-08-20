@@ -28,10 +28,12 @@
     "@aws-sdk/client-route-53": "^3.261.0",
     "@aws-smithy/server-apigateway": "^1.0.0-alpha.7",
     "@aws-smithy/server-common": "^1.0.0-alpha.7",
+    "@simplewebauthn/server": "^7.4.0",
     "@types/aws-lambda": "^8.10.85",
     "iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
   },
   "devDependencies": {
+    "@simplewebauthn/typescript-types": "^7.4.0",
     "@tsconfig/node14": "^1.0.1",
     "@types/jest": "^26.0.24",
     "@types/node": "^18.11.18",

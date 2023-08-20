@@ -2,7 +2,7 @@
   "name": "iron-spider-build",
   "version": "0.0.1",
   "description": "A yarn project for the iron spider monorepo",
-  "packageManager": "yarn@3.1.1",
+  "packageManager": "yarn@3.6.2",
   "author": "",
   "license": "Apache-2.0",
   "private": true,

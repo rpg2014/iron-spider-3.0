@@ -144,7 +144,9 @@ export class MinecraftEC2Wrapper {
             //Check to make sure that the the ami id and Snapshot id have changed since we started this function, and that new ones have been created
             if (originalAMIId && originalSnapshot &&
                 (await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId() !== originalAMIId)
-                && (await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId() !== originalSnapshot)) {
+                // Get Newest snapshot fn doesn't work so getting rid of this check as it might fail.  
+                // && (await MinecraftEC2Wrapper.SERVER_DETAILS.getSnapshotId() !== originalSnapshot)) {
+            ){
                 console.info('Deleting old snapshot_id and ami');
                 await this.deleteOldAmiAndSnapshot(originalAMIId, originalSnapshot);
             } else {
@@ -239,6 +241,13 @@ export class MinecraftEC2Wrapper {
             }
         } while ((finishedSnapshots.length !== response.Snapshots?.length) && (response.Snapshots?.length === 1));
     }
+    /**
+     * Gets the newest snapshot, and returns the snapshot id
+     * was trying to reimplemnet it.
+     */
+    // private async getNewestSnapshot(): Promise<string> {
+    //
+    // }
 
     /**
      * Gets the newest snapshot, and returns the snapshot id. This snapshot id is used to delete the snapshot.

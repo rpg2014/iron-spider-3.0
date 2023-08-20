@@ -5,7 +5,7 @@ import { Construct } from 'constructs'
 import { IronSpiderServiceOperations } from "iron-spider-ssdk";
 import { AccessLogFormat, ApiDefinition, AuthorizationType, DomainName, LogGroupLogDestination, MethodLoggingLevel, SecurityPolicy, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import {LogLevel, NodejsFunction, NodejsFunctionProps} from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal, Role, Policy, ManagedPolicy, IPolicy, IManagedPolicy } from "aws-cdk-lib/aws-iam";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
@@ -27,12 +27,15 @@ type OtherProps = {
         fnArn: string,
         roleArn: string,
     }
+    allowedOrigins: string,
 }
 
-export class CdkStack extends Stack {
+export class ApiStack extends Stack {
+    allowedOrigins;
     constructor(scope: Construct, id: string, props: StackProps  & OtherProps) {
         super(scope, id, props);
-
+        //set the allowed origins, for use for cors
+        this.allowedOrigins = props.allowedOrigins;
         const logGroup = new LogGroup(this, "ApiLogs");
         
         // might want to figure out how to combine several handlers in a single file.. 
@@ -63,6 +66,12 @@ export class CdkStack extends Stack {
                 timeout: Duration.minutes(14),
                 memorySize: 256,
                 policies: getMinecraftPolicies(),
+            },
+            GenerateRegistrationOptions: {
+handlerFile: "auth_handler",
+            },
+            VerifyRegistration: {
+                handlerFile: "auth_handler",
             }
         };
 
@@ -85,6 +94,11 @@ export class CdkStack extends Stack {
                         "EC2_INSTANCE_TYPE": "m6i.xlarge"
                     },
                     bundling: {
+                        esbuildArgs:{
+                            "--tree-shaking": true
+                        },
+                        format: "esm",
+                        logLevel: LogLevel.INFO,
                         minify: true,
                         tsconfig: path.join(__dirname, "../tsconfig.json"),
                         // re2-wasm is used by the SSDK common library to do pattern validation, and uses
@@ -94,7 +108,8 @@ export class CdkStack extends Stack {
                         // Enable these for easier debugging, though they will increase your artifact size
                         // sourceMap: true,
                         // sourceMapMode: SourceMapMode.INLINE
-                    },
+                        //@ts-ignore
+                    } as NodejsFunctionProps,
                 });
                 if (operationData[operation].policies) {
                     operationData[operation].policies?.forEach(policy => fn.role?.addManagedPolicy(policy))
@@ -178,14 +193,16 @@ export class CdkStack extends Stack {
                 if (functionArn === null || functionArn === undefined) {
                     throw new Error("no function for " + op.operationId);
                 }
-                if (!op["x-amazon-apigateway-integration"]) {
+                if (!integration) {
                     throw new Error(
                         `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/model/apigateway.smithy`
                     );
                 }
-                op[
-                    "x-amazon-apigateway-integration"
-                ].uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
+                integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
+
+                //Add extra origin headers to cors allowed origin header in the api gateway integration
+                integration.responses.default.responseParameters["method.response.header.Access-Control-Allow-Origin"]= `'${this.allowedOrigins}'`;
+
                 // Tried to make the stop function async but it jsut times out instead? or throws a 502. 
                 if(path === '/server/stop'){
                     op['x-amazon-apigateway-integration'].requestParameters = {

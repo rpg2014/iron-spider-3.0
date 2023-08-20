@@ -21,6 +21,23 @@ or
 5. `cdk diff --profile personal`?
    1. the cdk tool will build the typescript I think.
 
+## Authentication server and API's
+### Server
+4 Backend api's for regestering and authing
+see: https://simplewebauthn.dev/docs/packages/server#registration
+
+### Authorizer
+token validation intercepter lambda:
+should be essentially a proxy that checks for an auth cookie set by the verify auth api.
+if auth token not present,
+redirect to login url with redirect url as a query param
+if auth token present, validate jwt
+
+extend the existing authorizer to also accept a cookie set by the passkey auth, or the cognito auth. 
+
+### Auth website
+CRA app that handles the auth flow and redirects back to the original path.
+https://dev.to/paulallies/deploy-your-static-react-app-to-aws-cloudfront-using-cdk-44hm
 
 
 ## Smithy Server Generator for TypeScript Example Service
