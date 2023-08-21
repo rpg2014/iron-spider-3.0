@@ -84,3 +84,8 @@ structure VerifyRegistrationInput {
 structure VerifyRegistrationOutput {
     verified: Boolean
 }
+
+// @http(code: 200, method: "POST", uri: "/v1/registration/options)
+// operation GenerateAuthenticationOptions {
+
+// }

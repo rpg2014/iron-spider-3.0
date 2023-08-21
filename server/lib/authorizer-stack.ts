@@ -14,12 +14,7 @@ export class AuthorizerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'AuthorizerQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    
     this.AuthorizerFunction = new NodejsFunction(this, 'IronAuthFunction', {
       entry: path.join(__dirname, '../authorizer/src/Authorizer.ts'),
       handler: 'authHandler',

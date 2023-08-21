@@ -5,12 +5,13 @@ import { Construct } from 'constructs'
 import { IronSpiderServiceOperations } from "iron-spider-ssdk";
 import { AccessLogFormat, ApiDefinition, AuthorizationType, DomainName, LogGroupLogDestination, MethodLoggingLevel, SecurityPolicy, SpecRestApi } from "aws-cdk-lib/aws-apigateway";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
-import {LogLevel, NodejsFunction, NodejsFunctionProps} from "aws-cdk-lib/aws-lambda-nodejs";
+import {LogLevel, NodejsFunction, NodejsFunctionProps, OutputFormat} from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal, Role, Policy, ManagedPolicy, IPolicy, IManagedPolicy } from "aws-cdk-lib/aws-iam";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
+import { operations } from "./operationsConfig";
 
 type EntryMetadata = {
     timeout?: Duration;
@@ -19,7 +20,7 @@ type EntryMetadata = {
     policies?: IManagedPolicy[],
     memorySize?: number;
 }
-type IEntryPoints = {
+export type IEntryPoints = {
     [operation in IronSpiderServiceOperations]: EntryMetadata
 }
 type OtherProps = {
@@ -32,51 +33,23 @@ type OtherProps = {
 
 export class ApiStack extends Stack {
     allowedOrigins;
+    operations;
+    readonly authOperations;
     constructor(scope: Construct, id: string, props: StackProps  & OtherProps) {
         super(scope, id, props);
         //set the allowed origins, for use for cors
         this.allowedOrigins = props.allowedOrigins;
         const logGroup = new LogGroup(this, "ApiLogs");
         
-        // might want to figure out how to combine several handlers in a single file.. 
-        //List of handlers / operations, and their definitions 
-        const operationData: IEntryPoints = {
-            ServerStatus: {
-                handlerFile: "server_handler",
-                handlerFunction: "statusHandler",
-                memorySize: 256,
-                policies: getMinecraftPolicies(), 
-            },
-            ServerDetails: {
-                handlerFile: 'server_handler',
-                handlerFunction: 'detailsHandler',
-                memorySize: 256,
-                policies: getMinecraftPolicies(),
-            },
-            StartServer: {
-                handlerFile: 'server_handler',
-                handlerFunction: 'startHandler',
-                memorySize: 256,
-                timeout: Duration.minutes(5),
-                policies: getMinecraftPolicies(),
-            },
-            StopServer: {
-                handlerFile: 'server_handler',
-                handlerFunction: 'stopHandler',
-                timeout: Duration.minutes(14),
-                memorySize: 256,
-                policies: getMinecraftPolicies(),
-            },
-            GenerateRegistrationOptions: {
-handlerFile: "auth_handler",
-            },
-            VerifyRegistration: {
-                handlerFile: "auth_handler",
-            }
-        };
+        // build the list of operations from the config.
+        const operationData = {
+            ...operations.apiOperationsList.reduce((merged, obj) => ({ ...merged, ...obj })),
+            ...operations.authOperations
+        }
+        
 
         // Define all the lambda functions, 1 per operation above
-        const functions = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce(
+        this.operations = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce(
             (acc, operation) => {
                 const op = operationData[operation];
                 const fn = new NodejsFunction(this, operation + "Function", {
@@ -97,7 +70,7 @@ handlerFile: "auth_handler",
                         esbuildArgs:{
                             "--tree-shaking": true
                         },
-                        format: "esm",
+                        format: OutputFormat.ESM,
                         logLevel: LogLevel.INFO,
                         minify: true,
                         tsconfig: path.join(__dirname, "../tsconfig.json"),
@@ -108,8 +81,7 @@ handlerFile: "auth_handler",
                         // Enable these for easier debugging, though they will increase your artifact size
                         // sourceMap: true,
                         // sourceMapMode: SourceMapMode.INLINE
-                        //@ts-ignore
-                    } as NodejsFunctionProps,
+                    } ,
                 });
                 if (operationData[operation].policies) {
                     operationData[operation].policies?.forEach(policy => fn.role?.addManagedPolicy(policy))
@@ -122,8 +94,12 @@ handlerFile: "auth_handler",
             {}
         ) as { [op in IronSpiderServiceOperations]: NodejsFunction };
 
+        // get a list of the authOperations to give permissions to the ddb tables. 
+        this.authOperations = (Object.keys(operations.authOperations ) as IronSpiderServiceOperations[])
+            .map(operationName => this.operations[operationName])
+
         //Define APIG 
-        const apiDef = ApiDefinition.fromInline(this.getOpenApiDef(functions, props?.authorizerInfo))
+        const apiDef = ApiDefinition.fromInline(this.getOpenApiDef(this.operations, props?.authorizerInfo))
         const api = new SpecRestApi(this, "IronSpiderApi", {
             apiDefinition: apiDef,
             deploy: true,
@@ -154,7 +130,7 @@ handlerFile: "auth_handler",
         });
         
         // Give APIG execution permissions on the functions
-        for (const [k, v] of Object.entries(functions)) {
+        for (const [k, v] of Object.entries(this.operations)) {
             v.addPermission(`${k}Permission`, {
                 principal: new ServicePrincipal("apigateway.amazonaws.com"),
                 sourceArn: `arn:${this.partition}:execute-api:${this.region}:${this.account}:${api.restApiId}/*/*/*`,
@@ -172,6 +148,16 @@ handlerFile: "auth_handler",
         })
     }
 
+    /**
+     * Generates the APIG open API definition based on the smithy generated openAPI.json file.  
+     * The CDK generated function arns are added dynamicly after loading the json,
+     * We also add more origins to the allowed origins cors headers, since smithy only supports a single one
+     * 
+     * Also adds the authorizer function arn to the apig integration blocks.  
+     * @param functions 
+     * @param authorizerInfo 
+     * @returns 
+     */
     private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction}, authorizerInfo: {fnArn: string, roleArn: string}) {
         const openapi = JSON.parse(
             readFileSync(
@@ -232,11 +218,3 @@ handlerFile: "auth_handler",
 }
 
 
-const getMinecraftPolicies = () => {
-    return [
-        //TODO: Get policies from aws iam console for iron-spider-2.0 user, and copy them here.  
-        ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"),
-        ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"),
-        ManagedPolicy.fromAwsManagedPolicyName("AmazonRoute53FullAccess")
-    ]
-}
