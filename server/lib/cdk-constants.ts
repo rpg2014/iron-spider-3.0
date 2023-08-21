@@ -4,7 +4,7 @@
 
 import { ManagedPolicy } from "aws-cdk-lib/aws-iam";
 
-export const USER_TABLE_NAME = 'domainUsers';
+export const USER_TABLE_NAME = 'DomainUsers';
 export const CREDENTIAL_TABLE_NAME = 'PasskeyCredentials';
 
 

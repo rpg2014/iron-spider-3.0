@@ -2,6 +2,7 @@ $version: "2"
 
 namespace com.rpg2014.cloud
 
+use com.rpg2014.cloud#InternalServerError
 use smithy.framework#ValidationException
 
 
@@ -58,10 +59,4 @@ structure StartServerOutput {
 
 structure StopServerOutput {
     serverStopping: Boolean,
-}
-
-@httpError(500)
-@error("server")
-structure InternalServerError {
-    message: String
 }

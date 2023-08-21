@@ -24,7 +24,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
     //TODO: authorizer is sometimes null when it shouldn't be
     const username = event.requestContext.authorizer?.username
     console.log(`Username from authorizer is: ${username}`)
-    if (!username) {
+    if (!username && event.path.includes("server")) {
       console.error(event)
       throw new Error("Request didn't go through authorizer, no username found.");
     }

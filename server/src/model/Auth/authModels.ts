@@ -1,6 +1,7 @@
 export type UserModel = {
   id: string;
-  username: string;
+  email: string; //userName in auth
+  displayName: string, // display name in auth
   currentChallenge?: string;
   emailValidated: boolean;
   access: string[];

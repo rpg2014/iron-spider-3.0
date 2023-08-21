@@ -12,6 +12,7 @@ import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { operations } from "./operationsConfig";
+import {ALLOWED_ORIGINS} from "./cdk-constants";
 
 type EntryMetadata = {
     timeout?: Duration;
@@ -40,13 +41,13 @@ export class ApiStack extends Stack {
         //set the allowed origins, for use for cors
         this.allowedOrigins = props.allowedOrigins;
         const logGroup = new LogGroup(this, "ApiLogs");
-        
+
         // build the list of operations from the config.
-        const operationData = {
+        const operationData: IEntryPoints = {
             ...operations.apiOperationsList.reduce((merged, obj) => ({ ...merged, ...obj })),
             ...operations.authOperations
-        }
-        
+        }  as IEntryPoints
+
 
         // Define all the lambda functions, 1 per operation above
         this.operations = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce(
@@ -54,11 +55,11 @@ export class ApiStack extends Stack {
                 const op = operationData[operation];
                 const fn = new NodejsFunction(this, operation + "Function", {
                     entry: path.join(__dirname, `../src/${operationData[operation].handlerFile}.ts`),
-                    handler: !!op.handlerFunction 
-                        ? op.handlerFunction 
+                    handler: !!op.handlerFunction
+                        ? op.handlerFunction
                         : "lambdaHandler",
                     // TODO: change this to node 18
-                    runtime: Runtime.NODEJS_16_X,
+                    runtime: Runtime.NODEJS_18_X,
                     memorySize: !!op.memorySize ? op.memorySize : undefined,
                     timeout: !!op.timeout ? op.timeout: undefined,
                     logRetention: RetentionDays.SIX_MONTHS,
@@ -81,8 +82,8 @@ export class ApiStack extends Stack {
                         // Enable these for easier debugging, though they will increase your artifact size
                         // sourceMap: true,
                         // sourceMapMode: SourceMapMode.INLINE
-                    } ,
-                });
+                    },
+                } as NodejsFunctionProps);
                 if (operationData[operation].policies) {
                     operationData[operation].policies?.forEach(policy => fn.role?.addManagedPolicy(policy))
                 }
@@ -94,11 +95,11 @@ export class ApiStack extends Stack {
             {}
         ) as { [op in IronSpiderServiceOperations]: NodejsFunction };
 
-        // get a list of the authOperations to give permissions to the ddb tables. 
+        // get a list of the authOperations to give permissions to the ddb tables.
         this.authOperations = (Object.keys(operations.authOperations ) as IronSpiderServiceOperations[])
             .map(operationName => this.operations[operationName])
 
-        //Define APIG 
+        //Define APIG
         const apiDef = ApiDefinition.fromInline(this.getOpenApiDef(this.operations, props?.authorizerInfo))
         const api = new SpecRestApi(this, "IronSpiderApi", {
             apiDefinition: apiDef,
@@ -128,7 +129,7 @@ export class ApiStack extends Stack {
                 securityPolicy: SecurityPolicy.TLS_1_2,
             }
         });
-        
+
         // Give APIG execution permissions on the functions
         for (const [k, v] of Object.entries(this.operations)) {
             v.addPermission(`${k}Permission`, {
@@ -137,7 +138,7 @@ export class ApiStack extends Stack {
             });
         }
 
-        // Add route 53 alias record to the hosted zone. 
+        // Add route 53 alias record to the hosted zone.
         new ARecord(this, "IronSpiderAPIARecord", {
             recordName: "api.parkergiven.com",
             zone: HostedZone.fromHostedZoneAttributes(this, "MainHostedZone", {
@@ -149,14 +150,16 @@ export class ApiStack extends Stack {
     }
 
     /**
-     * Generates the APIG open API definition based on the smithy generated openAPI.json file.  
+     * Generates the APIG open API definition based on the smithy generated openAPI.json file.
      * The CDK generated function arns are added dynamicly after loading the json,
      * We also add more origins to the allowed origins cors headers, since smithy only supports a single one
-     * 
-     * Also adds the authorizer function arn to the apig integration blocks.  
-     * @param functions 
-     * @param authorizerInfo 
-     * @returns 
+     *
+     * Also adds the authorizer function arn to the apig integration blocks.
+     *
+     * TODO: extent to take in functions for other stacks, and addtional openapi jsons, and merge them together
+     * @param functions
+     * @param authorizerInfo
+     * @returns
      */
     private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction}, authorizerInfo: {fnArn: string, roleArn: string}) {
         const openapi = JSON.parse(
@@ -180,16 +183,32 @@ export class ApiStack extends Stack {
                     throw new Error("no function for " + op.operationId);
                 }
                 if (!integration) {
-                    throw new Error(
-                        `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/model/apigateway.smithy`
-                    );
+                    // set default
+                    console.warn("No integration found, providing default for now")
+                    op["x-amazon-apigateway-integration"] = {
+                        "type": "aws_proxy",
+                        "httpMethod": "POST",
+                        "uri": "",
+                        "responses": {
+                            "default": {
+                                "statusCode": "200",
+                                "responseParameters": {
+                                    "method.response.header.Access-Control-Allow-Origin": `${this.allowedOrigins}`,
+                                    "method.response.header.Access-Control-Expose-Headers": "'Content-Length,Content-Type,X-Amzn-Errortype,X-Amzn-Requestid'"
+                                }
+                            }
+                        }
+                    }
+                    // throw new Error(
+                    //     `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/model/apigateway.smithy`
+                    // );
                 }
                 integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
 
                 //Add extra origin headers to cors allowed origin header in the api gateway integration
                 integration.responses.default.responseParameters["method.response.header.Access-Control-Allow-Origin"]= `'${this.allowedOrigins}'`;
 
-                // Tried to make the stop function async but it jsut times out instead? or throws a 502. 
+                // Tried to make the stop function async but it jsut times out instead? or throws a 502.
                 if(path === '/server/stop'){
                     op['x-amazon-apigateway-integration'].requestParameters = {
                         ...op['x-amazon-apigateway-integration'].requestParameters,

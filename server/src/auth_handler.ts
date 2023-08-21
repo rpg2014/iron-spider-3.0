@@ -1,8 +1,8 @@
 import {APIGatewayProxyHandler} from "aws-lambda";
 import {getApiGatewayHandler} from "./apigateway";
-import {getGenerateRegistrationOptionsHandler} from "iron-spider-ssdk";
-import {ServerStatusOperation} from "./server";
+import {getGenerateRegistrationOptionsHandler, getCreateUserHandler} from "iron-spider-ssdk";
 import {GenerateRegistrationOptionsOperation} from "./operations/GenerateRegistrationOptionsOperation";
+import {CreateUserOperation} from "./operations/CreateUser";
 
 
-export const getRegistrationOptionsHandler: APIGatewayProxyHandler = getApiGatewayHandler(getGenerateRegistrationOptionsHandler(GenerateRegistrationOptionsOperation));
+export const getRegistrationOptions: APIGatewayProxyHandler = getApiGatewayHandler(getGenerateRegistrationOptionsHandler(GenerateRegistrationOptionsOperation));

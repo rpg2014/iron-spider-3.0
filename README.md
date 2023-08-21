@@ -23,7 +23,7 @@ or
 
 ## Authentication server and API's
 ### Server
-4 Backend api's for regestering and authing
+5 Backend api's for regestering and authing + creating and emailing users 
 see: https://simplewebauthn.dev/docs/packages/server#registration
 
 ### Authorizer

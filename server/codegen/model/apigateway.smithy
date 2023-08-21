@@ -42,6 +42,11 @@ apply VerifyRegistration @aws.apigateway#integration(
     httpMethod: "POST",
     uri: ""
 )
+apply CreateUser @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
 
 //Auth stuff
 apply IronSpider @authorizers(

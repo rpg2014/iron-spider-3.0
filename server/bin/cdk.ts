@@ -3,8 +3,8 @@ import { App } from "aws-cdk-lib";
 import { AuthorizerStack } from "../lib/authorizer-stack";
 import "source-map-support/register";
 import { ApiStack } from "../lib/api-stack";
-import { PasskeyInfraStack } from "lib/passkey-stack";
-import { USER_TABLE_NAME, CREDENTIAL_TABLE_NAME } from "lib/cdk-constants";
+import { PasskeyInfraStack } from "../lib/passkey-stack";
+import { USER_TABLE_NAME, CREDENTIAL_TABLE_NAME } from "../lib/cdk-constants";
 
 const app = new App();
 

@@ -1,12 +1,12 @@
 {
-  "extends": "@tsconfig/node14/tsconfig.json",
+  "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
     "resolveJsonModule": true,
     "incremental": true,
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "outDir": "./dist",
-    "lib": ["DOM", "ES2020",]
+    "lib": ["dom", "es2020",]
   },
   "exclude": ["node_modules/", "**/*.spec.ts"],
   "include": ["src/", "lib/", "bin/"]

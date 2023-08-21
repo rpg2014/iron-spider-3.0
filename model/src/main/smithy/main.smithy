@@ -26,10 +26,27 @@ use smithy.framework#ValidationException
 // need to remove the ui's content type header for inputs with no body, so all of them.  
 service IronSpider {
     version: "2018-05-10",
-    operations: [ServerStatus, ServerDetails, StartServer, StopServer, GenerateRegistrationOptions, VerifyRegistration],
+    operations: [
+        ServerStatus,
+        ServerDetails,
+        StartServer,
+        StopServer,
+        CreateUser,
+        GenerateRegistrationOptions,
+        VerifyRegistration],
 }
 
+@httpError(500)
+@error("server")
+structure InternalServerError {
+    message: String
+}
 
+@httpError(400)
+@error("client")
+structure BadRequestError {
+    message: String
+}
 // @http(code: 200, method: "POST", "/journal/new")
 // operation JournalCreate  {
 //     input: JournalCreateInput,
@@ -44,48 +61,4 @@ service IronSpider {
 // }
 // structure JournalCreateOutput {
 //     success: boolean
-// }
-
-structure User {
-    id: String,
-    username: String,
-    currentChallenge: String,
-}
-
-
-
-@http(code: 200, method: "POST", uri: "/v1/registration/options")
-operation GenerateRegistrationOptions {
-    input: GenerateRegistrationOptionsInput,
-    output: GenerateRegistrationOptionsOutput,
-    errors: [ValidationException, InternalServerError],
-}
-structure GenerateRegistrationOptionsInput {
-    email: String, //email
-    userDisplayName: String, //username
-}
-structure GenerateRegistrationOptionsOutput {
-    @httpPayload
-    results: String
-}
-
-@http(code:200, method: "POST", uri: "/v1/registration/verification")
-operation VerifyRegistration {
-    input: VerifyRegistrationInput,
-    output: VerifyRegistrationOutput,
-    errors: [ValidationException, InternalServerError],
-}
-
-structure VerifyRegistrationInput {
-    @httpPayload
-    body: String,
-}
-
-structure VerifyRegistrationOutput {
-    verified: Boolean
-}
-
-// @http(code: 200, method: "POST", uri: "/v1/registration/options)
-// operation GenerateAuthenticationOptions {
-
 // }
