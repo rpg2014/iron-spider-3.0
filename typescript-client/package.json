@@ -18,7 +18,7 @@
     "iron-spider-client": "workspace:typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
   },
   "devDependencies": {
-    "@tsconfig/node12": "^1.0.9",
+    "@tsconfig/node18": "18.2.0",
     "@types/node": "^18.11.18",
     "rimraf": "^3.0.0",
     "typescript": "^5.1.6"

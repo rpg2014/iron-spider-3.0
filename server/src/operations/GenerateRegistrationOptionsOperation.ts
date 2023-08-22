@@ -6,7 +6,7 @@ import {
     ServerStatusOutput
 } from "iron-spider-ssdk";
 import {HandlerContext} from "../apigateway";
-import jwt from "jsonwebtoken";
+import jwt, {Jwt, JwtPayload} from "jsonwebtoken";
 import {SecretKeyAccessor} from "../accessors/AccessorInterfaces";
 import {JWT_AUDIENCE, JWT_ISSUER} from "../constants/passkeyConst";
 
@@ -18,15 +18,18 @@ export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistratio
     // unpack verification code,
     // verify
     const keyPair = await SecretKeyAccessor.getSecretKeyAccessor().getKey();
+    if(!input.challenge){
+        throw new BadRequestError({message: "no challenge returned"})
+    }
     try {
-        jwt.verify(input.challenge, keyPair.publicKey, {
+        const decoded = jwt.verify(input.challenge, keyPair.publicKey, {
             algorithms: ['RS256'],
             audience: JWT_AUDIENCE,
             issuer: JWT_ISSUER,
             clockTolerance: 1,
             maxAge: "1h"
         })
-    }catch (e) {
+    }catch (e: any) {
         throw new BadRequestError("Error " + e.message)
     }
     // get display name and
