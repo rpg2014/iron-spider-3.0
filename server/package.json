@@ -27,12 +27,15 @@
     "@aws-sdk/client-ec2": "^3.159.0",
     "@aws-sdk/client-route-53": "^3.261.0",
     "@aws-sdk/client-secrets-manager": "^3.395.0",
+    "@aws-sdk/lib-dynamodb": "^3.395.0",
     "@aws-smithy/server-apigateway": "^1.0.0-alpha.7",
     "@aws-smithy/server-common": "^1.0.0-alpha.7",
     "@simplewebauthn/server": "^7.4.0",
     "@types/aws-lambda": "^8.10.85",
+    "@types/uuid": "^9.0.2",
     "iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen",
-    "jsonwebtoken": "^9.0.1"
+    "jsonwebtoken": "^9.0.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@simplewebauthn/typescript-types": "^7.4.0",
@@ -42,7 +45,8 @@
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
-    "aws-cdk-lib": "^2.40.0",
+    "authorizer": "workspace:server/authorizer",
+    "aws-cdk-lib": "^2.92.0",
     "constructs": "10.1.239",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",

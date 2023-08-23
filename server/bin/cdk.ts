@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { App } from "aws-cdk-lib";
-import { AuthorizerStack } from "../lib/authorizer-stack";
+import { AuthorizerStack } from "authorizer/lib/authorizer-stack";
 import "source-map-support/register";
 import { ApiStack } from "../lib/api-stack";
 import { PasskeyInfraStack } from "../lib/passkey-stack";

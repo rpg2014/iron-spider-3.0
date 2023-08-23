@@ -1,5 +1,6 @@
 import {Operation} from "@aws-smithy/server-common";
 import {
+    BadRequestError,
     CreateUserInput, CreateUserOutput,
     GenerateRegistrationOptionsServerInput,
     GenerateRegistrationOptionsServerOutput
@@ -9,7 +10,8 @@ import jwt  from 'jsonwebtoken'
 
 import {KeyPair} from "../accessors/SecretsManagerSecretKeyAccessor";
 import {JWT_AUDIENCE, JWT_ISSUER} from "../constants/passkeyConst";
-import {SecretKeyAccessor} from "../accessors/AccessorInterfaces";
+import {SecretKeyAccessor, UserAccessor} from "../accessors/AccessorInterfaces";
+import processor from "../processors/PasskeyFlowProcessor";
 
 
 
@@ -17,24 +19,15 @@ export const CreateUserOperation: Operation<CreateUserInput, CreateUserOutput, H
     input,
     context
 ) => {
+    // check input fields are not null
+    if(input.email == null || input.displayName == null) {
+        throw new BadRequestError({message: "Missing fields in input"});
+    }
+    try {
+        let results = await processor.createUser(input.email, input.displayName)
+    }catch (e) {
 
-    // do some sort of robot check? captcha?
-    const keyPair: KeyPair = await SecretKeyAccessor.getSecretKeyAccessor().getKey();
-    // create verification code
-    const verificationCode = jwt.sign({
-        email: input.email,
-        displayName: input.displayName,
-
-    }, keyPair.privateKey, {
-        expiresIn: '1h',
-        issuer: JWT_ISSUER,
-        algorithm: "RS256",
-        audience: JWT_AUDIENCE,
-    });
-    // create user in db and save code
-
-
-    // send email to user with magic link
+    }
 
 
     return {}

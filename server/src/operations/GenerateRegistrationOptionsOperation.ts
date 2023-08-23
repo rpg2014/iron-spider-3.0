@@ -30,7 +30,7 @@ export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistratio
             maxAge: "1h"
         })
     }catch (e: any) {
-        throw new BadRequestError("Error " + e.message)
+        throw new BadRequestError({message: "Error " + e.message})
     }
     // get display name and
 

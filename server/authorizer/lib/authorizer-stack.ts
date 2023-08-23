@@ -16,7 +16,7 @@ export class AuthorizerStack extends cdk.Stack {
 
     
     this.AuthorizerFunction = new NodejsFunction(this, 'IronAuthFunction', {
-      entry: path.join(__dirname, '../authorizer/src/Authorizer.ts'),
+      entry: path.join(__dirname, '../src/Authorizer.ts'),
       handler: 'authHandler',
       runtime: Runtime.NODEJS_16_X,
       memorySize: 256,

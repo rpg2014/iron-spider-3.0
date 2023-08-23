@@ -23,8 +23,8 @@ const defaultAutoScalingOptions = {
 
 
 export class PasskeyInfraStack extends cdk.Stack {
-    public UserTable;
-    public CredentialTable;
+    public UserTable: ddb.Table;
+    public CredentialTable: ddb.Table;
     public rsaSecret: Secret;
     // public role;
     constructor(scope: Construct, id: string, props: cdk.StackProps & PasskeyInfraProps) {
@@ -93,7 +93,11 @@ export class PasskeyInfraStack extends cdk.Stack {
         // })
         //output secret arn for use in functions
         props.operationsAccess.filter(operation => operation.functionName.includes("CreateUser"))
-            .forEach(op => op.addEnvironment("VERIFICATION_SECRET_ARN", this.rsaSecret.secretArn, ))
+            .forEach(op => {
+                op.addEnvironment("VERIFICATION_SECRET_ARN", this.rsaSecret.secretArn, )
+                op.addEnvironment("USER_TABLE_NAME", this.UserTable.tableName )
+                op.addEnvironment("CREDENTIALS_TABLE_NAME", this.CredentialTable.tableName )
+            })
 
     }
 

@@ -3,8 +3,9 @@ export type UserModel = {
   email: string; //userName in auth
   displayName: string, // display name in auth
   currentChallenge?: string;
-  emailValidated: boolean;
-  access: string[];
+  domainAccess?: boolean;
+  emailValidated?: boolean;
+  apiAccess?: string[];
   credentials: string[];
 };
 

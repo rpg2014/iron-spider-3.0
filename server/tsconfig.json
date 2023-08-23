@@ -6,7 +6,7 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "outDir": "./dist",
-    "lib": ["dom", "es2020",]
+    "lib": ["dom", "es2022",]
   },
   "exclude": ["node_modules/", "**/*.spec.ts"],
   "include": ["src/", "lib/", "bin/"]

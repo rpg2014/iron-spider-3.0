@@ -18,6 +18,7 @@
   },
   "workspaces": [
     "typescript-client",
-    "server"
+    "server",
+    "server/authorizer"
   ]
 }
