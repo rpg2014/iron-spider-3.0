@@ -9,6 +9,7 @@ import {HandlerContext} from "../apigateway";
 import jwt, {Jwt, JwtPayload} from "jsonwebtoken";
 import {SecretKeyAccessor} from "../accessors/AccessorInterfaces";
 import {JWT_AUDIENCE, JWT_ISSUER} from "../constants/passkeyConst";
+import passkeyFlowProcessor from "../processors/PasskeyFlowProcessor";
 
 
 export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistrationOptionsServerInput, GenerateRegistrationOptionsServerOutput, HandlerContext> = async (
@@ -22,13 +23,8 @@ export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistratio
         throw new BadRequestError({message: "no challenge returned"})
     }
     try {
-        const decoded = jwt.verify(input.challenge, keyPair.publicKey, {
-            algorithms: ['RS256'],
-            audience: JWT_AUDIENCE,
-            issuer: JWT_ISSUER,
-            clockTolerance: 1,
-            maxAge: "1h"
-        })
+        await passkeyFlowProcessor.verifyTokenAndGenerateRegistrationOptions(input.challenge)
+        //TODO: set http only header with the verification jwt token to get user id later.
     }catch (e: any) {
         throw new BadRequestError({message: "Error " + e.message})
     }

@@ -1,6 +1,7 @@
 import { Duration } from "aws-cdk-lib";
 import { getMinecraftPolicies } from "./cdk-constants";
 import { IEntryPoints } from "./api-stack";
+import {getCreateUser} from "../src/handlers/CreateUserHandler";
 
 const minecraftServerOperations: Partial<IEntryPoints> = {
     ServerStatus: {
@@ -34,12 +35,15 @@ const minecraftServerOperations: Partial<IEntryPoints> = {
 const AuthOperations: Partial<IEntryPoints> = {
     CreateUser: {
         handlerFile: "handlers/CreateUserHandler",
+        handlerFunction: "getCreateUser",
     },
     GenerateRegistrationOptions: {
         handlerFile: "auth_handler",
+        handlerFunction: 'getRegistrationOptions'
     },
     VerifyRegistration: {
-        handlerFile: "auth_handler",
+        handlerFile: "handlers/VerifyRegistrationOptionsHandler",
+        handlerFunction: "verifyRegistrationHandler",
     }
 }
 

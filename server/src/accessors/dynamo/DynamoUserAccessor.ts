@@ -1,5 +1,5 @@
 import {UserAccessor} from "../AccessorInterfaces";
-import {UserModel} from "../../model/Auth/authModels";
+import {CredentialModel, UserModel} from "../../model/Auth/authModels";
 import {AttributeAction, AttributeValueUpdate, DynamoDBClient,} from "@aws-sdk/client-dynamodb";
 import * as process from "process";
 import {
@@ -8,7 +8,8 @@ import {
     GetCommandOutput,
     ScanCommand,
     ScanCommandOutput,
-    UpdateCommand, UpdateCommandOutput
+    UpdateCommand,
+    UpdateCommandOutput
 } from "@aws-sdk/lib-dynamodb";
 import {BadRequestError} from "iron-spider-ssdk";
 
@@ -43,7 +44,7 @@ export class DynamoUserAccessor extends UserAccessor {
             },
             AttributeUpdates: updates
         }));
-
+        return ;
 
     }
 
@@ -100,6 +101,25 @@ export class DynamoUserAccessor extends UserAccessor {
         }));
     }
 
+    async addCredentialToUser(userId: string, credentials: CredentialModel): Promise<void> {
+        await this.ddbdocClient.send(new UpdateCommand({
+            TableName: this.TABLE_NAME,
+            Key: {
+                id: userId
+            },
+            AttributeUpdates: {
+                credentials: {
+                    Action: AttributeAction.ADD,
+                    Value: [credentials.credentialID],
+                }
+
+
+            }
+        }))
+    }
+
 
 
 }
+const decode = (str: string):string => Buffer.from(str, 'base64').toString('binary');
+const encode = (str: string):string => Buffer.from(str, 'binary').toString('base64');

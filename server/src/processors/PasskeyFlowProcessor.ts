@@ -1,15 +1,23 @@
 import {CredentialsAccessor, EmailAccessor, SecretKeyAccessor, UserAccessor} from "../accessors/AccessorInterfaces";
 import {KeyPair} from "../accessors/SecretsManagerSecretKeyAccessor";
 import jwt, {JwtPayload} from "jsonwebtoken";
-import {ID_PREFIX, JWT_AUDIENCE, JWT_ISSUER, rpId, rpName} from "../constants/passkeyConst";
+import {ID_PREFIX, JWT_AUDIENCE, JWT_ISSUER, rpId, rpName, rpOrigin} from "../constants/passkeyConst";
 import { v4 as uuidv4 } from 'uuid';
-import {generateRegistrationOptions} from "@simplewebauthn/server";
+import {
+    generateRegistrationOptions,
+    GenerateRegistrationOptionsOpts,
+    verifyRegistrationResponse, VerifyRegistrationResponseOpts
+} from "@simplewebauthn/server";
 import {InternalServerError} from "iron-spider-ssdk";
+import {RegistrationResponseJSON} from "@simplewebauthn/typescript-types";
+import {CredentialModel} from "../model/Auth/authModels";
+import {JWTProcessor} from "./JWTProcessor";
 
 
 interface PasskeyFlowProcessor {
     createUser(email: string, displayName: string): Promise<any> ;
-    verifyTokenAndGenerateRegistrationOptions(token: string, email: string, displayName: string): Promise<any>;
+    verifyTokenAndGenerateRegistrationOptions(token: string): Promise<any>;
+    verifyRegistrationResponse(input: RegistrationResponseJSON & any, transports: any, userToken: string): Promise<any>;
 }
 class NeedDomainAccessError extends Error {
     constructor(message: string) {
@@ -17,6 +25,7 @@ class NeedDomainAccessError extends Error {
         this.name = "NeedDomainAccessError";
     }
 }
+
 
 
 const processor: PasskeyFlowProcessor = {
@@ -43,19 +52,8 @@ const processor: PasskeyFlowProcessor = {
             throw new NeedDomainAccessError("Need domain access, talk to parker")
         }
 
-
-        const keyPair: KeyPair = await SecretKeyAccessor.getSecretKeyAccessor().getKey();
         // create verification code
-        const verificationCode = jwt.sign({
-            email,
-            displayName,
-            id: user.id
-        }, keyPair.privateKey, {
-            expiresIn: '1h',
-            issuer: JWT_ISSUER,
-            algorithm: "RS256",
-            audience: JWT_AUDIENCE,
-        });
+        const verificationCode = await JWTProcessor.generateTokenForUser(user.id)
         //  save code in db for later reference.
         await userAccessor.saveChallenge(user.id, verificationCode);
 
@@ -70,36 +68,65 @@ const processor: PasskeyFlowProcessor = {
     async verifyTokenAndGenerateRegistrationOptions(token: string): Promise<any> {
         // verify token
         const keyPair: KeyPair = await SecretKeyAccessor.getSecretKeyAccessor().getKey();
-        try {
-            let decoded = jwt.verify(token, keyPair.publicKey, {
-                issuer: JWT_ISSUER,
-                audience: JWT_AUDIENCE,
-                algorithms: ["RS256"]
-            }) as JwtPayload;
-            console.log(JSON.stringify(decoded));
-            const challenge = uuidv4();
-            await UserAccessor.getUserAccessor().saveChallenge(decoded.userId, challenge)
-            return generateRegistrationOptions({
-                challenge: challenge,
-                attestationType: 'none',
-                rpID: rpId,
-                rpName: rpName,
-                userDisplayName: decoded.displayName,
-                userID: decoded.userId,
-                userName: decoded.email,
-                excludeCredentials: (await CredentialsAccessor.getCredentialsAccessor().getCredentialsForUser(decoded.userId)).map(credential => ({
+        let decoded = await JWTProcessor.verifyToken(token);
+        const user = await UserAccessor.getUserAccessor().getUser(decoded.userId)
+        // todo: generate new jwt token to pass along userid and email for next registration part
+        const challenge = uuidv4();
+        await UserAccessor.getUserAccessor().saveChallenge(decoded.userId, challenge)
+        return generateRegistrationOptions({
+            challenge: challenge,
+            attestationType: 'none',
+            rpID: rpId,
+            rpName: rpName,
+            userDisplayName: user.displayName as string,
+            userID: decoded.userId as string,
+            userName: user.email as string,
+            authenticatorSelection: {
+                // "Discoverable credentials" used to be called "resident keys". The
+                // old name persists in the options passed to `navigator.credentials.create()`.
+                residentKey: 'required',
+                userVerification: 'preferred',
+            },
+            excludeCredentials: (await CredentialsAccessor.getCredentialsAccessor().getCredentialsForUser(decoded.userId))
+                .map(credential => ({
                     id: credential.credentialID,
                     type: 'public-key',
                     // Optional
                     transports: credential.transports,
                 })),
-            })
+            } as GenerateRegistrationOptionsOpts
+        );
+    },
 
-        } catch (e: any) {
-            console.log(e);
-            throw new InternalServerError({message: e?.message})
+    async verifyRegistrationResponse(registrationResponse: RegistrationResponseJSON & any, transports: any, token: string ): Promise<any> {
+        const decodedToken = await JWTProcessor.verifyToken(token);
+        const user = await UserAccessor.getUserAccessor().getUser(decodedToken.userId);
+        const verification = await verifyRegistrationResponse({
+            response: registrationResponse,
+            expectedChallenge: user.currentChallenge,
+            expectedOrigin: rpOrigin,
+            expectedRPID: rpId,
+            requireUserVerification: true,
+        } as VerifyRegistrationResponseOpts)
+        if(verification.verified && verification.registrationInfo) {
+            const { credentialPublicKey, credentialID, counter, credentialBackedUp, credentialDeviceType } = verification?.registrationInfo;
+            const credential: CredentialModel = {
+                userID: user.id,
+                credentialID,
+                counter,
+                credentialPublicKey,
+                credentialBackedUp: credentialBackedUp,
+                credentialDeviceType: credentialDeviceType,
+                transports: transports,
+            }
+            await CredentialsAccessor.getCredentialsAccessor().saveCredentials(credential);
+            await UserAccessor.getUserAccessor().addCredentialToUser(user.id, credential);
         }
-    }
+        return {
+            verified: verification.verified,
+        }
+    },
+
 }
 
 export default processor;

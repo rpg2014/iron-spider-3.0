@@ -22,6 +22,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
     // Extract anything from the APIGateway requestContext that you'd need in your operation handler
 
     //TODO: authorizer is sometimes null when it shouldn't be
+    //TODO non-server paths don't care about this.
     const username = event.requestContext.authorizer?.username
     console.log(`Username from authorizer is: ${username}`)
     if (!username && event.path.includes("server")) {

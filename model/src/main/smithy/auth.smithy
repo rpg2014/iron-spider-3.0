@@ -51,15 +51,52 @@ operation VerifyRegistration {
 }
 
 structure VerifyRegistrationInput {
-    @httpPayload
-    body: String,
+    @required
+    userToken: String,
+    @required
+    transports: TransportsList,
+    @required
+    verficationResponse: String
+}
+
+list TransportsList {
+    member: String
 }
 
 structure VerifyRegistrationOutput {
     verified: Boolean
 }
 
-// @http(code: 200, method: "POST", uri: "/v1/registration/options)
-// operation GenerateAuthenticationOptions {
+ @http(code: 200, method: "GET", uri: "/v1/authentication/options")
+ operation GenerateAuthenticationOptions {
+    input: GenerateAuthenticationOptionInput
+    output: GenerateAuthenticationOptionOutput
+    errors: [InternalServerError, BadRequestError, ValidationException]
+ }
 
-// }
+structure GenerateAuthenticationOptionInput {
+    @httpHeader("token")
+    userToken: String, // get from cookie if present,
+}
+
+structure GenerateAuthenticationOptionOutput {
+    @required
+    @httpPayload
+    authenticationResponseJSON: String,
+}
+
+@http(code: 200, method: "POST", uri: "/v1/authentication/verification")
+operation VerifyAuthentication {
+    input: VerifyAuthenticationInput,
+    output: VerifyAuthenticationOutput,
+    errors: [InternalServerError, BadRequestError, ValidationException]
+}
+
+structure VerifyAuthenticationInput {
+    @httpPayload
+    body: String
+}
+
+structure VerifyAuthenticationOutput {
+    verified: Boolean
+}

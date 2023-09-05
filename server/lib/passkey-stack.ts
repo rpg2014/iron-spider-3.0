@@ -91,12 +91,13 @@ export class PasskeyInfraStack extends cdk.Stack {
         // this.rsaSecret.addRotationSchedule(id+"VerficationCodeKeyRotation", {
         //     rotationLambda: //TODO
         // })
-        //output secret arn for use in functions
+        //outputs for use in functions
         props.operationsAccess.filter(operation => operation.functionName.includes("CreateUser"))
             .forEach(op => {
                 op.addEnvironment("VERIFICATION_SECRET_ARN", this.rsaSecret.secretArn, )
                 op.addEnvironment("USER_TABLE_NAME", this.UserTable.tableName )
                 op.addEnvironment("CREDENTIALS_TABLE_NAME", this.CredentialTable.tableName )
+                op.addEnvironment("CREDENTIALS_BY_USER_INDEX_NAME", userIndexName)
             })
 
     }
