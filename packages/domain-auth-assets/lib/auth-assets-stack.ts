@@ -9,6 +9,9 @@ import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import {
   AllowedMethods,
   Distribution,
+  Function,
+  FunctionCode,
+  FunctionEventType,
   OriginAccessIdentity,
   SecurityPolicyProtocol,
   ViewerProtocolPolicy,
@@ -90,6 +93,11 @@ export class DomainAuthAssetsStack extends Stack {
 
     //TODO: create a cloudfront function that will attach a .html to the end of paths in order to serve the ssr version of it
       // when that occurs remove the /index.html error response from the 403 error.
+
+        // try removing the default object first too. 
+    const pathRewriteFunction = new Function(this, "PathRewriteFunction", {
+      code: FunctionCode.fromInline(`../cloudfrontFunction.js`)});
+
     // CloudFront distribution
     const distribution = new Distribution(this, name + "SiteDistribution", {
       certificate: Certificate.fromCertificateArn(
@@ -103,7 +111,7 @@ export class DomainAuthAssetsStack extends Stack {
       errorResponses: [
         {
           httpStatus: 403,
-          responseHttpStatus: 403,
+          responseHttpStatus: 404,
           responsePagePath: "/index.html",
           // ttl: Duration.minutes(30),
         },
@@ -120,8 +128,14 @@ export class DomainAuthAssetsStack extends Stack {
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        functionAssociations: [{
+          function: pathRewriteFunction,
+          eventType: FunctionEventType.VIEWER_REQUEST
+        }]
       },
     });
+
+  
 
     // Route53 alias record for the CloudFront distribution
     new ARecord(this, `${name}SiteAliasRecord`, {
