@@ -3,11 +3,11 @@ import { APIGatewayProxyHandler } from "aws-lambda";
 import { ServerDetailsOperation, ServerStatusOperation, StartServerOperation, StopServerOperation } from "./server";
 import { getApiGatewayHandler } from "./apigateway";
 
-// This is the entry point for the Lambda Function that services the ServerStatus Operation.  
+// This is the entry point for the Lambda Function that services the ServerStatus Operation.
 export const statusHandler: APIGatewayProxyHandler = getApiGatewayHandler(getServerStatusHandler(ServerStatusOperation));
 
 export const detailsHandler: APIGatewayProxyHandler = getApiGatewayHandler(getServerDetailsHandler(ServerDetailsOperation));
 
-export const startHandler: APIGatewayProxyHandler = getApiGatewayHandler(getStartServerHandler(StartServerOperation))
+export const startHandler: APIGatewayProxyHandler = getApiGatewayHandler(getStartServerHandler(StartServerOperation));
 
-export const stopHandler: APIGatewayProxyHandler = getApiGatewayHandler(getStopServerHandler(StopServerOperation))
+export const stopHandler: APIGatewayProxyHandler = getApiGatewayHandler(getStopServerHandler(StopServerOperation));

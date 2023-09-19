@@ -1,4 +1,4 @@
 module.exports = {
-    preset: "ts-jest",
-    modulePathIgnorePatterns: ["<rootDir>/codegen/"]
+  preset: "ts-jest",
+  modulePathIgnorePatterns: ["<rootDir>/codegen/"],
 };

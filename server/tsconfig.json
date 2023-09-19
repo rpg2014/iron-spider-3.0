@@ -4,9 +4,10 @@
     "resolveJsonModule": true,
     "incremental": true,
     "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
     "baseUrl": ".",
     "outDir": "./dist",
-    "lib": ["dom", "es2022",]
+    "lib": ["dom", "es2022"]
   },
   "exclude": ["node_modules/", "**/*.spec.ts"],
   "include": ["src/", "lib/", "bin/"]

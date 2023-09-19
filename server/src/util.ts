@@ -1,1 +1,3 @@
-export const reverse = (string: any) => { return string.split("").reverse().join("")}
+export const reverse = (string: any) => {
+  return string.split("").reverse().join("");
+};

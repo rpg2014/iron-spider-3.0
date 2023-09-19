@@ -23,17 +23,17 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
     //TODO: authorizer is sometimes null when it shouldn't be
     //TODO non-server paths don't care about this.
-    const username = event.requestContext.authorizer?.username
-    console.log(`Username from authorizer is: ${username}`)
+    const username = event.requestContext.authorizer?.username;
+    console.log(`Username from authorizer is: ${username}`);
     if (!username && event.path.includes("server")) {
-      console.error(event)
+      console.error(event);
       throw new Error("Request didn't go through authorizer, no username found.");
     }
     const context = { user: username, username: username };
 
     const httpRequest = convertEvent(event);
     const httpResponse = await handler.handle(httpRequest, context);
-    httpResponse.headers['access-control-allow-origin'] = 'https://pwa.parkergiven.com';
+    httpResponse.headers["access-control-allow-origin"] = "https://pwa.parkergiven.com";
     return convertVersion1Response(httpResponse);
   };
 }
