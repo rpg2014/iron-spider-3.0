@@ -3,9 +3,9 @@ import { App } from "aws-cdk-lib";
 import { AuthorizerStack } from "authorizer/lib/authorizer-stack";
 import "source-map-support/register";
 import { ApiStack } from "../lib/api-stack";
-import {PasskeyInfraStack} from "../lib/passkey-stack";
-import { DomainAuthAssetsStack } from 'domain-auth-assets/lib/auth-assets-stack'
-import {CREDENTIAL_TABLE_NAME, USER_TABLE_NAME} from "../lib/cdk-constants";
+import { PasskeyInfraStack } from "../lib/passkey-stack";
+import { DomainAuthAssetsStack } from "domain-auth-assets/lib/auth-assets-stack";
+import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "../lib/cdk-constants";
 
 const app = new App();
 
@@ -44,15 +44,13 @@ const apiStack = new ApiStack(app, "IronSpiderService", {
     roleArn: authStack.role.roleArn,
   },
   allowedOrigins: subDomains.map(sub => `https://${sub}.${domainName}`).join(", "),
-
-})
-;
+});
 const infraStack = new PasskeyInfraStack(app, "PasskeyInfra", {
   env,
   userTableName: USER_TABLE_NAME,
   credentialsTableName: CREDENTIAL_TABLE_NAME,
-  operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction]
-})
+  operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction],
+});
 
 //Add Auth UI Stack
 const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
@@ -60,7 +58,7 @@ const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
   domainName,
   subDomain: "auth",
   certificateArn,
-})
+});
 
 // // Main Website stack
 // const remixStack = new RemixAppStack(this, "RemixApp", {
@@ -70,6 +68,3 @@ const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
 //   subDomain: "remix",
 //   computeType: "EdgeFunction", //useStreams ? "HTTPStreaming" : "EdgeFunction",
 // })
-
-
-

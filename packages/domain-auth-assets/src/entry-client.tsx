@@ -3,7 +3,7 @@ import ReactDOM, { hydrateRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-const isSSR = true;
+const isSSR = false;
 
 if (isSSR) {
   hydrateRoot(document.getElementById("root")!, <App />);

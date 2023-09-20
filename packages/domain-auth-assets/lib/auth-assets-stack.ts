@@ -12,7 +12,9 @@ import {
   Function,
   FunctionCode,
   FunctionEventType,
+  HttpVersion,
   OriginAccessIdentity,
+  PriceClass,
   SecurityPolicyProtocol,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
@@ -60,7 +62,7 @@ export class DomainAuthAssetsStack extends Stack {
 
     // Content bucket
     const siteBucket = new Bucket(this, `${name}SiteBucket`, {
-      bucketName:  siteDomain,//"IronSpider"+
+      bucketName: siteDomain, //"IronSpider"+
       publicReadAccess: false,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 
@@ -92,11 +94,14 @@ export class DomainAuthAssetsStack extends Stack {
     );
 
     //TODO: create a cloudfront function that will attach a .html to the end of paths in order to serve the ssr version of it
-      // when that occurs remove the /index.html error response from the 403 error.
+    // when that occurs remove the /index.html error response from the 403 error.
 
-        // try removing the default object first too. 
+    // try removing the default object first too.
     const pathRewriteFunction = new Function(this, "PathRewriteFunction", {
-      code: FunctionCode.fromInline(`../cloudfrontFunction.js`)});
+      code: FunctionCode.fromFile({
+        filePath: path.resolve(__dirname, "../cloudfrontFunction.js"),
+      }),
+    });
 
     // CloudFront distribution
     const distribution = new Distribution(this, name + "SiteDistribution", {
@@ -108,6 +113,8 @@ export class DomainAuthAssetsStack extends Stack {
       defaultRootObject: "index.html",
       domainNames: [siteDomain],
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
+      httpVersion: HttpVersion.HTTP2_AND_3,
+      priceClass: PriceClass.PRICE_CLASS_100,
       errorResponses: [
         {
           httpStatus: 403,
@@ -128,14 +135,14 @@ export class DomainAuthAssetsStack extends Stack {
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        functionAssociations: [{
-          function: pathRewriteFunction,
-          eventType: FunctionEventType.VIEWER_REQUEST
-        }]
+        functionAssociations: [
+          {
+            function: pathRewriteFunction,
+            eventType: FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
     });
-
-  
 
     // Route53 alias record for the CloudFront distribution
     new ARecord(this, `${name}SiteAliasRecord`, {

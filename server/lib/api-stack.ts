@@ -185,11 +185,17 @@ export class ApiStack extends Stack {
         const integration = op["x-amazon-apigateway-integration"];
         // Don't try to mess with mock integrations
         if (integration !== null && integration !== undefined && integration["type"] === "mock") {
+          // check if options operation, then add allowed origins to default integration, as smithy only supports a single allowed origin currently
+          if (operation === "options") {
+            op["x-amazon-apigateway-integration"].responses.default.responseParameters[
+              "method.response.header.Access-Control-Allow-Origin"
+            ] = `'${this.allowedOrigins}'`;
+          }
           continue;
         }
         const functionArn = functions[op.operationId as IronSpiderServiceOperations]?.functionArn;
         if (functionArn === null || functionArn === undefined) {
-          throw new Error("no function for " + op.operationId);
+          throw new Error("no function for " + op.operationId + " at " + path);
         }
         if (!integration) {
           // set default

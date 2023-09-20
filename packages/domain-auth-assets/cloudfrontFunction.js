@@ -7,11 +7,15 @@
 //     request:  CFRequest
 // }
 
-exports.handler = (event) => {
-    let request = event.request;
-    // the default root option of the distribution handles the root path
-    if(request.uri !== "/"){
-        request.uri += ".html"
-    }
-    return request;
+function handler(event) {
+  let request = event.request;
+  // the default root option of the distribution handles the root path
+  if (
+    !request.uri.includes(".") &&
+    request.uri !== "/" &&
+    !request.uri.endsWith(".html")
+  ) {
+    request.uri += ".html";
   }
+  return request;
+}
