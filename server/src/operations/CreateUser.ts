@@ -1,17 +1,7 @@
-import { Operation } from "@aws-smithy/server-common";
-import {
-  BadRequestError,
-  CreateUserInput,
-  CreateUserOutput,
-  GenerateRegistrationOptionsServerInput,
-  GenerateRegistrationOptionsServerOutput,
-} from "iron-spider-ssdk";
-import { HandlerContext } from "../apigateway";
-import jwt from "jsonwebtoken";
+import {Operation} from "@aws-smithy/server-common";
+import {BadRequestError, CreateUserInput, CreateUserOutput, InternalServerError,} from "iron-spider-ssdk";
+import {HandlerContext} from "../apigateway";
 
-import { KeyPair } from "../accessors/SecretsManagerSecretKeyAccessor";
-import { JWT_AUDIENCE, JWT_ISSUER } from "../constants/passkeyConst";
-import { SecretKeyAccessor, UserAccessor } from "../accessors/AccessorInterfaces";
 import processor from "../processors/PasskeyFlowProcessor";
 
 export const CreateUserOperation: Operation<CreateUserInput, CreateUserOutput, HandlerContext> = async (input, context) => {
@@ -19,9 +9,10 @@ export const CreateUserOperation: Operation<CreateUserInput, CreateUserOutput, H
   if (input.email == null || input.displayName == null) {
     throw new BadRequestError({ message: "Missing fields in input" });
   }
+  console.log(`Got Create User Request with email: ${input.email}, displayName: ${input.displayName}`)
   try {
-    let results = await processor.createUser(input.email, input.displayName);
-  } catch (e) {}
-
-  return {};
+    return await processor.createUser(input.email, input.displayName)
+  } catch (e: any) {
+    throw new InternalServerError({message: e.message})
+  }
 };

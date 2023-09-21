@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { SecretKeyAccessor, UserAccessor } from "../accessors/AccessorInterfaces";
+import {KeyPair} from "../accessors/AccessorInterfaces";
 import { JWT_AUDIENCE, JWT_ISSUER } from "../constants/passkeyConst";
-import { KeyPair } from "../accessors/SecretsManagerSecretKeyAccessor";
+import {getSecretKeyAccessor} from "../accessors/AccessorFactory";
 
 let keyPair: KeyPair | null = null;
 interface JwtUserObject {
@@ -10,7 +10,7 @@ interface JwtUserObject {
 export const JWTProcessor = {
   async verifyToken(token: string): Promise<JwtUserObject> {
     if (!keyPair) {
-      keyPair = await SecretKeyAccessor.getSecretKeyAccessor().getKey();
+      keyPair = await getSecretKeyAccessor().getKey();
     }
 
     let decoded = jwt.verify(token, keyPair.publicKey, {
@@ -22,7 +22,7 @@ export const JWTProcessor = {
   },
   async generateTokenForUser(userId: string, expiresIn: string = "1h"): Promise<string> {
     if (!keyPair) {
-      keyPair = await SecretKeyAccessor.getSecretKeyAccessor().getKey();
+      keyPair = await getSecretKeyAccessor().getKey();
     }
 
     return jwt.sign({ userId }, keyPair.privateKey, {

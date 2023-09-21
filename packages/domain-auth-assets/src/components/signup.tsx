@@ -30,6 +30,10 @@ export default function Signup() {
           body: JSON.stringify({ email: email, displayName: username }),
           
           method: "POST",
+          mode: "cors",
+          headers:{
+            "Content-Type": "application/json"
+          }
         },
       );
       const json = await response.json();

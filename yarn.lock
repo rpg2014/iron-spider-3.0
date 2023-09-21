@@ -10209,6 +10209,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.6.0
     "@typescript-eslint/parser": ^5.6.0
     authorizer: "workspace:^"
+    aws-cdk: ^2.96.2
     constructs: ^10.2.70
     domain-auth-assets: "workspace:^"
     eslint: ^8.48.0
@@ -14478,8 +14479,8 @@ __metadata:
 
 "rust-functions@file:./rust-functions/pkg::locator=remix-site%40workspace%3Apackages%2Fremix-site":
   version: 0.1.0
-  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=22c087&locator=remix-site%40workspace%3Apackages%2Fremix-site"
-  checksum: 123b5a9e4f418d7c8a7369906f324a460f5073e91ce389abc4cedee9454905cb1becf52ecfe424a302e1929311f66c2ffe776f1a72dcc81a9a32663e71fc05c8
+  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=c8952b&locator=remix-site%40workspace%3Apackages%2Fremix-site"
+  checksum: 046cce675831ae6e886a7b8418791763f904f157d1a7f34d529c95757382815c53fb947dd03c74e694473dea40a96bf8c785f024375e60a9f649bde5d99a954c
   languageName: node
   linkType: hard
 

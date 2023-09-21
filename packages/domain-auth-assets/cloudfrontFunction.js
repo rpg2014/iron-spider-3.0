@@ -8,7 +8,7 @@
 // }
 
 function handler(event) {
-  let request = event.request;
+  var request = event.request;
   // the default root option of the distribution handles the root path
   if (
     !request.uri.includes(".") &&

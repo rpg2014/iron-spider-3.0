@@ -33,7 +33,11 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
     const httpRequest = convertEvent(event);
     const httpResponse = await handler.handle(httpRequest, context);
-    httpResponse.headers["access-control-allow-origin"] = "https://pwa.parkergiven.com";
+    //configure CORS
+    //TODO: make the cors header mirror the origin if it matches parkergiven.com, and cleaner
+    // will need to do this in a seperate options route
+    httpResponse.headers["access-control-allow-origin"] = "https://auth.parkergiven.com, https://remix.parkergiven.com, https://pwa.parkergiven.com";
+    httpResponse.headers["access-control-allow-headers"] = 'content-type, spider-access-token'
     return convertVersion1Response(httpResponse);
   };
 }

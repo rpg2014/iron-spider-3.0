@@ -221,7 +221,10 @@ export class ApiStack extends Stack {
         integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
 
         //Add extra origin headers to cors allowed origin header in the api gateway integration
-        integration.responses.default.responseParameters["method.response.header.Access-Control-Allow-Origin"] = `'${this.allowedOrigins}'`;
+        if(integration.responses) {
+          integration.responses.default.responseParameters["method.response.header.Access-Control-Allow-Origin"] = `'${this.allowedOrigins}'`;
+        }
+
 
         // Tried to make the stop function async but it jsut times out instead? or throws a 502.
         if (path === "/server/stop") {
@@ -231,10 +234,10 @@ export class ApiStack extends Stack {
           };
           op["x-amazon-apigateway-integration"].responses = {
             ...op["x-amazon-apigateway-integration"].responses,
-            default: {
+            default: op["x-amazon-apigateway-integration"].default ? {
               ...op["x-amazon-apigateway-integration"].responses.default,
               statusCode: 200,
-            },
+            }: undefined,
           };
         }
       }

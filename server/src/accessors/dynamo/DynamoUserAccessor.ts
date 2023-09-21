@@ -60,6 +60,11 @@ export class DynamoUserAccessor extends UserAccessor {
     return output.Item as UserModel;
   }
 
+    /**
+     * Display name is only used if more than 1 user is returned.
+     * @param email
+     * @param displayName
+     */
   async getUserByEmailAndDisplayName(email: string, displayName: string): Promise<UserModel | null> {
     let result: ScanCommandOutput = await this.ddbdocClient.send(
       new ScanCommand({

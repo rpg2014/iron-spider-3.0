@@ -50,6 +50,7 @@
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "authorizer": "workspace:^",
+    "aws-cdk": "^2.96.2",
     "constructs": "^10.2.70",
     "domain-auth-assets": "workspace:^",
     "eslint": "^8.48.0",

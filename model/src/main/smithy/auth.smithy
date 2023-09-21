@@ -20,7 +20,9 @@ structure CreateUserInput {
 }
 
 structure CreateUserOutput {
-    success: Boolean
+    @required
+    success: Boolean,
+    verificationCode: String,
 }
 
 

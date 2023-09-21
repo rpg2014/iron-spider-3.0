@@ -24,7 +24,7 @@ export class SESEmailAccessor extends EmailAccessor {
             },
             Body: {
               Text: {
-                Data: "TBD EMAIL MESSAGE",
+                Data: `Follow the following link to finish creating your account: https://auth.parkergiven.com/signup?magic=${verificationCode}`,
                 Charset: "UTF-8",
               },
             },
