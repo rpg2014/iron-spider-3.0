@@ -1,10 +1,7 @@
 import { CredentialModel, UserModel } from "../model/Auth/authModels";
 
-
 //TODO: figure out dependency injection here.
 export abstract class CredentialsAccessor {
-
-
   abstract getCredential(credentialId: Uint8Array): Promise<CredentialModel | undefined>;
   abstract getCredentialsForUser(userId: String): Promise<CredentialModel[]>;
   abstract saveCredentials(credential: CredentialModel): void;
@@ -16,7 +13,6 @@ export type KeyPair = {
 };
 
 export abstract class SecretKeyAccessor {
-
   abstract getKey(): Promise<KeyPair>;
 }
 
@@ -24,7 +20,6 @@ export abstract class SecretKeyAccessor {
  * Abstract interface for sending emails to users.
  */
 export abstract class EmailAccessor {
-
   abstract sendVerificationEmail(email: string, verificationCode: string): Promise<any>;
 }
 

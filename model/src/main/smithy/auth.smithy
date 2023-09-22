@@ -8,7 +8,7 @@ use smithy.framework#ValidationException
 operation CreateUser {
     input: CreateUserInput,
     output: CreateUserOutput,
-    errors: [ValidationException, InternalServerError]
+    errors: [ValidationException, InternalServerError, NeedDomainAccessError]
 }
 
 

@@ -33,6 +33,7 @@ import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { operations } from "./operationsConfig";
 import { ALLOWED_ORIGINS } from "./cdk-constants";
+import { DELIMITER } from "../src/constants/common";
 
 type EntryMetadata = {
   timeout?: Duration;
@@ -49,17 +50,19 @@ type OtherProps = {
     fnArn: string;
     roleArn: string;
   };
-  allowedOrigins: string;
+  domainName: string;
+  corsSubDomains: string[];
+  subDomain: string;
+  certificateArn: string;
 };
 
 export class ApiStack extends Stack {
-  allowedOrigins;
   operations;
   readonly authOperations;
+  corsFunction;
   constructor(scope: Construct, id: string, props: StackProps & OtherProps) {
     super(scope, id, props);
     //set the allowed origins, for use for cors
-    this.allowedOrigins = props.allowedOrigins;
     const logGroup = new LogGroup(this, "ApiLogs");
 
     // build the list of operations from the config.
@@ -67,6 +70,27 @@ export class ApiStack extends Stack {
       ...operations.apiOperationsList.reduce((merged, obj) => ({ ...merged, ...obj })),
       ...operations.authOperations,
     } as IEntryPoints;
+    //define Cors helper function
+    this.corsFunction = new NodejsFunction(this, "CorsFunction", {
+      entry: path.join(__dirname, "../src/handlers/cors_handler.ts"),
+      handler: "corsHandler",
+      runtime: Runtime.NODEJS_18_X,
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      logRetention: RetentionDays.FIVE_DAYS,
+      environment: {
+        DOMAIN: props.domainName,
+        SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
+      },
+      bundling: {
+        esbuildArgs: {
+          "--tree-shaking": true,
+        },
+        format: OutputFormat.CJS,
+        minify: true,
+        tsconfig: path.join(__dirname, "../tsconfig.json"),
+      },
+    });
 
     // Define all the lambda functions, 1 per operation above
     this.operations = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce((acc, operation) => {
@@ -81,6 +105,8 @@ export class ApiStack extends Stack {
         environment: {
           AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
           EC2_INSTANCE_TYPE: "m6i.xlarge",
+          DOMAIN: props.domainName,
+          SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
         },
         bundling: {
           esbuildArgs: {
@@ -136,8 +162,8 @@ export class ApiStack extends Stack {
       }),
       // Add Domain name to api. (Do i need a base path mapping?)
       domainName: {
-        domainName: "api.parkergiven.com",
-        certificate: Certificate.fromCertificateArn(this, "certArn", "arn:aws:acm:us-east-1:593242635608:certificate/e4ad77f4-1e1b-49e4-9afb-ac94e35bc378"),
+        domainName: `${props.subDomain}.${props.domainName}`,
+        certificate: Certificate.fromCertificateArn(this, "certArn", props.certificateArn),
         securityPolicy: SecurityPolicy.TLS_1_2,
       },
     });
@@ -150,12 +176,16 @@ export class ApiStack extends Stack {
       });
     }
 
+    this.corsFunction.addPermission("CorsToAPIGPermission", {
+      principal: new ServicePrincipal("apigateway.amazonaws.com"),
+      sourceArn: `arn:${this.partition}:execute-api:${this.region}:${this.account}:${api.restApiId}/*/*/*`,
+    });
+
     // Add route 53 alias record to the hosted zone.
     new ARecord(this, "IronSpiderAPIARecord", {
-      recordName: "api.parkergiven.com",
-      zone: HostedZone.fromHostedZoneAttributes(this, "MainHostedZone", {
-        zoneName: "parkergiven.com",
-        hostedZoneId: "ZSXXJQ44AUHG2",
+      recordName: `${props.subDomain}.${props.domainName}`,
+      zone: HostedZone.fromLookup(this, "MainHostedZone", {
+        domainName: props.domainName,
       }),
       target: RecordTarget.fromAlias(new ApiGateway(api)),
     });
@@ -180,17 +210,20 @@ export class ApiStack extends Stack {
 
     //Add CDK generated function arns to the open api definition
     for (const path in openapi.paths) {
+      // TODO: add options integration.
+
       for (const operation in openapi.paths[path]) {
         const op = openapi.paths[path][operation];
         const integration = op["x-amazon-apigateway-integration"];
         // Don't try to mess with mock integrations
         if (integration !== null && integration !== undefined && integration["type"] === "mock") {
-          // check if options operation, then add allowed origins to default integration, as smithy only supports a single allowed origin currently
-          if (operation === "options") {
-            op["x-amazon-apigateway-integration"].responses.default.responseParameters[
-              "method.response.header.Access-Control-Allow-Origin"
-            ] = `'${this.allowedOrigins}'`;
-          }
+          // Not needed for cors anymore
+          // // check if options operation, then add allowed origins to default integration, as smithy only supports a single allowed origin currently
+          // if (operation === "options") {
+          //   op["x-amazon-apigateway-integration"].responses.default.responseParameters[
+          //     "method.response.header.Access-Control-Allow-Origin"
+          //   ] = `'${this.allowedOrigins}'`;
+          // }
           continue;
         }
         const functionArn = functions[op.operationId as IronSpiderServiceOperations]?.functionArn;
@@ -198,33 +231,34 @@ export class ApiStack extends Stack {
           throw new Error("no function for " + op.operationId + " at " + path);
         }
         if (!integration) {
+          // do this instead of throwing an error if I want to deploy a new model without a backing lambda yet
           // set default
-          console.warn("No integration found, providing default for now");
-          op["x-amazon-apigateway-integration"] = {
-            type: "aws_proxy",
-            httpMethod: "POST",
-            uri: "",
-            responses: {
-              default: {
-                statusCode: "200",
-                responseParameters: {
-                  "method.response.header.Access-Control-Allow-Origin": `${this.allowedOrigins}`,
-                  "method.response.header.Access-Control-Expose-Headers": "'Content-Length,Content-Type,X-Amzn-Errortype,X-Amzn-Requestid'",
-                },
-              },
-            },
-          };
-          // throw new Error(
-          //     `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/model/apigateway.smithy`
-          // );
+          // console.warn("No integration found, providing default for now");
+          // op["x-amazon-apigateway-integration"] = {
+          //   type: "aws_proxy",
+          //   httpMethod: "POST",
+          //   uri: "",
+          //   responses: {
+          //     default: {
+          //       statusCode: "200",
+          //       responseParameters: {
+          //         "method.response.header.Access-Control-Allow-Origin": `${this.allowedOrigins}`,
+          //         "method.response.header.Access-Control-Expose-Headers": "'Content-Length,Content-Type,X-Amzn-Errortype,X-Amzn-Requestid'",
+          //       },
+          //     },
+          //   },
+          // };
+          throw new Error(
+            `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/model/apigateway.smithy`
+          );
         }
         integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
 
-        //Add extra origin headers to cors allowed origin header in the api gateway integration
-        if(integration.responses) {
-          integration.responses.default.responseParameters["method.response.header.Access-Control-Allow-Origin"] = `'${this.allowedOrigins}'`;
-        }
-
+        // no more cors within apig
+        // //Add extra origin headers to cors allowed origin header in the api gateway integration
+        // if(integration.responses) {
+        //   integration.responses.default.responseParameters["method.response.header.Access-Control-Allow-Origin"] = `'${this.allowedOrigins}'`;
+        // }
 
         // Tried to make the stop function async but it jsut times out instead? or throws a 502.
         if (path === "/server/stop") {
@@ -234,13 +268,55 @@ export class ApiStack extends Stack {
           };
           op["x-amazon-apigateway-integration"].responses = {
             ...op["x-amazon-apigateway-integration"].responses,
-            default: op["x-amazon-apigateway-integration"].default ? {
-              ...op["x-amazon-apigateway-integration"].responses.default,
-              statusCode: 200,
-            }: undefined,
+            default: op["x-amazon-apigateway-integration"].default
+              ? {
+                  ...op["x-amazon-apigateway-integration"].responses.default,
+                  statusCode: 200,
+                }
+              : undefined,
           };
         }
       }
+
+      // Add options integration to each path
+      openapi.paths[path]["options"] = {
+        description: `Handles CORS-preflight requests`,
+        operationId: `Cors${path.toString().split("/").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join("")}`,
+        responses: {
+          "200": {
+            description: "Canned response for CORS-preflight requests",
+            headers: {
+              "Access-Control-Allow-Headers": {
+                schema: {
+                  type: "string",
+                },
+              },
+              "Access-Control-Allow-Methods": {
+                schema: {
+                  type: "string",
+                },
+              },
+              "Access-Control-Allow-Origin": {
+                schema: {
+                  type: "string",
+                },
+              },
+              "Access-Control-Max-Age": {
+                schema: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+        security: [],
+        tags: ["CORS"],
+        "x-amazon-apigateway-integration": {
+          type: "aws_proxy",
+          httpMethod: "POST",
+          uri: `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${this.corsFunction.functionArn}/invocations`,
+        },
+      } as any;
     }
 
     //Add authorizer fn and role to the open API def, easy way

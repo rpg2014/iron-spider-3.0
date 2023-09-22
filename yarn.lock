@@ -1496,6 +1496,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-sdk/protocol-http@npm:^3.374.0":
+  version: 3.374.0
+  resolution: "@aws-sdk/protocol-http@npm:3.374.0"
+  dependencies:
+    "@smithy/protocol-http": ^1.1.0
+    tslib: ^2.5.0
+  checksum: f8ec7ac8bb76b6efebb8b5fc37d32621d8c77b08daa137a879042c8f79e8de90521d80ae0f15350933ee637e1ea1df9ce8a12ab7870f265b5ecb1df0bfdbb8f6
+  languageName: node
+  linkType: hard
+
 "@aws-sdk/querystring-builder@npm:3.257.0":
   version: 3.257.0
   resolution: "@aws-sdk/querystring-builder@npm:3.257.0"
@@ -10075,6 +10085,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "iron-spider-build@workspace:."
   dependencies:
+    "@aws-sdk/protocol-http": ^3.374.0
     esbuild: ^0.14.27
     rimraf: ^3.0.0
   languageName: unknown
@@ -14479,8 +14490,8 @@ __metadata:
 
 "rust-functions@file:./rust-functions/pkg::locator=remix-site%40workspace%3Apackages%2Fremix-site":
   version: 0.1.0
-  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=c8952b&locator=remix-site%40workspace%3Apackages%2Fremix-site"
-  checksum: 046cce675831ae6e886a7b8418791763f904f157d1a7f34d529c95757382815c53fb947dd03c74e694473dea40a96bf8c785f024375e60a9f649bde5d99a954c
+  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=22c087&locator=remix-site%40workspace%3Apackages%2Fremix-site"
+  checksum: 123b5a9e4f418d7c8a7369906f324a460f5073e91ce389abc4cedee9454905cb1becf52ecfe424a302e1929311f66c2ffe776f1a72dcc81a9a32663e71fc05c8
   languageName: node
   linkType: hard
 

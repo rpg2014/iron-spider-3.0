@@ -11,7 +11,7 @@ import {
   UpdateCommand,
   UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
-import { BadRequestError } from "iron-spider-ssdk";
+import { BadRequestError, InternalServerError } from "iron-spider-ssdk";
 
 const marshallOptions = {};
 export class DynamoUserAccessor extends UserAccessor {
@@ -32,20 +32,27 @@ export class DynamoUserAccessor extends UserAccessor {
       .filter(key => key !== "id")
       .forEach((key: string) => {
         updates[key] = {
-          Action: AttributeAction.PUT,
+          Action: "PUT",
           Value: user[key as keyof UserModel],
         } as AttributeValueUpdate;
       });
-    const output: UpdateCommandOutput = await this.ddbdocClient.send(
-      new UpdateCommand({
-        TableName: this.TABLE_NAME,
-        Key: {
-          id: user.id,
-        },
-        AttributeUpdates: updates,
-      })
-    );
-    return;
+    console.log("Creating user: " + JSON.stringify(updates));
+    try {
+      const output: UpdateCommandOutput = await this.ddbdocClient.send(
+        new UpdateCommand({
+          TableName: this.TABLE_NAME,
+          Key: {
+            id: user.id,
+          },
+          AttributeUpdates: updates,
+        })
+      );
+      return;
+    } catch (e: any) {
+      console.log("Error creating user: " + e.message);
+      throw new InternalServerError({ message: "Unable to create user" })
+
+    }
   }
 
   async getUser(id: string): Promise<UserModel> {
@@ -60,11 +67,11 @@ export class DynamoUserAccessor extends UserAccessor {
     return output.Item as UserModel;
   }
 
-    /**
-     * Display name is only used if more than 1 user is returned.
-     * @param email
-     * @param displayName
-     */
+  /**
+   * Display name is only used if more than 1 user is returned.
+   * @param email
+   * @param displayName
+   */
   async getUserByEmailAndDisplayName(email: string, displayName: string): Promise<UserModel | null> {
     let result: ScanCommandOutput = await this.ddbdocClient.send(
       new ScanCommand({
@@ -103,7 +110,7 @@ export class DynamoUserAccessor extends UserAccessor {
         },
         AttributeUpdates: {
           challenge: {
-            Action: AttributeAction.PUT,
+            Action: "PUT",
             Value: challenge,
           },
         },
@@ -120,7 +127,7 @@ export class DynamoUserAccessor extends UserAccessor {
         },
         AttributeUpdates: {
           credentials: {
-            Action: AttributeAction.ADD,
+            Action: "ADD",
             Value: [credentials.credentialID],
           },
         },
@@ -128,5 +135,3 @@ export class DynamoUserAccessor extends UserAccessor {
     );
   }
 }
-const decode = (str: string): string => Buffer.from(str, "base64").toString("binary");
-const encode = (str: string): string => Buffer.from(str, "binary").toString("base64");

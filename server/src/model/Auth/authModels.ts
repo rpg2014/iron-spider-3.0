@@ -6,7 +6,7 @@ export type UserModel = {
   domainAccess?: boolean;
   emailValidated?: boolean;
   apiAccess?: string[];
-  credentials: string[];
+  credentials?: string[];
 };
 
 export type CredentialDeviceType = "singleDevice" | "multiDevice";

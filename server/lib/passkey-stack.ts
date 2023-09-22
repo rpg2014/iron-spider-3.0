@@ -58,18 +58,17 @@ export class PasskeyInfraStack extends cdk.Stack {
     props.operationsAccess.forEach(operation => this.CredentialTable.grantReadWriteData(operation));
 
     //Secrets
-    //generate RSA key
+    //generate RSA key 
+    
     const keyPair = generateKeyPairSync("rsa", {
       modulusLength: 2048,
       publicKeyEncoding: {
-        type: "spki",
+        type: "pkcs1",
         format: "pem",
       },
       privateKeyEncoding: {
-        type: "pkcs8",
-        format: "pem",
-        cipher: "aes-256-cbc",
-        passphrase: "TEST TEST",
+        type: "pkcs1",
+        format: "pem"
       },
     });
     this.rsaSecret = new secretmanager.Secret(this, id + "VerificationCodeKey", {
@@ -88,7 +87,7 @@ export class PasskeyInfraStack extends cdk.Stack {
     // })
     //outputs for use in functions
     props.operationsAccess
-      .filter(operation => operation.functionName.includes("CreateUser"))
+      // .filter(operation => operation.functionName.includes("CreateUser"))
       .forEach(op => {
         op.addEnvironment("VERIFICATION_SECRET_ARN", this.rsaSecret.secretArn);
         op.addEnvironment("USER_TABLE_NAME", this.UserTable.tableName);

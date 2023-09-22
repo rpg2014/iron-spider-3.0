@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import {KeyPair} from "../accessors/AccessorInterfaces";
+import { KeyPair } from "../accessors/AccessorInterfaces";
 import { JWT_AUDIENCE, JWT_ISSUER } from "../constants/passkeyConst";
-import {getSecretKeyAccessor} from "../accessors/AccessorFactory";
+import { getSecretKeyAccessor } from "../accessors/AccessorFactory";
 
 let keyPair: KeyPair | null = null;
 interface JwtUserObject {
@@ -22,8 +22,10 @@ export const JWTProcessor = {
   },
   async generateTokenForUser(userId: string, expiresIn: string = "1h"): Promise<string> {
     if (!keyPair) {
+      console.log("Fetching KeyPair")
       keyPair = await getSecretKeyAccessor().getKey();
     }
+    console.log("first and last 2 lines of the keypair"+ keyPair.privateKey.slice(0,30) + "..." + keyPair.privateKey.slice(-30))
 
     return jwt.sign({ userId }, keyPair.privateKey, {
       expiresIn,

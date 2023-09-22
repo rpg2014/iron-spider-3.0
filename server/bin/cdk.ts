@@ -43,7 +43,10 @@ const apiStack = new ApiStack(app, "IronSpiderService", {
     fnArn: authStack.AuthorizerFunction.functionArn,
     roleArn: authStack.role.roleArn,
   },
-  allowedOrigins: subDomains.map(sub => `https://${sub}.${domainName}`).join(", "),
+  certificateArn,
+  domainName: domainName,
+  subDomain: "api",
+  corsSubDomains: subDomains,
 });
 const infraStack = new PasskeyInfraStack(app, "PasskeyInfra", {
   env,

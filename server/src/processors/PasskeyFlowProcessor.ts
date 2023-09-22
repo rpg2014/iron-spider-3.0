@@ -7,20 +7,15 @@ import {
   VerifyRegistrationResponseOpts,
 } from "@simplewebauthn/server";
 import { RegistrationResponseJSON } from "@simplewebauthn/typescript-types";
+import { NeedDomainAccessError } from "iron-spider-ssdk";
 import { CredentialModel } from "../model/Auth/authModels";
 import { JWTProcessor } from "./JWTProcessor";
-import {getCredentialsAccessor, getSecretKeyAccessor, getUserAccessor} from "../accessors/AccessorFactory";
+import { getCredentialsAccessor, getSESAccessor, getSecretKeyAccessor, getUserAccessor } from "../accessors/AccessorFactory";
 
 interface PasskeyFlowProcessor {
-  createUser(email: string, displayName: string): Promise<{ success: boolean, verificationCode: string }>;
+  createUser(email: string, displayName: string): Promise<{ success: boolean; verificationCode: string }>;
   verifyTokenAndGenerateRegistrationOptions(token: string): Promise<any>;
   verifyRegistrationResponse(input: RegistrationResponseJSON & any, transports: any, userToken: string): Promise<any>;
-}
-class NeedDomainAccessError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "NeedDomainAccessError";
-  }
 }
 
 const processor: PasskeyFlowProcessor = {
@@ -32,34 +27,34 @@ const processor: PasskeyFlowProcessor = {
     const user = await userAccessor.getUserByEmailAndDisplayName(email, displayName);
 
     if (user === null) {
-      console.log("Creating a new user and throwing error for access")
-      userAccessor.createUser({
+      console.log("Creating a new user and throwing error for access");
+      await userAccessor.createUser({
         //use uuid to generate a id
         id: `${ID_PREFIX}user.` + uuidv4(),
         email,
         displayName,
-        credentials: [],
+        // credentials: [],
         domainAccess: false,
       });
-      throw new NeedDomainAccessError("Need access, talk to Parker");
-    }
-    console.log(`User ${displayName}'s access is ${user.domainAccess}`)
+      throw new NeedDomainAccessError({message:"Need access, talk to Parker"});
+    }    
+    
+    console.log(`User ${displayName}'s access is ${user.domainAccess}`);
     // if present, check domainAccess, if true, then go to verification code.
     if (!user.domainAccess) {
-      throw new NeedDomainAccessError("Need access, talk to Parker");
+      throw new NeedDomainAccessError({message: "Need access, talk to Parker"});
     }
 
-
-    console.log("Generating email verification token")
+    console.log("Generating email verification token");
     // create verification code
     const verificationCode = await JWTProcessor.generateTokenForUser(user.id);
     //  save code in db for later reference.
-    console.log("Saving token to user")
+    console.log("Saving token to user");
     await userAccessor.saveChallenge(user.id, verificationCode);
 
     // send email to user with magic link using ses
-    console.log(`Not sending email currently. verification code: ${verificationCode}; email: ${email}`)
-    // await getSESAccessor().sendVerificationEmail(email, verificationCode);
+    // console.log(`Not sending email currently. verification code: ${verificationCode}; email: ${email}`);
+    await getSESAccessor().sendVerificationEmail(email, verificationCode);
 
     return {
       success: true,
@@ -87,7 +82,7 @@ const processor: PasskeyFlowProcessor = {
         residentKey: "required",
         userVerification: "preferred",
       },
-      excludeCredentials: (await getCredentialsAccessor().getCredentialsForUser(decoded.userId)).map(credential => ({
+      excludeCredentials: (await getCredentialsAccessor().getCredentialsForUser(decoded.userId))?.map(credential => ({
         id: credential.credentialID,
         type: "public-key",
         // Optional

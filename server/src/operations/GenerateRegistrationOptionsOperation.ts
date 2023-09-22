@@ -11,13 +11,11 @@ import jwt, { Jwt, JwtPayload } from "jsonwebtoken";
 import { SecretKeyAccessor } from "../accessors/AccessorInterfaces";
 import { JWT_AUDIENCE, JWT_ISSUER } from "../constants/passkeyConst";
 import passkeyFlowProcessor from "../processors/PasskeyFlowProcessor";
-import {getSecretKeyAccessor} from "../accessors/AccessorFactory";
+import { getSecretKeyAccessor } from "../accessors/AccessorFactory";
 
 export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistrationOptionsServerInput, GenerateRegistrationOptionsServerOutput, HandlerContext> =
   async (input, context) => {
     // unpack verification code,
-    // verify
-    const keyPair = await getSecretKeyAccessor().getKey();
     if (!input.challenge) {
       throw new BadRequestError({ message: "no challenge returned" });
     }

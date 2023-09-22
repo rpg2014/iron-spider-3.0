@@ -32,7 +32,8 @@ export default function Signup() {
           method: "POST",
           mode: "cors",
           headers:{
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "spider-access-token": "no-token"
           }
         },
       );
@@ -52,6 +53,7 @@ export default function Signup() {
           <label htmlFor="name">Username:</label>
           <input
             className={styles.inputField}
+            autoComplete="username"
             type="text"
             id="name"
             name="name"
@@ -64,6 +66,7 @@ export default function Signup() {
           <label htmlFor="email">Email:</label>
           <input
             className={styles.inputField}
+            autoComplete="email"
             type="email"
             id="email"
             name="email"
