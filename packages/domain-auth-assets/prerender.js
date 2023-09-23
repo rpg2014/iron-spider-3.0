@@ -14,7 +14,7 @@ console.log("prerendering routes");
 const template = fs.readFileSync(toAbsolute("dist/static/index.html"), "utf-8");
 
 //Map filesystem paths in pages to URL's
-const routesToPrerender = ["/", "/signup"];
+const routesToPrerender = ["/", "/signup", "/verify"];
 console.log("prerendering the following routes:");
 routesToPrerender.forEach((r) => console.log(`\t${r}`));
 

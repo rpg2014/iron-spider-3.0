@@ -22,10 +22,10 @@ export const JWTProcessor = {
   },
   async generateTokenForUser(userId: string, expiresIn: string = "1h"): Promise<string> {
     if (!keyPair) {
-      console.log("Fetching KeyPair")
+      console.log("Fetching KeyPair");
       keyPair = await getSecretKeyAccessor().getKey();
     }
-    console.log("first and last 2 lines of the keypair"+ keyPair.privateKey.slice(0,30) + "..." + keyPair.privateKey.slice(-30))
+    console.log("first and last 2 lines of the keypair" + keyPair.privateKey.slice(0, 30) + "..." + keyPair.privateKey.slice(-30));
 
     return jwt.sign({ userId }, keyPair.privateKey, {
       expiresIn,

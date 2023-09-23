@@ -2,24 +2,22 @@ import { HttpRequest } from "@aws-sdk/protocol-http";
 import { CorsOperation, validateCors } from "./cors_handler";
 
 describe("Cors handler", () => {
+  beforeEach(() => {
+    process.env.DOMAIN = "parkergiven.com";
+    process.env.SUB_DOMAINS = "auth, pwa, remix";
+  });
+  //   it("should return the correct CORS headers", async () => {
+  //     const request = new HttpRequest({
+  //       headers: {
+  //         Origin: "https://parkergiven.com",
+  //       },
+  //     });
 
-    beforeEach(()=> {
-        process.env.DOMAIN = "parkergiven.com";
-        process.env.SUB_DOMAINS = "auth, pwa, remix";
-    })
-//   it("should return the correct CORS headers", async () => {
-//     const request = new HttpRequest({
-//       headers: {
-//         Origin: "https://parkergiven.com",
-//       },
-//     });
+  //     const allowed = validateCors(request, {});
+  //     expect(allowed.origin).toEqual("https://parkergiven.com");
+  //     expect(allowed.headers).toEqual("content-type, spider-access-token");
 
-//     const allowed = validateCors(request, {});
-//     expect(allowed.origin).toEqual("https://parkergiven.com");
-//     expect(allowed.headers).toEqual("content-type, spider-access-token");
-
-    
-//   });
+  //   });
 
   it("should   correct headers when called from auth subdomain", async () => {
     const request = new HttpRequest({
@@ -65,6 +63,6 @@ describe("Cors handler", () => {
       },
     });
 
-    expect(() => validateCors(request, {})).toThrowError()
-});
+    expect(() => validateCors(request, {})).toThrowError();
+  });
 });

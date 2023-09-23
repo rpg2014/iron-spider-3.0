@@ -21,7 +21,7 @@ export interface HandlerContext {
 }
 
 const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<string, string> => {
-  if(!allowed || !allowed.origin || !allowed.headers) {
+  if (!allowed || !allowed.origin || !allowed.headers) {
     throw new Error("Invalid allowed cors");
   }
   return {
@@ -51,7 +51,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
     const username = event.requestContext.authorizer?.username;
     console.log(`Username from authorizer is: ${username}`);
     //Require username for server API's
-    if (event.httpMethod !== "OPTIONS" && !username && event.path.includes("server") ) {
+    if (event.httpMethod !== "OPTIONS" && !username && event.path.includes("server")) {
       console.error(event);
       throw new Error("Request didn't go through authorizer, no username found.");
     }
@@ -60,7 +60,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
     const httpRequest = convertEvent(event);
     try {
       const allowed = validateCors(httpRequest, context);
-      
+
       const httpResponse = await handler.handle(httpRequest, context);
       //configure CORS
       //TODO: make the cors header mirror the origin if it matches parkergiven.com, and cleaner
@@ -70,7 +70,9 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
     } catch (e: any) {
       console.error("CORS error");
       console.error(e.message);
-      return convertVersion1Response(new HttpResponse({ statusCode: 403, body: "Forbidden: CORS", headers: {...addCORSHeaders({origin: "*", headers: ""})} }));
+      return convertVersion1Response(
+        new HttpResponse({ statusCode: 403, body: "Forbidden: CORS", headers: { ...addCORSHeaders({ origin: "*", headers: "" }) } })
+      );
     }
   };
 }

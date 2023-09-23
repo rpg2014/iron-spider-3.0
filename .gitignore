@@ -7,3 +7,6 @@
 /.yarn/cache
 /server/.aws-sam/
 /model/bin/
+
+.secrets.ts
+.keypair.json

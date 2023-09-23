@@ -50,8 +50,7 @@ export class DynamoUserAccessor extends UserAccessor {
       return;
     } catch (e: any) {
       console.log("Error creating user: " + e.message);
-      throw new InternalServerError({ message: "Unable to create user" })
-
+      throw new InternalServerError({ message: "Unable to create user" });
     }
   }
 

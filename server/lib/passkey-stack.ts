@@ -2,16 +2,19 @@ import * as cdk from "aws-cdk-lib";
 import * as ddb from "aws-cdk-lib/aws-dynamodb";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
-import * as secretmanager from "aws-cdk-lib/aws-secretsmanager";
 import { generateKeyPairSync } from "crypto";
-import { CfnOutput, SecretValue } from "aws-cdk-lib";
+import { SecretValue } from "aws-cdk-lib";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
-import { operations } from "./operationsConfig";
+import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import fs from "node:fs";
+import path from "node:path";
 
 type PasskeyInfraProps = {
   userTableName: string;
   credentialsTableName: string;
   operationsAccess: NodejsFunction[];
+  sesArns: string[];
 };
 
 const defaultAutoScalingOptions = {
@@ -58,20 +61,27 @@ export class PasskeyInfraStack extends cdk.Stack {
     props.operationsAccess.forEach(operation => this.CredentialTable.grantReadWriteData(operation));
 
     //Secrets
-    //generate RSA key 
-    
-    const keyPair = generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-      publicKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs1",
-        format: "pem"
-      },
-    });
-    this.rsaSecret = new secretmanager.Secret(this, id + "VerificationCodeKey", {
+    //generate RSA key
+    const getKeyPair = () => {
+      //Make this function generate a keyfile with both the keys in it if it doesn't already exist.  if it does just return the file's data
+      if (!fs.existsSync(path.resolve(__dirname, "../.keypair.json"))) {
+        const keypair = generateKeyPairSync("rsa", {
+          modulusLength: 2048,
+          publicKeyEncoding: {
+            type: "pkcs1",
+            format: "pem",
+          },
+          privateKeyEncoding: {
+            type: "pkcs1",
+            format: "pem",
+          },
+        });
+        fs.writeFileSync(path.resolve(__dirname, "../.keypair.json"), JSON.stringify(keypair, null, 2));
+      }
+      return JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.keypair.json"), "utf-8"));
+    };
+    const keyPair = getKeyPair();
+    this.rsaSecret = new Secret(this, id + "VerificationCodeKey", {
       secretName: id + "VerificationCodeKey",
       secretObjectValue: {
         publicKey: SecretValue.unsafePlainText(keyPair.publicKey),
@@ -80,6 +90,15 @@ export class PasskeyInfraStack extends cdk.Stack {
     });
     //TODO: later pull in the auth api's into this stack, but then provide their api def into the api stack and merge
     props.operationsAccess.forEach(operation => this.rsaSecret.grantRead(operation));
+
+    props.operationsAccess.forEach(operation =>
+      operation.addToRolePolicy(
+        new PolicyStatement({
+          actions: ["ses:SendEmail"],
+          resources: [...props.sesArns],
+        })
+      )
+    );
 
     //TODO: create rotation lambda
     // this.rsaSecret.addRotationSchedule(id+"VerficationCodeKeyRotation", {

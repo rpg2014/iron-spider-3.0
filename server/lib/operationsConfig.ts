@@ -36,14 +36,17 @@ const AuthOperations: Partial<IEntryPoints> = {
   CreateUser: {
     handlerFile: "handlers/CreateUserHandler",
     handlerFunction: "getCreateUser",
+    memorySize: 256,
   },
   GenerateRegistrationOptions: {
     handlerFile: "auth_handler",
     handlerFunction: "getRegistrationOptions",
+    memorySize: 256,
   },
   VerifyRegistration: {
     handlerFile: "handlers/VerifyRegistrationOptionsHandler",
     handlerFunction: "verifyRegistrationHandler",
+    memorySize: 256,
   },
 };
 

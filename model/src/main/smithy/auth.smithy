@@ -34,10 +34,6 @@ operation GenerateRegistrationOptions {
 }
 structure GenerateRegistrationOptionsInput {
     @required
-    email: String, //email
-    @required
-    userDisplayName: String, //username
-    @required
     challenge: String,
 }
 structure GenerateRegistrationOptionsOutput {
@@ -71,8 +67,8 @@ structure VerifyRegistrationOutput {
 
  @http(code: 200, method: "GET", uri: "/v1/authentication/options")
  operation GenerateAuthenticationOptions {
-    input: GenerateAuthenticationOptionInput
-    output: GenerateAuthenticationOptionOutput
+    input: GenerateAuthenticationOptionInput,
+    output: GenerateAuthenticationOptionOutput,
     errors: [InternalServerError, BadRequestError, ValidationException]
  }
 

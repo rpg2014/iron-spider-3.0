@@ -37,8 +37,10 @@
     "@simplewebauthn/server": "^7.4.0",
     "@types/aws-lambda": "^8.10.85",
     "@types/uuid": "^9.0.2",
+    "bootstrap": "^5.3.2",
     "iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen",
     "jsonwebtoken": "^9.0.1",
+    "react-bootstrap": "^2.8.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
@@ -50,7 +52,7 @@
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "authorizer": "workspace:^",
-    "aws-cdk": "^2.96.2",
+    "aws-cdk": "^2.97.0",
     "constructs": "^10.2.70",
     "domain-auth-assets": "workspace:^",
     "eslint": "^8.48.0",

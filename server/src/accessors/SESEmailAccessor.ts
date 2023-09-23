@@ -9,29 +9,36 @@ export class SESEmailAccessor extends EmailAccessor {
     this.client = new SESv2Client();
   }
   async sendVerificationEmail(email: string, verificationCode: string): Promise<string | undefined> {
-    const output: SendEmailCommandOutput = await this.client.send(
-      new SendEmailCommand({
-        FromEmailAddress: "account@mail.parkergiven.com",
-        Destination: {
-          ToAddresses: [email],
-        },
-        ReplyToAddresses: ["pgiven14@gmail.com"],
-        Content: {
-          Simple: {
-            Subject: {
-              Data: "ParkerGiven.com Email Verification",
+    const command = new SendEmailCommand({
+      FromEmailAddress: "account@mail.parkergiven.com",
+      Destination: {
+        ToAddresses: [email],
+      },
+      ReplyToAddresses: ["pgiven14@gmail.com"],
+      Content: {
+        Simple: {
+          Subject: {
+            Data: "ParkerGiven.com Email Verification",
+            Charset: "UTF-8",
+          },
+          Body: {
+            Text: {
+              Data: `Follow the following link to finish creating your account: https://auth.parkergiven.com/verify?magic=${verificationCode}`,
               Charset: "UTF-8",
-            },
-            Body: {
-              Text: {
-                Data: `Follow the following link to finish creating your account: https://auth.parkergiven.com/signup?magic=${verificationCode}`,
-                Charset: "UTF-8",
-              },
             },
           },
         },
-      })
-    );
-    return output.MessageId;
+      },
+    });
+    console.log(`Sending command: ${JSON.stringify(command)}`);
+    try {
+      const output: SendEmailCommandOutput = await this.client.send(command);
+      console.log(`Send Email Output: ${JSON.stringify(output)}`);
+      return output.MessageId;
+    } catch (e: any) {
+      console.error(`Error sending email: ${e}`);
+      console.error(e.message);
+      throw e;
+    }
   }
 }

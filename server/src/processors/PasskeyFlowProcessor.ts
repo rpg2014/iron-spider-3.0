@@ -36,13 +36,13 @@ const processor: PasskeyFlowProcessor = {
         // credentials: [],
         domainAccess: false,
       });
-      throw new NeedDomainAccessError({message:"Need access, talk to Parker"});
-    }    
-    
+      throw new NeedDomainAccessError({ message: "Need access, talk to Parker" });
+    }
+
     console.log(`User ${displayName}'s access is ${user.domainAccess}`);
     // if present, check domainAccess, if true, then go to verification code.
     if (!user.domainAccess) {
-      throw new NeedDomainAccessError({message: "Need access, talk to Parker"});
+      throw new NeedDomainAccessError({ message: "Need access, talk to Parker" });
     }
 
     console.log("Generating email verification token");
@@ -54,6 +54,7 @@ const processor: PasskeyFlowProcessor = {
 
     // send email to user with magic link using ses
     // console.log(`Not sending email currently. verification code: ${verificationCode}; email: ${email}`);
+    console.log("Sending Email");
     await getSESAccessor().sendVerificationEmail(email, verificationCode);
 
     return {

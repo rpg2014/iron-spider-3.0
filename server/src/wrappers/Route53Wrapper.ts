@@ -34,7 +34,8 @@ export class Route53Wrapper {
       ChangeBatch: {
         Changes: [
           {
-            Action: ChangeAction.UPSERT,
+            //Not sure why, but the ChangeAction.UPSERT import doesn't work
+            Action: "UPSERT",
             ResourceRecordSet: {
               Name: url,
               ResourceRecords: [

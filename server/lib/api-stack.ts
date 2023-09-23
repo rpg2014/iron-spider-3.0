@@ -281,7 +281,11 @@ export class ApiStack extends Stack {
       // Add options integration to each path
       openapi.paths[path]["options"] = {
         description: `Handles CORS-preflight requests`,
-        operationId: `Cors${path.toString().split("/").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join("")}`,
+        operationId: `Cors${path
+          .toString()
+          .split("/")
+          .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+          .join("")}`,
         responses: {
           "200": {
             description: "Canned response for CORS-preflight requests",

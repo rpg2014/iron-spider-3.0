@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Form, Link } from "react-router-dom";
 import styles from "./Signup.module.scss";
+import Spinner from "../components/Spinner";
+import Alert from "../components/Alert";
 
 export default function Signup() {
   const [email, setEmail] = useState<string>("");
@@ -10,8 +11,10 @@ export default function Signup() {
     email: string | undefined;
     username: string | undefined;
   }>({ email: undefined, username: undefined });
+  const [loading, setLoading] = useState(false);
 
   const submitEmail = async () => {
+    setLoading(true)
     console.log("submitEmail");
     const emailTest = email.length < 4;
     const usernameTest = username.length < 2;
@@ -21,6 +24,7 @@ export default function Signup() {
         username: usernameTest ? "Username are required" : undefined,
       });
       console.log("validationErrors: ", validationErrors);
+      setLoading(false)
       return;
     }
     try {
@@ -28,19 +32,22 @@ export default function Signup() {
         "https://api.parkergiven.com/v1/registration/create",
         {
           body: JSON.stringify({ email: email, displayName: username }),
-          
+
           method: "POST",
           mode: "cors",
-          headers:{
+          headers: {
             "Content-Type": "application/json",
-            "spider-access-token": "no-token"
-          }
+            "spider-access-token": "no-token",
+          },
         },
       );
+      setLoading(false)
       const json = await response.json();
       console.log("create user response: ", json);
     } catch (e: any) {
       setError(e.message);
+    }finally {
+      setLoading(false)
     }
   };
 
@@ -61,7 +68,11 @@ export default function Signup() {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
+          {/* {validationErrors.username && (
+            <Alert >{validationErrors.username}</Alert>
+)} */}
         </div>
+        
         <div className={styles.inputDiv}>
           <label htmlFor="email">Email:</label>
           <input
@@ -74,17 +85,21 @@ export default function Signup() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+          {/* {validationErrors.email && (
+            <Alert >{validationErrors.email}</Alert>
+            )} */}
         </div>
         <div className={`${styles.inputDiv} ${styles.submitDiv}`}>
-          <input
+          {loading ? <Spinner />:<input
             className={styles.submitButton}
             type="submit"
             value="Verify Email"
             onClick={() => submitEmail()}
           />
+  }
         </div>
       </div>
-      <div>{error && error}</div>
+      {error && <Alert><span style={{fontWeight:"bolder", fontSize:"large"}}>Error: </span>{error}</Alert>}
     </div>
   );
 }

@@ -54,6 +54,7 @@
     box-shadow: 5px 1px 10px 4px rgba(0, 240, 248, 0.65); // rgba(10, 112, 128, 0.65);
   }
   @media (max-width: 720px) {
+    width: 10rem;
     &:focus-within {
       transform: scale(1);
       // box-shadow: 5px 1px 10px 4px rgba(10, 112, 128, 0.65);
@@ -74,5 +75,9 @@
   font-weight: bold;
   &:focus &:active {
     transform: scale(1.05);
+  }
+
+  @media (max-width: 720px) {
+    width: auto;
   }
 }
