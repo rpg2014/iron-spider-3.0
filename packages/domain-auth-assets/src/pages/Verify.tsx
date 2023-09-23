@@ -78,13 +78,14 @@ export const Verify = () => {
           console.error("Verification Failed", verificationResponse);
         }
       } catch (error: any) {
+        setState("Error")
         // Some basic error handling
         if (error.name === "InvalidStateError") {
           setError(
             "Error: Authenticator was probably already registered by user",
           );
         } else {
-          setError(error);
+          setError(error.message);
         }
       }
     };
@@ -96,24 +97,9 @@ export const Verify = () => {
       {state !== "Verified" &&
         state !== "Verification Failed" &&
         state !== "Error" && <Spinner />}
-      {error && <Alert>{error}</Alert>}
-      {results && (
-        <Alert
-          style={{
-            backgroundColor: "rgba(0,255,0,0.1)",
-            borderColor: "rgb(0,255,0)",
-          }}
-        >
-          {JSON.stringify(results)}
-        </Alert>
-      )}
-      {
-        <Alert
-          variant="success"
-        >
-          {state}
-        </Alert>
-      }
+      {error && <Alert>{JSON.stringify(error)}</Alert>}
+      {results && <Alert variant="success">{JSON.stringify(results)}</Alert>}
+      {!error && !results && <Alert variant="grey">{state}</Alert>}
     </>
   );
 };

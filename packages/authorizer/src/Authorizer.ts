@@ -20,7 +20,7 @@ export const authHandler = async (event: event, context, callback) => {
         callback(null, generateAllow("user", event.methodArn, { username: "unknown" }))
     }//TODO: add registration and auth api's to this passthrough.
 
-    if(event.path === '/v1/registration/create'){
+    if(event.path.startsWith('/v1/registration/')){
         callback(null, generateAllow("user", event.methodArn, {username: "unknown"}))
     }
     const token: string | undefined = event.headers["spider-access-token"];

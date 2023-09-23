@@ -7,7 +7,7 @@ import {
   VerifyRegistrationResponseOpts,
 } from "@simplewebauthn/server";
 import { RegistrationResponseJSON } from "@simplewebauthn/typescript-types";
-import { NeedDomainAccessError } from "iron-spider-ssdk";
+import { NeedDomainAccessError, InternalServerError } from "iron-spider-ssdk";
 import { CredentialModel } from "../model/Auth/authModels";
 import { JWTProcessor } from "./JWTProcessor";
 import { getCredentialsAccessor, getSESAccessor, getSecretKeyAccessor, getUserAccessor } from "../accessors/AccessorFactory";
@@ -64,18 +64,23 @@ const processor: PasskeyFlowProcessor = {
   },
   async verifyTokenAndGenerateRegistrationOptions(token: string): Promise<any> {
     // verify token
+    console.log("Verifying token")
     let decoded = await JWTProcessor.verifyToken(token);
+    console.log("Got UserId from token: ", decoded.userId)
     const user = await getUserAccessor().getUser(decoded.userId);
+    console.log("Got User from DB: ", user)
+    
     // todo: generate new jwt token to pass along userid and email for next registration part
     const challenge = uuidv4();
     await getUserAccessor().saveChallenge(decoded.userId, challenge);
+    try {
     return generateRegistrationOptions({
       challenge: challenge,
       attestationType: "none",
       rpID: rpId,
       rpName: rpName,
       userDisplayName: user.displayName as string,
-      userID: decoded.userId as string,
+      userID: user.id as string,
       userName: user.email as string,
       authenticatorSelection: {
         // "Discoverable credentials" used to be called "resident keys". The
@@ -90,6 +95,10 @@ const processor: PasskeyFlowProcessor = {
         transports: credential.transports,
       })),
     } as GenerateRegistrationOptionsOpts);
+  }catch (error : any ) {
+    console.error(error.message)
+    throw new InternalServerError({message: error.message})
+  }
   },
 
   async verifyRegistrationResponse(registrationResponse: RegistrationResponseJSON & any, transports: any, token: string): Promise<any> {

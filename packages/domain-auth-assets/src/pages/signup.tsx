@@ -12,9 +12,10 @@ export default function Signup() {
     username: string | undefined;
   }>({ email: undefined, username: undefined });
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const submitEmail = async () => {
-    setLoading(true)
+    setLoading(true);
     console.log("submitEmail");
     const emailTest = email.length < 4;
     const usernameTest = username.length < 2;
@@ -24,7 +25,7 @@ export default function Signup() {
         username: usernameTest ? "Username are required" : undefined,
       });
       console.log("validationErrors: ", validationErrors);
-      setLoading(false)
+      setLoading(false);
       return;
     }
     try {
@@ -41,13 +42,14 @@ export default function Signup() {
           },
         },
       );
-      setLoading(false)
+      setLoading(false);
       const json = await response.json();
       console.log("create user response: ", json);
+      setSuccess(json.success);
     } catch (e: any) {
       setError(e.message);
-    }finally {
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,11 +70,11 @@ export default function Signup() {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-          {/* {validationErrors.username && (
+          {validationErrors.username && (
             <Alert >{validationErrors.username}</Alert>
-)} */}
+)}
         </div>
-        
+
         <div className={styles.inputDiv}>
           <label htmlFor="email">Email:</label>
           <input
@@ -85,21 +87,41 @@ export default function Signup() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          {/* {validationErrors.email && (
+          {validationErrors.email && (
             <Alert >{validationErrors.email}</Alert>
-            )} */}
+            )}
         </div>
-        <div className={`${styles.inputDiv} ${styles.submitDiv}`}>
-          {loading ? <Spinner />:<input
-            className={styles.submitButton}
-            type="submit"
-            value="Verify Email"
-            onClick={() => submitEmail()}
-          />
-  }
-        </div>
+        {!success && (
+          <div className={`${styles.inputDiv} ${styles.submitDiv}`}>
+            {loading ? (
+              <Spinner />
+            ) : (
+              <input
+                className={styles.submitButton}
+                type="submit"
+                value="Verify Email"
+                onClick={() => submitEmail()}
+              />
+            )}
+          </div>
+        )}
       </div>
-      {error && <Alert><span style={{fontWeight:"bolder", fontSize:"large"}}>Error: </span>{error}</Alert>}
+      {success && (
+        <Alert variant="success">
+          <span style={{ fontWeight: "bolder", fontSize: "large" }}>
+            Success:{" "}
+          </span>
+          Please check your email to verify your account.
+        </Alert>
+      )}
+      {error && (
+        <Alert>
+          <span style={{ fontWeight: "bolder", fontSize: "large" }}>
+            Error:{" "}
+          </span>
+          {error}
+        </Alert>
+      )}
     </div>
   );
 }

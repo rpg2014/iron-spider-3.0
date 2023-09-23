@@ -28,9 +28,9 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
       new QueryCommand({
         TableName: this.TABLE_NAME,
         IndexName: this.BY_USER_SECONDARY_INDEX_NAME,
-        KeyConditionExpression: "userId = :userId",
+        KeyConditionExpression: "userID = :userID",
         ExpressionAttributeValues: {
-          ":userId": userId,
+          ":userID": userId,
         },
       })
     );

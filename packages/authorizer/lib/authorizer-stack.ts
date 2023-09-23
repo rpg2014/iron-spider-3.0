@@ -25,9 +25,6 @@ export class AuthorizerStack extends cdk.Stack {
       bundling: {
         minify: true,
         tsconfig: path.join(__dirname, "../tsconfig.json"),
-        // re2-wasm is used by the SSDK common library to do pattern validation, and uses
-        // a WASM module, so it's excluded from the bundle
-        nodeModules: ["re2-wasm"],
       }
     })
 

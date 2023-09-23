@@ -1,22 +1,30 @@
 import styles from "./Alert.module.scss";
 
-const ErrorAlert = ({ children, style, variant }: {children: any, style?: React.CSSProperties, variant?: "danger" | "success" | "grey"}) => {
+const ErrorAlert = ({
+  children,
+  style,
+  variant,
+}: {
+  children: any;
+  style?: React.CSSProperties;
+  variant?: "danger" | "success" | "grey";
+}) => {
   const alertStyle = {
     ...style, // Merge with additional styles if provided
   };
 
-  switch(variant) {
+  switch (variant) {
     case "danger":
-    // no change to style needed
+      // no change to style needed
       break;
-    case "success": // green
+    case "grey": // green
       alertStyle.backgroundColor = "rgba(109, 109, 109,0.1)";
       alertStyle.borderColor = "rgb(109, 109, 109)";
       break;
-      case "grey": // grey
+    case "success": // grey
       alertStyle.backgroundColor = "rgba(0,255,0,0.1)";
-            alertStyle.borderColor=  "rgb(0,255,0)"
-            break;
+      alertStyle.borderColor = "rgb(0,255,0)";
+      break;
   }
 
   return (
