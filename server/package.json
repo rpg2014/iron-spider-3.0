@@ -37,10 +37,8 @@
     "@simplewebauthn/server": "^7.4.0",
     "@types/aws-lambda": "^8.10.85",
     "@types/uuid": "^9.0.2",
-    "bootstrap": "^5.3.2",
     "iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen",
     "jsonwebtoken": "^9.0.1",
-    "react-bootstrap": "^2.8.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

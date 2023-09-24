@@ -1,15 +1,32 @@
 import { useState } from "react";
 import reactLogo from "../assets/react.svg";
 import viteLogo from "/vite.svg";
-import "../App.css";
 import { Link } from "react-router-dom";
+import styles from "./Signup.module.scss";
 
 function Login() {
   const [count, setCount] = useState(0);
 
   return (
     <>
-      <div>
+    <div className={styles.container}>
+      <h2 className={styles.title}>Create Account</h2>
+      <p>First you need to verify your email, and choose a username.</p>
+      <div className={styles.formContainer}>
+        <div className={styles.inputDiv}>
+        <label htmlFor="name">Username:</label>
+          <input
+            className={styles.inputField}
+            autoComplete="username webauthn"
+            type="text"
+            id="name"
+            name="name"
+            required
+          />
+        </div>
+    </div>
+    </div>
+      {/* <div>
         <a href="https://vitejs.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
@@ -28,7 +45,7 @@ function Login() {
       </div>
       <p className="read-the-docs">
         <Link to={"/signup"}>Click To Sign up</Link>
-      </p>
+      </p> */}
     </>
   );
 }

@@ -6,7 +6,7 @@ import {
   verifyRegistrationResponse,
   VerifyRegistrationResponseOpts,
 } from "@simplewebauthn/server";
-import { RegistrationResponseJSON } from "@simplewebauthn/typescript-types";
+import { PublicKeyCredentialCreationOptionsJSON, RegistrationResponseJSON } from "@simplewebauthn/typescript-types";
 import { NeedDomainAccessError, InternalServerError } from "iron-spider-ssdk";
 import { CredentialModel } from "../model/Auth/authModels";
 import { JWTProcessor } from "./JWTProcessor";
@@ -14,8 +14,8 @@ import { getCredentialsAccessor, getSESAccessor, getSecretKeyAccessor, getUserAc
 
 interface PasskeyFlowProcessor {
   createUser(email: string, displayName: string): Promise<{ success: boolean; verificationCode: string }>;
-  verifyTokenAndGenerateRegistrationOptions(token: string): Promise<any>;
-  verifyRegistrationResponse(input: RegistrationResponseJSON & any, transports: any, userToken: string): Promise<any>;
+  verifyTokenAndGenerateRegistrationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsJSON>;
+  verifyRegistrationResponse(input: RegistrationResponseJSON & any, transports: any, userToken: string): Promise<{ verified: boolean }>;
 }
 
 const processor: PasskeyFlowProcessor = {
@@ -62,72 +62,99 @@ const processor: PasskeyFlowProcessor = {
       verificationCode,
     };
   },
-  async verifyTokenAndGenerateRegistrationOptions(token: string): Promise<any> {
+  async verifyTokenAndGenerateRegistrationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsJSON> {
     // verify token
-    console.log("Verifying token")
-    let decoded = await JWTProcessor.verifyToken(token);
-    console.log("Got UserId from token: ", decoded.userId)
+    console.log("Verifying token");
+    const decoded = await JWTProcessor.verifyToken(token);
+    console.log("Got UserId from token: ", decoded.userId);
     const user = await getUserAccessor().getUser(decoded.userId);
-    console.log("Got User from DB: ", user)
-    
+    console.log("Got User from DB: ", user);
+
     // todo: generate new jwt token to pass along userid and email for next registration part
     const challenge = uuidv4();
-    await getUserAccessor().saveChallenge(decoded.userId, challenge);
     try {
-    return generateRegistrationOptions({
-      challenge: challenge,
-      attestationType: "none",
-      rpID: rpId,
-      rpName: rpName,
-      userDisplayName: user.displayName as string,
-      userID: user.id as string,
-      userName: user.email as string,
-      authenticatorSelection: {
-        // "Discoverable credentials" used to be called "resident keys". The
-        // old name persists in the options passed to `navigator.credentials.create()`.
-        residentKey: "required",
-        userVerification: "preferred",
-      },
-      excludeCredentials: (await getCredentialsAccessor().getCredentialsForUser(decoded.userId))?.map(credential => ({
-        id: credential.credentialID,
-        type: "public-key",
-        // Optional
-        transports: credential.transports,
-      })),
-    } as GenerateRegistrationOptionsOpts);
-  }catch (error : any ) {
-    console.error(error.message)
-    throw new InternalServerError({message: error.message})
-  }
+      const options = generateRegistrationOptions({
+        challenge: challenge,
+        attestationType: "none",
+        rpID: rpId,
+        rpName: rpName,
+        userDisplayName: user.displayName as string,
+        userID: user.id as string,
+        userName: user.email as string,
+        authenticatorSelection: {
+          // "Discoverable credentials" used to be called "resident keys". The
+          // old name persists in the options passed to `navigator.credentials.create()`.
+          residentKey: "required",
+          userVerification: "preferred",
+        },
+        excludeCredentials: (await getCredentialsAccessor().getCredentialsForUser(decoded.userId))?.map(credential => ({
+          id: credential.credentialID,
+          type: "public-key",
+          // Optional
+          transports: credential.transports,
+        })),
+      } as GenerateRegistrationOptionsOpts);
+
+      console.log("Generated options: ", JSON.stringify(options, null, 2));
+      console.log("Saving challenge to user");
+      await getUserAccessor().saveChallenge(decoded.userId, options.challenge);
+      return options;
+    } catch (error: any) {
+      console.error(error.message);
+      throw new InternalServerError({ message: error.message });
+    }
   },
 
-  async verifyRegistrationResponse(registrationResponse: RegistrationResponseJSON & any, transports: any, token: string): Promise<any> {
+  async verifyRegistrationResponse(registrationResponse: RegistrationResponseJSON & any, transports: any, token: string): Promise<{ verified: boolean }> {
+    console.log("Verifying token");
     const decodedToken = await JWTProcessor.verifyToken(token);
+    console.log("Got UserId from token: ", decodedToken.userId);
     const user = await getUserAccessor().getUser(decodedToken.userId);
-    const verification = await verifyRegistrationResponse({
-      response: registrationResponse,
-      expectedChallenge: user.currentChallenge,
-      expectedOrigin: rpOrigin,
-      expectedRPID: rpId,
-      requireUserVerification: true,
-    } as VerifyRegistrationResponseOpts);
-    if (verification.verified && verification.registrationInfo) {
-      const { credentialPublicKey, credentialID, counter, credentialBackedUp, credentialDeviceType } = verification?.registrationInfo;
-      const credential: CredentialModel = {
-        userID: user.id,
-        credentialID,
-        counter,
-        credentialPublicKey,
-        credentialBackedUp: credentialBackedUp,
-        credentialDeviceType: credentialDeviceType,
-        transports: transports,
+    console.log("Got User from DB: ", user);
+    try {
+      console.log("Verifying Registration response");
+      const verification = await verifyRegistrationResponse({
+        response: registrationResponse,
+        expectedChallenge: user.currentChallenge,
+        expectedOrigin: rpOrigin,
+        expectedRPID: rpId,
+        requireUserVerification: true,
+      } as VerifyRegistrationResponseOpts);
+      if (verification.verified && verification.registrationInfo) {
+        console.log("Verification succeeded: ", verification);
+        const { credentialPublicKey, credentialID, counter, credentialBackedUp, credentialDeviceType } = verification?.registrationInfo;
+        const credential: CredentialModel = {
+          userID: user.id,
+          credentialID,
+          counter,
+          credentialPublicKey,
+          credentialBackedUp: credentialBackedUp,
+          credentialDeviceType: credentialDeviceType,
+          transports: transports,
+        };
+        console.log("Saving credential to DDB: ", JSON.stringify(credential, null, 2));
+        await getCredentialsAccessor().saveCredentials(credential);
+        
+        try{
+          console.log("Saving credential to user");
+          if(user.credentials === undefined){
+            await getUserAccessor().addCredentialToUser(user, credential);
+          } else {
+            await getUserAccessor().appendCredentialToUser(user, credential)
+          }
+        }catch (e) {
+          console.error("Error saving credential to user", e);
+        }
+      } else {
+        console.error("Verification failed: ", verification);
+      }
+      return {
+        verified: verification.verified,
       };
-      await getCredentialsAccessor().saveCredentials(credential);
-      await getUserAccessor().addCredentialToUser(user.id, credential);
+    } catch (e: any) {
+      console.error("Verification Error: ", e.message);
+      throw new InternalServerError({ message: e.message });
     }
-    return {
-      verified: verification.verified,
-    };
   },
 };
 

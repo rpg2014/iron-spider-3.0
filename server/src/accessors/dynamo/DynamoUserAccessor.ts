@@ -108,7 +108,7 @@ export class DynamoUserAccessor extends UserAccessor {
           id: userId,
         },
         AttributeUpdates: {
-          challenge: {
+          currentChallenge: {
             Action: "PUT",
             Value: challenge,
           },
@@ -117,20 +117,52 @@ export class DynamoUserAccessor extends UserAccessor {
     );
   }
 
-  async addCredentialToUser(userId: string, credentials: CredentialModel): Promise<void> {
-    await this.ddbdocClient.send(
-      new UpdateCommand({
+  async addCredentialToUser(user: UserModel, credential: CredentialModel): Promise<void> {
+      try {
+        const updateCommand = new UpdateCommand({
+          TableName: this.TABLE_NAME,
+          Key: {
+            id: user.id,
+          },
+          UpdateExpression: "SET credentials = :cred",
+          ExpressionAttributeValues: {
+            ":cred": [credential.credentialID],
+          }
+        });
+        console.log("Adding cred to user: " + JSON.stringify(updateCommand));
+      const response = await this.ddbdocClient.send(updateCommand);
+      console.log("New User Object: " + JSON.stringify(response.Attributes));
+      return;
+      }catch (e: any) {
+        console.error("Failed to add cred to user:", e);
+        throw new InternalServerError({ message: "Failed to add cred to user" });
+      }
+  }
+
+  async appendCredentialToUser(user: UserModel, credentials: CredentialModel): Promise<void> {
+    try {
+      const updateCommand = new UpdateCommand({
         TableName: this.TABLE_NAME,
         Key: {
-          id: userId,
+          id: user.id,
         },
-        AttributeUpdates: {
-          credentials: {
-            Action: "ADD",
-            Value: [credentials.credentialID],
-          },
+
+        UpdateExpression: "SET #cred = list_append(#cred, :cred)",
+        ExpressionAttributeNames: {
+          "#cred": "credentials",
+
         },
+        ExpressionAttributeValues: {
+          ":cred": [credentials.credentialID],
+        }
       })
-    );
+      console.log("Adding cred to user: " + JSON.stringify(updateCommand));
+      const response = await this.ddbdocClient.send(updateCommand);
+      console.log("New User Object: " + JSON.stringify(response.Attributes));
+      return;
+    } catch (e: any) {
+      console.error("Failed to add cred to user:", e);
+      throw new InternalServerError({ message: "Failed to add cred to user" });
+    }
   }
 }

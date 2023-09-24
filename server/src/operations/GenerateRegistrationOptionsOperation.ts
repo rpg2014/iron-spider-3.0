@@ -20,10 +20,11 @@ export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistratio
       throw new BadRequestError({ message: "no challenge returned" });
     }
     try {
-      await passkeyFlowProcessor.verifyTokenAndGenerateRegistrationOptions(input.challenge);
+      const options = await passkeyFlowProcessor.verifyTokenAndGenerateRegistrationOptions(input.challenge);
+      return { results: JSON.stringify(options) };
       //TODO: set http only header with the verification jwt token to get user id later.
     } catch (e: any) {
-      throw new BadRequestError({ message: "Error " + e.message });
+      throw new InternalServerError({ message: "Error " + e.message });
     }
     // get display name and
 

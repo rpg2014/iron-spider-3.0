@@ -2,6 +2,7 @@ import { useState } from "react";
 import styles from "./Signup.module.scss";
 import Spinner from "../components/Spinner";
 import Alert from "../components/Alert";
+import { fetcher } from "../util";
 
 export default function Signup() {
   const [email, setEmail] = useState<string>("");
@@ -17,6 +18,7 @@ export default function Signup() {
   const submitEmail = async () => {
     setLoading(true);
     console.log("submitEmail");
+    // validations
     const emailTest = email.length < 4;
     const usernameTest = username.length < 2;
     if (emailTest || usernameTest) {
@@ -29,23 +31,18 @@ export default function Signup() {
       return;
     }
     try {
-      const response = await fetch(
+      const response = await fetcher(
         "https://api.parkergiven.com/v1/registration/create",
         {
           body: JSON.stringify({ email: email, displayName: username }),
-
           method: "POST",
           mode: "cors",
-          headers: {
-            "Content-Type": "application/json",
-            "spider-access-token": "no-token",
-          },
         },
       );
       setLoading(false);
-      const json = await response.json();
-      console.log("create user response: ", json);
-      setSuccess(json.success);
+
+      console.log("create user response: ", response);
+      setSuccess(response.success);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -71,8 +68,8 @@ export default function Signup() {
             required
           />
           {validationErrors.username && (
-            <Alert >{validationErrors.username}</Alert>
-)}
+            <Alert>{validationErrors.username}</Alert>
+          )}
         </div>
 
         <div className={styles.inputDiv}>
@@ -85,11 +82,18 @@ export default function Signup() {
             name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyUp={(e) => {
+              // If the user presses the "Enter" key on the keyboard
+              if (e.key === "Enter") {
+                // Cancel the default action, if needed
+                e.preventDefault();
+                // Trigger the button element with a click
+                submitEmail();
+              }
+            }}
             required
           />
-          {validationErrors.email && (
-            <Alert >{validationErrors.email}</Alert>
-            )}
+          {validationErrors.email && <Alert>{validationErrors.email}</Alert>}
         </div>
         {!success && (
           <div className={`${styles.inputDiv} ${styles.submitDiv}`}>

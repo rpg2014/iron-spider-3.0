@@ -3,6 +3,7 @@ import Spinner from "../components/Spinner";
 import Alert from "../components/Alert";
 import { useEffect, useState } from "react";
 import { startRegistration } from "@simplewebauthn/browser";
+import { fetcher } from "../util";
 
 const EMAIL_TOKEN_QUERY_PARAM = "magic";
 
@@ -22,63 +23,60 @@ export const Verify = () => {
         return;
       }
 
-      setState("Fetching Options");
-      console.log("Fetching options");
-      const res = await fetch(
-        "https://api.parkergiven.com/v1/registration/options",
-        {
-          method: "POST",
-          mode: "cors",
-          headers: {
-            "Content-Type": "application/json",
-            "spider-access-token": "no-token",
-          },
-          body: JSON.stringify({
-            challenge: searchParams.get(EMAIL_TOKEN_QUERY_PARAM),
-          }),
-        },
-      );
-      const json = await res.json();
-      console.log("Generate options response: ", JSON.stringify(json, null, 2));
       try {
+        setState("Fetching Options");
+        console.log("Fetching options");
+        const registrationOptions = await fetcher(
+          "https://api.parkergiven.com/v1/registration/options",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              challenge: searchParams.get(EMAIL_TOKEN_QUERY_PARAM),
+            }),
+          },
+        );
+
+        console.log(
+          "Generate options response: ",
+          JSON.stringify(registrationOptions, null, 2),
+        );
+
         setState("Starting Registration");
         console.log("startRegistrationCall with above JSON");
-        const attResp = await startRegistration(json);
+        const attResp = await startRegistration(registrationOptions);
         console.log("attResp: ", JSON.stringify(attResp, null, 2));
         setState("Verifing Registration");
-        const verificationResponse = await fetch(
+        const verificationResponse = await fetcher(
           "https://api.parkergiven.com/v1/registration/verification",
           {
             method: "POST",
-            mode: "cors",
-            headers: {
-              "Content-Type": "application/json",
-              "spider-access-token": "no-token",
-            },
             body: JSON.stringify({
-              verficationResponse: attResp,
+              verficationResponse: JSON.stringify(attResp),
               userToken: searchParams.get(EMAIL_TOKEN_QUERY_PARAM),
               transports: attResp.response.transports,
             }),
           },
         );
-        const verificationResponseJson = await verificationResponse.json();
+
         console.log(
-          "verificationResponseJson: ",
-          JSON.stringify(verificationResponseJson, null, 2),
+          "verificationResponse: ",
+          JSON.stringify(verificationResponse, null, 2),
         );
 
-        if (verificationResponseJson && verificationResponseJson.verified) {
+        if (verificationResponse && verificationResponse.verified) {
           //success
           setState("Verified");
-          setResults(verificationResponseJson);
-          console.log("success");
+          setResults(verificationResponse.verified);
         } else {
           setState("Verification Failed");
+          setError(
+            "Verification Failed: " + JSON.stringify(verificationResponse),
+          );
           console.error("Verification Failed", verificationResponse);
         }
       } catch (error: any) {
-        setState("Error")
+        setState("Error");
+        console.log("Error: ", error);
         // Some basic error handling
         if (error.name === "InvalidStateError") {
           setError(
@@ -97,8 +95,13 @@ export const Verify = () => {
       {state !== "Verified" &&
         state !== "Verification Failed" &&
         state !== "Error" && <Spinner />}
-      {error && <Alert>{JSON.stringify(error)}</Alert>}
-      {results && <Alert variant="success">{JSON.stringify(results)}</Alert>}
+      {error && (
+        <Alert>
+          <span style={{ fontWeight: "bold", fontSize: "large" }}>Error: </span>
+          {error}
+        </Alert>
+      )}
+      {results && <Alert variant="success">Successfully Registered! Now go login</Alert>}
       {!error && !results && <Alert variant="grey">{state}</Alert>}
     </>
   );

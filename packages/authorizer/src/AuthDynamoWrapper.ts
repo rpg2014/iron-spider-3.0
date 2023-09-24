@@ -1,6 +1,5 @@
 import { DynamoDBClient, GetItemCommand, PutItemCommand, AttributeValue } from "@aws-sdk/client-dynamodb";
 
-import { InternalServerError } from "iron-spider-ssdk";
 
 interface AuthorizationDetails {
     numberOfStarts: number;
@@ -34,7 +33,7 @@ async function getItem(username: string): Promise<Record<string, AttributeValue>
         return response.Item;
     } catch (err) {
         console.error(err);
-        throw new InternalServerError(`Unable to get item: ${err}`);
+        throw new Error(`Unable to get item: ${err}`);
     }
 }
 
@@ -50,7 +49,7 @@ async function createEntryForUser(username: string): Promise<AuthorizationDetail
         return { username, allowedToStartServer: false, numberOfStarts: 0 };
     } catch (err) {
         console.error(err);
-        throw new InternalServerError("Unable to create entry");
+        throw new Error("Unable to create entry");
     }
 }
 

@@ -38,7 +38,7 @@ export class PasskeyInfraStack extends cdk.Stack {
 
     // set up credential table and secondary index
     this.CredentialTable = new ddb.Table(this, id + props.credentialsTableName + "Table", {
-      partitionKey: { name: "credentialID", type: ddb.AttributeType.STRING },
+      partitionKey: { name: "credentialID", type: ddb.AttributeType.BINARY },
       billingMode: ddb.BillingMode.PROVISIONED,
       readCapacity: 1,
       writeCapacity: 1,
@@ -47,7 +47,7 @@ export class PasskeyInfraStack extends cdk.Stack {
     this.CredentialTable.addGlobalSecondaryIndex({
       indexName: userIndexName,
       partitionKey: { name: "userID", type: ddb.AttributeType.STRING },
-      sortKey: { name: "credentialID", type: ddb.AttributeType.STRING },
+      sortKey: { name: "credentialID", type: ddb.AttributeType.BINARY },
       projectionType: ddb.ProjectionType.ALL,
       readCapacity: 1,
       writeCapacity: 1,

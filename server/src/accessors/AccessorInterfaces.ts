@@ -4,7 +4,7 @@ import { CredentialModel, UserModel } from "../model/Auth/authModels";
 export abstract class CredentialsAccessor {
   abstract getCredential(credentialId: Uint8Array): Promise<CredentialModel | undefined>;
   abstract getCredentialsForUser(userId: String): Promise<CredentialModel[]>;
-  abstract saveCredentials(credential: CredentialModel): void;
+  abstract saveCredentials(credential: CredentialModel): Promise<void>;
 }
 
 export type KeyPair = {
@@ -33,8 +33,9 @@ export abstract class UserAccessor {
    */
   abstract getUserByEmailAndDisplayName(email: string, displayName: string): Promise<UserModel | null>;
 
-  abstract createUser(user: UserModel): void;
+  abstract createUser(user: UserModel): Promise<void>;
 
   abstract saveChallenge(userId: string, challenge: string): Promise<void>;
-  abstract addCredentialToUser(userId: string, credential: CredentialModel): Promise<void>;
+  abstract addCredentialToUser(user: UserModel, credential: CredentialModel): Promise<void>;
+  abstract appendCredentialToUser(user: UserModel, credential: CredentialModel): Promise<void>;
 }

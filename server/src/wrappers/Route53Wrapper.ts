@@ -44,7 +44,7 @@ export class Route53Wrapper {
                 },
               ],
               TTL: 300,
-              Type: RRType.A,
+              Type: "A",
             },
           },
         ],

@@ -23,7 +23,7 @@ export class SESEmailAccessor extends EmailAccessor {
           },
           Body: {
             Text: {
-              Data: `Follow the following link to finish creating your account: https://auth.parkergiven.com/verify?magic=${verificationCode}`,
+              Data: `Follow the link to finish creating your account: https://auth.parkergiven.com/verify?magic=${verificationCode}`,
               Charset: "UTF-8",
             },
           },
