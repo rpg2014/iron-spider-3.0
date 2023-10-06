@@ -292,12 +292,34 @@ export class MinecraftEC2Wrapper {
         SnapshotId: oldSnapshotId,
       };
       console.debug(`Deleting old snapshot ${JSON.stringify(deleteSnapshotCommandInput)}`);
+      await this.waitForAMIToBeDeleted();
       await MinecraftEC2Wrapper.EC2_CLIENT.send(new DeleteSnapshotCommand(deleteSnapshotCommandInput));
     } catch (e) {
       console.error("Unable to delete ami or snapshot", e);
       throw new InternalServerError({ message: "Unable to delete ami or snapshot" });
     }
   }
+  private async waitForAMIToBeDeleted() {
+    // on a do while loop, check to see if there are 2 or less ami's, then return after thats the case;
+    let amiDeleted = false;
+    do {
+      try {
+        this.sleep(1000)
+        let results = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeImagesCommand({ExecutableUsers: ["self"]}));
+        console.log(`images count: ${results.Images?.length}`);
+        if(results.Images){
+          amiDeleted = results.Images?.length <= 2;
+        }
+      } catch (e) {
+        console.error(e)
+        return;
+      }
+    
+    }while (!amiDeleted )
+    console.log("AMI deleted")
+    return;
+  }
+  
 
   /**
    * Creates the AMI from the instance, and returns the AMI id. Creating an AMI also creates a snapshot

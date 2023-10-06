@@ -73,8 +73,8 @@ structure VerifyRegistrationOutput {
  }
 
 structure GenerateAuthenticationOptionInput {
-    @httpQuery("")
-    userToken: String, // get from cookie if present,
+    // @httpQuery("")
+    // userToken: String, // get from cookie if present,
 }
 
 structure GenerateAuthenticationOptionOutput {
