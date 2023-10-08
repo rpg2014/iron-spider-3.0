@@ -55,11 +55,12 @@ export class Route53Wrapper {
     let response: ChangeResourceRecordSetsCommandOutput;
     try {
       response = await this.route53Client.send(request);
-      if (response.ChangeInfo?.Status === ChangeStatus.PENDING) {
+      if (response.ChangeInfo?.Status === "PENDING") {
         console.log("DNS change request pending");
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(`route 53 change request failed with error ${JSON.stringify(e)}`);
+      console.error(`e.message: ${e.message}`)
       throw new InternalServerError({ message: `route 53 change request failed with error ${JSON.stringify(e)}` });
     }
   }

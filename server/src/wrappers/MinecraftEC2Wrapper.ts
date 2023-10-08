@@ -273,7 +273,7 @@ export class MinecraftEC2Wrapper {
     const latestDate = new Date(0).toISOString();
     let newestSnap: Snapshot = {};
     response.Snapshots?.forEach(snapshot => {
-      if (snapshot.StartTime && latestDate < snapshot.StartTime.toISOString()) {
+      if (snapshot.StartTime && latestDate > snapshot.StartTime.toISOString()) {
         newestSnap = snapshot;
       }
     });
@@ -291,8 +291,9 @@ export class MinecraftEC2Wrapper {
       const deleteSnapshotCommandInput: DeleteSnapshotCommandInput = {
         SnapshotId: oldSnapshotId,
       };
-      console.debug(`Deleting old snapshot ${JSON.stringify(deleteSnapshotCommandInput)}`);
+      console.debug(`Waiting for AMI to be deleted`)
       await this.waitForAMIToBeDeleted();
+      console.debug(`Deleting old snapshot ${JSON.stringify(deleteSnapshotCommandInput)}`);
       await MinecraftEC2Wrapper.EC2_CLIENT.send(new DeleteSnapshotCommand(deleteSnapshotCommandInput));
     } catch (e) {
       console.error("Unable to delete ami or snapshot", e);
@@ -302,13 +303,19 @@ export class MinecraftEC2Wrapper {
   private async waitForAMIToBeDeleted() {
     // on a do while loop, check to see if there are 2 or less ami's, then return after thats the case;
     let amiDeleted = false;
+    let tryNumber = 0;
     do {
       try {
         this.sleep(1000)
-        let results = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeImagesCommand({ExecutableUsers: ["self"]}));
+        // get ami's owned by me
+        console.log(`Fetching images owned by me`)
+        let results = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeImagesCommand({Owners:['self']}));
+        tryNumber++;
+        console.log(`results: ${JSON.stringify(results)}`);
         console.log(`images count: ${results.Images?.length}`);
-        if(results.Images){
-          amiDeleted = results.Images?.length <= 2;
+        if((results.Images && results.Images?.length <= 2) || tryNumber > 10){
+          console.log("AMI has been deleted")
+          amiDeleted = true;
         }
       } catch (e) {
         console.error(e)
@@ -316,7 +323,7 @@ export class MinecraftEC2Wrapper {
       }
     
     }while (!amiDeleted )
-    console.log("AMI deleted")
+    console.log("AMI deleted or retry hit")
     return;
   }
   
