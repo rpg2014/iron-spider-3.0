@@ -270,11 +270,13 @@ export class MinecraftEC2Wrapper {
       OwnerIds: [MinecraftEC2Wrapper.AWS_ACCOUNT_ID.replace(/-/g, "")],
     };
     const response = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeSnapshotsCommand(describeSnapshotsCommandInput));
-    const latestDate = new Date(0).toISOString();
+    let latestDate = new Date(0).toISOString();
     let newestSnap: Snapshot = {};
     response.Snapshots?.forEach(snapshot => {
-      if (snapshot.StartTime && latestDate > snapshot.StartTime.toISOString()) {
+      console.log(`Looking at snapshot ${snapshot.SnapshotId}, with StartTime: ${snapshot.StartTime?.toISOString()}`)
+      if (snapshot.StartTime && latestDate < snapshot.StartTime.toISOString()) {
         newestSnap = snapshot;
+        latestDate = snapshot.StartTime?.toISOString()!;
       }
     });
     console.info("Newest Snapshot is " + newestSnap.SnapshotId);
