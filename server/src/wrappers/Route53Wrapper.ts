@@ -60,7 +60,7 @@ export class Route53Wrapper {
       }
     } catch (e: any) {
       console.error(`route 53 change request failed with error ${JSON.stringify(e)}`);
-      console.error(`e.message: ${e.message}`)
+      console.error(`e.message: ${e.message}`);
       throw new InternalServerError({ message: `route 53 change request failed with error ${JSON.stringify(e)}` });
     }
   }

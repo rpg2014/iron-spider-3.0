@@ -134,15 +134,15 @@ const processor: PasskeyFlowProcessor = {
         };
         console.log("Saving credential to DDB: ", JSON.stringify(credential, null, 2));
         await getCredentialsAccessor().saveCredentials(credential);
-        
-        try{
+
+        try {
           console.log("Saving credential to user");
-          if(user.credentials === undefined){
+          if (user.credentials === undefined) {
             await getUserAccessor().addCredentialToUser(user, credential);
           } else {
-            await getUserAccessor().appendCredentialToUser(user, credential)
+            await getUserAccessor().appendCredentialToUser(user, credential);
           }
-        }catch (e) {
+        } catch (e) {
           console.error("Error saving credential to user", e);
         }
       } else {

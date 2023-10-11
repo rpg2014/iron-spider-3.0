@@ -253,16 +253,9 @@ export class MinecraftEC2Wrapper {
       }
     } while (finishedSnapshots.length !== response.Snapshots?.length && response.Snapshots?.length === 1);
   }
-  /**
-   * Gets the newest snapshot, and returns the snapshot id
-   * was trying to reimplemnet it.
-   */
-  // private async getNewestSnapshot(): Promise<string> {
-  //
-  // }
 
   /**
-   * Gets the newest snapshot, and returns the snapshot id. This snapshot id is used to delete the snapshot.
+   * Gets the newest snapshot, and returns the snapshot id. This snapshot id is later saved to ddb
    * @returns
    */
   private async getNewestSnapshot(): Promise<string> {
@@ -273,7 +266,6 @@ export class MinecraftEC2Wrapper {
     let latestDate = new Date(0).toISOString();
     let newestSnap: Snapshot = {};
     response.Snapshots?.forEach(snapshot => {
-      console.log(`Looking at snapshot ${snapshot.SnapshotId}, with StartTime: ${snapshot.StartTime?.toISOString()}`)
       if (snapshot.StartTime && latestDate < snapshot.StartTime.toISOString()) {
         newestSnap = snapshot;
         latestDate = snapshot.StartTime?.toISOString()!;
@@ -293,7 +285,7 @@ export class MinecraftEC2Wrapper {
       const deleteSnapshotCommandInput: DeleteSnapshotCommandInput = {
         SnapshotId: oldSnapshotId,
       };
-      console.debug(`Waiting for AMI to be deleted`)
+      console.debug(`Waiting for AMI to be deleted`);
       await this.waitForAMIToBeDeleted();
       console.debug(`Deleting old snapshot ${JSON.stringify(deleteSnapshotCommandInput)}`);
       await MinecraftEC2Wrapper.EC2_CLIENT.send(new DeleteSnapshotCommand(deleteSnapshotCommandInput));
@@ -308,27 +300,23 @@ export class MinecraftEC2Wrapper {
     let tryNumber = 0;
     do {
       try {
-        this.sleep(1000)
+        this.sleep(1000);
         // get ami's owned by me
-        console.log(`Fetching images owned by me`)
-        let results = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeImagesCommand({Owners:['self']}));
+        console.log(`Fetching images owned by me`);
+        let results = await MinecraftEC2Wrapper.EC2_CLIENT.send(new DescribeImagesCommand({ Owners: ["self"] }));
         tryNumber++;
-        console.log(`results: ${JSON.stringify(results)}`);
         console.log(`images count: ${results.Images?.length}`);
-        if((results.Images && results.Images?.length <= 2) || tryNumber > 10){
-          console.log("AMI has been deleted")
+        if ((results.Images && results.Images?.length <= 2) || tryNumber > 10) {
+          console.log("AMI has been deleted");
           amiDeleted = true;
         }
       } catch (e) {
-        console.error(e)
+        console.error(e);
         return;
       }
-    
-    }while (!amiDeleted )
-    console.log("AMI deleted or retry hit")
+    } while (!amiDeleted);
     return;
   }
-  
 
   /**
    * Creates the AMI from the instance, and returns the AMI id. Creating an AMI also creates a snapshot

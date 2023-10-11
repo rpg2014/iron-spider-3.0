@@ -118,25 +118,25 @@ export class DynamoUserAccessor extends UserAccessor {
   }
 
   async addCredentialToUser(user: UserModel, credential: CredentialModel): Promise<void> {
-      try {
-        const updateCommand = new UpdateCommand({
-          TableName: this.TABLE_NAME,
-          Key: {
-            id: user.id,
-          },
-          UpdateExpression: "SET credentials = :cred",
-          ExpressionAttributeValues: {
-            ":cred": [credential.credentialID],
-          }
-        });
-        console.log("Adding cred to user: " + JSON.stringify(updateCommand));
+    try {
+      const updateCommand = new UpdateCommand({
+        TableName: this.TABLE_NAME,
+        Key: {
+          id: user.id,
+        },
+        UpdateExpression: "SET credentials = :cred",
+        ExpressionAttributeValues: {
+          ":cred": [credential.credentialID],
+        },
+      });
+      console.log("Adding cred to user: " + JSON.stringify(updateCommand));
       const response = await this.ddbdocClient.send(updateCommand);
       console.log("New User Object: " + JSON.stringify(response.Attributes));
       return;
-      }catch (e: any) {
-        console.error("Failed to add cred to user:", e);
-        throw new InternalServerError({ message: "Failed to add cred to user" });
-      }
+    } catch (e: any) {
+      console.error("Failed to add cred to user:", e);
+      throw new InternalServerError({ message: "Failed to add cred to user" });
+    }
   }
 
   async appendCredentialToUser(user: UserModel, credentials: CredentialModel): Promise<void> {
@@ -150,12 +150,11 @@ export class DynamoUserAccessor extends UserAccessor {
         UpdateExpression: "SET #cred = list_append(#cred, :cred)",
         ExpressionAttributeNames: {
           "#cred": "credentials",
-
         },
         ExpressionAttributeValues: {
           ":cred": [credentials.credentialID],
-        }
-      })
+        },
+      });
       console.log("Adding cred to user: " + JSON.stringify(updateCommand));
       const response = await this.ddbdocClient.send(updateCommand);
       console.log("New User Object: " + JSON.stringify(response.Attributes));
