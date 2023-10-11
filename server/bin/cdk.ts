@@ -6,7 +6,7 @@ import { ApiStack } from "../lib/api-stack";
 import { PasskeyInfraStack } from "../lib/passkey-stack";
 import { DomainAuthAssetsStack } from "domain-auth-assets/lib/auth-assets-stack";
 import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "../lib/cdk-constants";
-import { SES_ARNS } from "../.secrets";
+// import { SES_ARNS } from "../.secrets";
 
 const app = new App();
 
@@ -54,7 +54,7 @@ const infraStack = new PasskeyInfraStack(app, "PasskeyInfra", {
   userTableName: USER_TABLE_NAME,
   credentialsTableName: CREDENTIAL_TABLE_NAME,
   operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction],
-  sesArns: SES_ARNS, // made offline
+  sesArns: SES_ARNS as any, // made offline
 });
 
 //Add Auth UI Stack

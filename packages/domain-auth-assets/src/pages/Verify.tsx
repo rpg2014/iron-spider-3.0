@@ -4,6 +4,7 @@ import Alert from "../components/Alert";
 import { useEffect, useState } from "react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { fetcher } from "../util";
+import {USER_ID_TOKEN_KEY} from "../constants.ts";
 
 const EMAIL_TOKEN_QUERY_PARAM = "magic";
 
@@ -17,7 +18,7 @@ export const Verify = () => {
     const generateOptionsFromServer = async () => {
       if (!searchParams.get(EMAIL_TOKEN_QUERY_PARAM)) {
         setError(
-          "No magic code, you should have recieved this link in your email",
+          "No magic code, you should have received this link in your email",
         );
         setState("Error");
         return;
@@ -45,7 +46,7 @@ export const Verify = () => {
         console.log("startRegistrationCall with above JSON");
         const attResp = await startRegistration(registrationOptions);
         console.log("attResp: ", JSON.stringify(attResp, null, 2));
-        setState("Verifing Registration");
+        setState("Verifying Registration");
         const verificationResponse = await fetcher(
           "https://api.parkergiven.com/v1/registration/verification",
           {
@@ -67,6 +68,13 @@ export const Verify = () => {
           //success
           setState("Verified");
           setResults(verificationResponse.verified);
+          //set username token in localstorage
+          try {
+            localStorage.setItem(USER_ID_TOKEN_KEY, btoa(verificationResponse.userId));
+            console.log("User Id saved: " + verificationResponse.userId);
+          } catch (e: any) {
+            console.error(e.message);
+          }
         } else {
           setState("Verification Failed");
           setError(

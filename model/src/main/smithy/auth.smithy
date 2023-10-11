@@ -62,7 +62,11 @@ list TransportsList {
 }
 
 structure VerifyRegistrationOutput {
-    verified: Boolean
+    @required
+    verified: Boolean,
+    @httpHeader("Set-Cookie")
+    userCookie: String,
+    userId: String,
 }
 
  @http(code: 200, method: "GET", uri: "/v1/authentication/options")
@@ -73,8 +77,9 @@ structure VerifyRegistrationOutput {
  }
 
 structure GenerateAuthenticationOptionInput {
-    // @httpQuery("")
-    // userToken: String, // get from cookie if present,
+     @httpHeader("Cookie")
+     cookies: String,
+     userId: String,
 }
 
 structure GenerateAuthenticationOptionOutput {

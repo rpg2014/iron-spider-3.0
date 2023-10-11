@@ -1,4 +1,12 @@
-import { ID_PREFIX, JWT_AUDIENCE, JWT_ISSUER, rpId, rpName, rpOrigin } from "../constants/passkeyConst";
+import {
+  ID_PREFIX,
+  JWT_AUDIENCE,
+  JWT_ISSUER,
+  rpId,
+  rpName,
+  rpOrigin,
+  USER_TOKEN_COOKIE_NAME
+} from "../constants/passkeyConst";
 import { v4 as uuidv4 } from "uuid";
 import {
   generateRegistrationOptions,
@@ -7,15 +15,15 @@ import {
   VerifyRegistrationResponseOpts,
 } from "@simplewebauthn/server";
 import { PublicKeyCredentialCreationOptionsJSON, RegistrationResponseJSON } from "@simplewebauthn/typescript-types";
-import { NeedDomainAccessError, InternalServerError } from "iron-spider-ssdk";
-import { CredentialModel } from "../model/Auth/authModels";
+import { NeedDomainAccessError, InternalServerError, VerifyRegistrationOutput } from "iron-spider-ssdk";
+import {CredentialModel, UserModel} from "../model/Auth/authModels";
 import { JWTProcessor } from "./JWTProcessor";
 import { getCredentialsAccessor, getSESAccessor, getSecretKeyAccessor, getUserAccessor } from "../accessors/AccessorFactory";
 
 interface PasskeyFlowProcessor {
   createUser(email: string, displayName: string): Promise<{ success: boolean; verificationCode: string }>;
   verifyTokenAndGenerateRegistrationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsJSON>;
-  verifyRegistrationResponse(input: RegistrationResponseJSON & any, transports: any, userToken: string): Promise<{ verified: boolean }>;
+  verifyRegistrationResponse(input: RegistrationResponseJSON & any, transports: any, userToken: string): Promise<VerifyRegistrationOutput>;
 }
 
 const processor: PasskeyFlowProcessor = {
@@ -105,7 +113,7 @@ const processor: PasskeyFlowProcessor = {
     }
   },
 
-  async verifyRegistrationResponse(registrationResponse: RegistrationResponseJSON & any, transports: any, token: string): Promise<{ verified: boolean }> {
+  async verifyRegistrationResponse(registrationResponse: RegistrationResponseJSON & any, transports: any, token: string): Promise<VerifyRegistrationOutput> {
     console.log("Verifying token");
     const decodedToken = await JWTProcessor.verifyToken(token);
     console.log("Got UserId from token: ", decodedToken.userId);
@@ -150,6 +158,8 @@ const processor: PasskeyFlowProcessor = {
       }
       return {
         verified: verification.verified,
+        userCookie: await createUserCookie(user.id),
+        userId: user.id
       };
     } catch (e: any) {
       console.error("Verification Error: ", e.message);
@@ -157,6 +167,10 @@ const processor: PasskeyFlowProcessor = {
     }
   },
 };
+async function createUserCookie(userId): Promise<string> {
+  const userToken  = await JWTProcessor.generateTokenForUser(userId, "365d")
+  return `${USER_TOKEN_COOKIE_NAME}=${userToken}; HttpOnly; Max-Age=31556952`
+}
 
 export default processor;
 export { PasskeyFlowProcessor, NeedDomainAccessError };
