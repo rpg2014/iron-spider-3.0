@@ -43,6 +43,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-cdk/aws-lambda-python-alpha@npm:^2.102.0-alpha.0":
+  version: 2.102.0-alpha.0
+  resolution: "@aws-cdk/aws-lambda-python-alpha@npm:2.102.0-alpha.0"
+  peerDependencies:
+    aws-cdk-lib: ^2.102.0
+    constructs: ^10.0.0
+  checksum: c69aa52f9b54921c518562df1a60622ae91f7451a2d9114ef53e03c261c6706dcd0f21f857279c37c8aa9b5f96a038848f180207e8c7be903b3af53f42bb6c85
+  languageName: node
+  linkType: hard
+
 "@aws-crypto/crc32@npm:3.0.0":
   version: 3.0.0
   resolution: "@aws-crypto/crc32@npm:3.0.0"
@@ -5618,6 +5628,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jest@npm:^29.5.4":
+  version: 29.5.6
+  resolution: "@types/jest@npm:29.5.6"
+  dependencies:
+    expect: ^29.0.0
+    pretty-format: ^29.0.0
+  checksum: fa13a27bd1c8efd0381a419478769d0d6d3a8e93e1952d7ac3a16274e8440af6f73ed6f96ac1ff00761198badf2ee226b5ab5583a5d87a78d609ea78da5c5a24
+  languageName: node
+  linkType: hard
+
 "@types/jest@npm:latest":
   version: 29.5.5
   resolution: "@types/jest@npm:29.5.5"
@@ -5685,6 +5705,13 @@ __metadata:
   version: 20.4.10
   resolution: "@types/node@npm:20.4.10"
   checksum: 02a1ca415d9cc91144c4250383aa0ef1e48241bd36067ed7d1b239d8bacc2a11139dd90e223e11ac289345eeae624cc5dcf73359e684bd2e5a6c31bdfbab4811
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:20.5.9":
+  version: 20.5.9
+  resolution: "@types/node@npm:20.5.9"
+  checksum: 717490e94131722144878b4ca1a963ede1673bb8f2ef78c2f5b50b918df6dc9b35e7f8283e5c2a7a9f137730f7c08dc6228e53d4494a94c9ee16881e6ce6caed
   languageName: node
   linkType: hard
 
@@ -6541,7 +6568,7 @@ __metadata:
     "@types/jest": ^27.5.2
     "@types/node": ^18.11.18
     "@types/prettier": 2.6.0
-    aws-cdk-lib: ^2.95.1
+    aws-cdk-lib: ^2.102.0
     aws-jwt-verify: ^3.1.0
     constructs: ^10.2.70
     jest: ^29
@@ -6561,9 +6588,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-cdk-lib@npm:^2.95.1":
-  version: 2.95.1
-  resolution: "aws-cdk-lib@npm:2.95.1"
+"aws-cdk-lib@npm:^2.102.0":
+  version: 2.102.0
+  resolution: "aws-cdk-lib@npm:2.102.0"
   dependencies:
     "@aws-cdk/asset-awscli-v1": ^2.2.200
     "@aws-cdk/asset-kubectl-v20": ^2.1.2
@@ -6580,30 +6607,21 @@ __metadata:
     yaml: 1.10.2
   peerDependencies:
     constructs: ^10.0.0
-  checksum: f6f540607328abc12a8b6a7da82e34d220b9d14243a7c23b53bb8e72cf049f55cb202cf1952196c5f894034eec7d562599044fd040ab8752f2e0ae6166d249e2
+  checksum: 1666b1c9980ee8be76cf32a30d37ecd464ffba3a8edaf5ba7b71f58a96b084f91470dc65dca65415e13e7800d420756663824fe15e0fe3f43417621c772e20b2
   languageName: node
   linkType: hard
 
-"aws-cdk-lib@npm:^2.96.2":
-  version: 2.96.2
-  resolution: "aws-cdk-lib@npm:2.96.2"
+"aws-cdk@npm:2.95.1":
+  version: 2.95.1
+  resolution: "aws-cdk@npm:2.95.1"
   dependencies:
-    "@aws-cdk/asset-awscli-v1": ^2.2.200
-    "@aws-cdk/asset-kubectl-v20": ^2.1.2
-    "@aws-cdk/asset-node-proxy-agent-v6": ^2.0.1
-    "@balena/dockerignore": ^1.0.2
-    case: 1.6.3
-    fs-extra: ^11.1.1
-    ignore: ^5.2.4
-    jsonschema: ^1.4.1
-    minimatch: ^3.1.2
-    punycode: ^2.3.0
-    semver: ^7.5.4
-    table: ^6.8.1
-    yaml: 1.10.2
-  peerDependencies:
-    constructs: ^10.0.0
-  checksum: 2d144001472ec5a38418a9ab4b55c2e8d60d269eda539d06e79a83013ab7314fed898666c828a2cf160d16011cd5e190305da2e5b00d67646774dacef040a56e
+    fsevents: 2.3.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    cdk: bin/cdk
+  checksum: 4b696bd58b31728909af0308a30c5ddfb2ead593a1ea89cd35a63b53ffc4a5241b29a0822982728efdb70844c793f16d18688400ef6eaac61e8536015e2e1f50
   languageName: node
   linkType: hard
 
@@ -6625,6 +6643,38 @@ __metadata:
   version: 3.4.0
   resolution: "aws-jwt-verify@npm:3.4.0"
   checksum: 8138e1be49acd20b3a700187bcaeed9e51287afe840bec77d02c7b8a43651d6661fabc33b9d3bc2f0aff76221893026413406fc827154fdc065dfc774091fd0c
+  languageName: node
+  linkType: hard
+
+"aws-lambda@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "aws-lambda@npm:1.0.7"
+  dependencies:
+    aws-sdk: ^2.814.0
+    commander: ^3.0.2
+    js-yaml: ^3.14.1
+    watchpack: ^2.0.0-beta.10
+  bin:
+    lambda: bin/lambda
+  checksum: 11316e87b5c4fc36e6bd0495742a3c0ed13befc9527a7b251a58180d141d9afd68b684f37aeb3b53d117d3c2f96747eace31826b683543f1edddc03f392865fd
+  languageName: node
+  linkType: hard
+
+"aws-sdk@npm:^2.814.0":
+  version: 2.1479.0
+  resolution: "aws-sdk@npm:2.1479.0"
+  dependencies:
+    buffer: 4.9.2
+    events: 1.1.1
+    ieee754: 1.1.13
+    jmespath: 0.16.0
+    querystring: 0.2.0
+    sax: 1.2.1
+    url: 0.10.3
+    util: ^0.12.4
+    uuid: 8.0.0
+    xml2js: 0.5.0
+  checksum: 59ffacbb7db8255f4cad4064800ff2c60e3e6249e9dd5f00e8b66ba462e84ce2097fad9678bee808ef6be9da1547e274951357580d084320e11472234acf7d3c
   languageName: node
   linkType: hard
 
@@ -6751,7 +6801,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:^1.3.1":
+"base64-js@npm:^1.0.2, base64-js@npm:^1.3.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 669632eb3745404c2f822a18fc3a0122d2f9a7a13f7fb8b5823ee19d1d2ff9ee5b52c53367176ea4ad093c332fd5ab4bd0ebae5a8e27917a4105a4cfc86b1005
@@ -6892,6 +6942,17 @@ __metadata:
   version: 1.1.2
   resolution: "buffer-from@npm:1.1.2"
   checksum: 0448524a562b37d4d7ed9efd91685a5b77a50672c556ea254ac9a6d30e3403a517d8981f10e565db24e8339413b43c97ca2951f10e399c6125a0d8911f5679bb
+  languageName: node
+  linkType: hard
+
+"buffer@npm:4.9.2":
+  version: 4.9.2
+  resolution: "buffer@npm:4.9.2"
+  dependencies:
+    base64-js: ^1.0.2
+    ieee754: ^1.1.4
+    isarray: ^1.0.0
+  checksum: 8801bc1ba08539f3be70eee307a8b9db3d40f6afbfd3cf623ab7ef41dffff1d0a31de0addbe1e66e0ca5f7193eeb667bfb1ecad3647f8f1b0750de07c13295c3
   languageName: node
   linkType: hard
 
@@ -7327,6 +7388,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "commander@npm:3.0.2"
+  checksum: 6d14ad030d1904428139487ed31febcb04c1604db2b8d9fae711f60ee6718828dc0e11602249e91c8a97b0e721e9c6d53edbc166bad3cde1596851d59a8f824d
+  languageName: node
+  linkType: hard
+
 "commander@npm:^9.3.0":
   version: 9.5.0
   resolution: "commander@npm:9.5.0"
@@ -7407,6 +7475,13 @@ __metadata:
   version: 1.1.0
   resolution: "console-control-strings@npm:1.1.0"
   checksum: 8755d76787f94e6cf79ce4666f0c5519906d7f5b02d4b884cf41e11dcd759ed69c57da0670afd9236d229a46e0f9cf519db0cd829c6dca820bb5a5c3def584ed
+  languageName: node
+  linkType: hard
+
+"constructs@npm:^10.0.0":
+  version: 10.3.0
+  resolution: "constructs@npm:10.3.0"
+  checksum: d8d4ea4e4614914e119b1fd5fc6da0deac909a22b0dbe09423cefb3da54a2866cb9986b371649dadd90b09c56fe69ec22fe3eaab475f8914ac702ed8205e13ca
   languageName: node
   linkType: hard
 
@@ -7812,7 +7887,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^6.0.0
     "@typescript-eslint/parser": ^6.0.0
     "@vitejs/plugin-react": ^4.0.3
-    aws-cdk-lib: ^2.95.1
+    aws-cdk-lib: ^2.102.0
     compression: ^1.7.4
     eslint: ^8.45.0
     eslint-plugin-react: ^7.33.2
@@ -9113,6 +9188,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"events@npm:1.1.1":
+  version: 1.1.1
+  resolution: "events@npm:1.1.1"
+  checksum: 40431eb005cc4c57861b93d44c2981a49e7feb99df84cf551baed299ceea4444edf7744733f6a6667e942af687359b1f4a87ec1ec4f21d5127dac48a782039b9
+  languageName: node
+  linkType: hard
+
 "execa@npm:5.1.1, execa@npm:^5.0.0, execa@npm:^5.1.1":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
@@ -9643,6 +9725,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"glob-to-regexp@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "glob-to-regexp@npm:0.4.1"
+  checksum: e795f4e8f06d2a15e86f76e4d92751cf8bbfcf0157cea5c2f0f35678a8195a750b34096b1256e436f0cebc1883b5ff0888c47348443e69546a5a87f9e1eb1167
+  languageName: node
+  linkType: hard
+
 "glob@npm:^10.2.2":
   version: 10.3.4
   resolution: "glob@npm:10.3.4"
@@ -9733,7 +9822,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.4, graceful-fs@npm:^4.2.6, graceful-fs@npm:^4.2.9":
+"graceful-fs@npm:^4.1.2, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.4, graceful-fs@npm:^4.2.6, graceful-fs@npm:^4.2.9":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: ac85f94da92d8eb6b7f5a8b20ce65e43d66761c55ce85ac96df6865308390da45a8d3f0296dd3a663de65d30ba497bd46c696cc1e248c72b13d6d567138a4fc7
@@ -9971,7 +10060,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ieee754@npm:^1.1.13":
+"ieee754@npm:1.1.13":
+  version: 1.1.13
+  resolution: "ieee754@npm:1.1.13"
+  checksum: 102df1ba662e316e6160f7ce29c7c7fa3e04f2014c288336c5a9ff40bbcc2a27d209fa2a81ebfb33f28b1941021343d30e9ad8ee85a2d61f79f5936c35edc33d
+  languageName: node
+  linkType: hard
+
+"ieee754@npm:^1.1.13, ieee754@npm:^1.1.4":
   version: 1.2.1
   resolution: "ieee754@npm:1.2.1"
   checksum: 5144c0c9815e54ada181d80a0b810221a253562422e7c6c3a60b1901154184f49326ec239d618c416c1c5945a2e197107aee8d986a3dd836b53dffefd99b5e7e
@@ -10253,6 +10349,7 @@ __metadata:
     prettier: 2.3.0
     remix-site: "workspace:^"
     rimraf: ^3.0.0
+    smarthome: "workspace:^"
     ts-jest: ^29.1.1
     typescript: ^5.1.6
     uuid: ^9.0.0
@@ -10625,17 +10722,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isarray@npm:^1.0.0, isarray@npm:~1.0.0":
+  version: 1.0.0
+  resolution: "isarray@npm:1.0.0"
+  checksum: f032df8e02dce8ec565cf2eb605ea939bdccea528dbcf565cdf92bfa2da9110461159d86a537388ef1acef8815a330642d7885b29010e8f7eac967c9993b65ab
+  languageName: node
+  linkType: hard
+
 "isarray@npm:^2.0.5":
   version: 2.0.5
   resolution: "isarray@npm:2.0.5"
   checksum: bd5bbe4104438c4196ba58a54650116007fa0262eccef13a4c55b2e09a5b36b59f1e75b9fcc49883dd9d4953892e6fc007eef9e9155648ceea036e184b0f930a
-  languageName: node
-  linkType: hard
-
-"isarray@npm:~1.0.0":
-  version: 1.0.0
-  resolution: "isarray@npm:1.0.0"
-  checksum: f032df8e02dce8ec565cf2eb605ea939bdccea528dbcf565cdf92bfa2da9110461159d86a537388ef1acef8815a330642d7885b29010e8f7eac967c9993b65ab
   languageName: node
   linkType: hard
 
@@ -11653,6 +11750,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jmespath@npm:0.16.0":
+  version: 0.16.0
+  resolution: "jmespath@npm:0.16.0"
+  checksum: 2d602493a1e4addfd1350ac8c9d54b1b03ed09e305fd863bab84a4ee1f52868cf939dd1a08c5cdea29ce9ba8f86875ebb458b6ed45dab3e1c3f2694503fb2fd9
+  languageName: node
+  linkType: hard
+
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -11660,7 +11764,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^3.13.1":
+"js-yaml@npm:^3.13.1, js-yaml@npm:^3.14.1":
   version: 3.14.1
   resolution: "js-yaml@npm:3.14.1"
   dependencies:
@@ -13957,6 +14061,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"punycode@npm:1.3.2":
+  version: 1.3.2
+  resolution: "punycode@npm:1.3.2"
+  checksum: b8807fd594b1db33335692d1f03e8beeddde6fda7fbb4a2e32925d88d20a3aa4cd8dcc0c109ccaccbd2ba761c208dfaaada83007087ea8bfb0129c9ef1b99ed6
+  languageName: node
+  linkType: hard
+
 "punycode@npm:^2.1.0, punycode@npm:^2.3.0":
   version: 2.3.0
   resolution: "punycode@npm:2.3.0"
@@ -13993,6 +14104,13 @@ __metadata:
   dependencies:
     side-channel: ^1.0.4
   checksum: 6e1f29dd5385f7488ec74ac7b6c92f4d09a90408882d0c208414a34dd33badc1a621019d4c799a3df15ab9b1d0292f97c1dd71dc7c045e69f81a8064e5af7297
+  languageName: node
+  linkType: hard
+
+"querystring@npm:0.2.0":
+  version: 0.2.0
+  resolution: "querystring@npm:0.2.0"
+  checksum: 8258d6734f19be27e93f601758858c299bdebe71147909e367101ba459b95446fbe5b975bf9beb76390156a592b6f4ac3a68b6087cea165c259705b8b4e56a69
   languageName: node
   linkType: hard
 
@@ -14260,7 +14378,7 @@ __metadata:
     "@types/react-dom": ^18.2.7
     "@types/source-map-support": ^0.5.7
     aws-cdk: ^2.97.0
-    aws-cdk-lib: ^2.96.2
+    aws-cdk-lib: ^2.102.0
     concurrently: ^8.2.1
     constructs: ^10.2.70
     esbuild: ^0.19.2
@@ -14507,8 +14625,8 @@ __metadata:
 
 "rust-functions@file:./rust-functions/pkg::locator=remix-site%40workspace%3Apackages%2Fremix-site":
   version: 0.1.0
-  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=c8952b&locator=remix-site%40workspace%3Apackages%2Fremix-site"
-  checksum: 046cce675831ae6e886a7b8418791763f904f157d1a7f34d529c95757382815c53fb947dd03c74e694473dea40a96bf8c785f024375e60a9f649bde5d99a954c
+  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=22c087&locator=remix-site%40workspace%3Apackages%2Fremix-site"
+  checksum: 123b5a9e4f418d7c8a7369906f324a460f5073e91ce389abc4cedee9454905cb1becf52ecfe424a302e1929311f66c2ffe776f1a72dcc81a9a32663e71fc05c8
   languageName: node
   linkType: hard
 
@@ -14593,6 +14711,20 @@ __metadata:
   bin:
     sass: sass.js
   checksum: 9e7566e8b7386cf265dddcdb266a023fb5759c5a8f48a11da199c8bf419e5f08f4ff6404d85d6bf5eac01e1f7c7061fdb6b7b65cbfda164e59b0a06b72ac8567
+  languageName: node
+  linkType: hard
+
+"sax@npm:1.2.1":
+  version: 1.2.1
+  resolution: "sax@npm:1.2.1"
+  checksum: 8dca7d5e1cd7d612f98ac50bdf0b9f63fbc964b85f0c4e2eb271f8b9b47fd3bf344c4d6a592e69ecf726d1485ca62cd8a52e603bbc332d18a66af25a9a1045ad
+  languageName: node
+  linkType: hard
+
+"sax@npm:>=0.6.0":
+  version: 1.3.0
+  resolution: "sax@npm:1.3.0"
+  checksum: 238ab3a9ba8c8f8aaf1c5ea9120386391f6ee0af52f1a6a40bbb6df78241dd05d782f2359d614ac6aae08c4c4125208b456548a6cf68625aa4fe178486e63ecd
   languageName: node
   linkType: hard
 
@@ -14803,6 +14935,27 @@ __metadata:
   checksum: b5167a7142c1da704c0e3af85c402002b597081dd9575031a90b4f229ca5678e9a36e8a374f1814c8156a725d17008ae3bde63b92f9cfd132526379e580bec8b
   languageName: node
   linkType: hard
+
+"smarthome@workspace:^, smarthome@workspace:packages/smarthome":
+  version: 0.0.0-use.local
+  resolution: "smarthome@workspace:packages/smarthome"
+  dependencies:
+    "@aws-cdk/aws-lambda-python-alpha": ^2.102.0-alpha.0
+    "@types/jest": ^29.5.4
+    "@types/node": 20.5.9
+    aws-cdk: 2.95.1
+    aws-cdk-lib: ^2.102.0
+    aws-lambda: ^1.0.7
+    constructs: ^10.0.0
+    jest: ^29.6.4
+    source-map-support: ^0.5.21
+    ts-jest: ^29.1.1
+    ts-node: ^10.9.1
+    typescript: ~5.2.2
+  bin:
+    smarthome: bin/smarthome.js
+  languageName: unknown
+  linkType: soft
 
 "socks-proxy-agent@npm:^7.0.0":
   version: 7.0.0
@@ -15625,7 +15778,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.2.2":
+"typescript@npm:^5.2.2, typescript@npm:~5.2.2":
   version: 5.2.2
   resolution: "typescript@npm:5.2.2"
   bin:
@@ -15665,7 +15818,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^5.2.2#~builtin<compat/typescript>":
+"typescript@patch:typescript@^5.2.2#~builtin<compat/typescript>, typescript@patch:typescript@~5.2.2#~builtin<compat/typescript>":
   version: 5.2.2
   resolution: "typescript@patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"
   bin:
@@ -15876,6 +16029,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"url@npm:0.10.3":
+  version: 0.10.3
+  resolution: "url@npm:0.10.3"
+  dependencies:
+    punycode: 1.3.2
+    querystring: 0.2.0
+  checksum: 7b83ddb106c27bf9bde8629ccbe8d26e9db789c8cda5aa7db72ca2c6f9b8a88a5adf206f3e10db78e6e2d042b327c45db34c7010c1bf0d9908936a17a2b57d05
+  languageName: node
+  linkType: hard
+
 "use-sync-external-store@npm:^1.2.0":
   version: 1.2.0
   resolution: "use-sync-external-store@npm:1.2.0"
@@ -15892,7 +16055,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"util@npm:^0.12.3":
+"util@npm:^0.12.3, util@npm:^0.12.4":
   version: 0.12.5
   resolution: "util@npm:0.12.5"
   dependencies:
@@ -15909,6 +16072,15 @@ __metadata:
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: c81095493225ecfc28add49c106ca4f09cdf56bc66731aa8dabc2edbbccb1e1bfe2de6a115e5c6a380d3ea166d1636410b62ef216bb07b3feb1cfde1d95d5080
+  languageName: node
+  linkType: hard
+
+"uuid@npm:8.0.0":
+  version: 8.0.0
+  resolution: "uuid@npm:8.0.0"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 56d4e23aa7ac26fa2db6bd1778db34cb8c9f5a10df1770a27167874bf6705fc8f14a4ac414af58a0d96c7653b2bd4848510b29d1c2ef8c91ccb17429c1872b5e
   languageName: node
   linkType: hard
 
@@ -16088,6 +16260,16 @@ __metadata:
   dependencies:
     makeerror: 1.0.12
   checksum: ad7a257ea1e662e57ef2e018f97b3c02a7240ad5093c392186ce0bcf1f1a60bbadd520d073b9beb921ed99f64f065efb63dfc8eec689a80e569f93c1c5d5e16c
+  languageName: node
+  linkType: hard
+
+"watchpack@npm:^2.0.0-beta.10":
+  version: 2.4.0
+  resolution: "watchpack@npm:2.4.0"
+  dependencies:
+    glob-to-regexp: ^0.4.1
+    graceful-fs: ^4.1.2
+  checksum: 23d4bc58634dbe13b86093e01c6a68d8096028b664ab7139d58f0c37d962d549a940e98f2f201cecdabd6f9c340338dc73ef8bf094a2249ef582f35183d1a131
   languageName: node
   linkType: hard
 
@@ -16288,6 +16470,23 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: c3c100a181b731f40b7f2fddf004aa023f79d64f489706a28bc23ff88e87f6a64b3c6651fbec3a84a53960b75159574d7a7385709847a62ddb7ad6af76f49138
+  languageName: node
+  linkType: hard
+
+"xml2js@npm:0.5.0":
+  version: 0.5.0
+  resolution: "xml2js@npm:0.5.0"
+  dependencies:
+    sax: ">=0.6.0"
+    xmlbuilder: ~11.0.0
+  checksum: 1aa71d62e5bc2d89138e3929b9ea46459157727759cbc62ef99484b778641c0cd21fb637696c052d901a22f82d092a3e740a16b4ce218e81ac59b933535124ea
+  languageName: node
+  linkType: hard
+
+"xmlbuilder@npm:~11.0.0":
+  version: 11.0.1
+  resolution: "xmlbuilder@npm:11.0.1"
+  checksum: 7152695e16f1a9976658215abab27e55d08b1b97bca901d58b048d2b6e106b5af31efccbdecf9b07af37c8377d8e7e821b494af10b3a68b0ff4ae60331b415b0
   languageName: node
   linkType: hard
 

@@ -69,7 +69,7 @@ structure VerifyRegistrationOutput {
     userId: String,
 }
 
- @http(code: 200, method: "GET", uri: "/v1/authentication/options")
+ @http(code: 200, method: "POST", uri: "/v1/authentication/options")
  operation GenerateAuthenticationOptions {
     input: GenerateAuthenticationOptionInput,
     output: GenerateAuthenticationOptionOutput,

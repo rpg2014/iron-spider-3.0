@@ -167,9 +167,9 @@ const processor: PasskeyFlowProcessor = {
     }
   },
 };
-async function createUserCookie(userId): Promise<string> {
+async function createUserCookie(userId: string): Promise<string> {
   const userToken  = await JWTProcessor.generateTokenForUser(userId, "365d")
-  return `${USER_TOKEN_COOKIE_NAME}=${userToken}; HttpOnly; Max-Age=31556952`
+  return `${USER_TOKEN_COOKIE_NAME}=${userToken}; HttpOnly; Max-Age=31556952; Secure`
 }
 
 export default processor;
