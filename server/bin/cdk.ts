@@ -5,9 +5,8 @@ import "source-map-support/register";
 import { ApiStack } from "../lib/api-stack";
 import { PasskeyInfraStack } from "../lib/passkey-stack";
 import { DomainAuthAssetsStack } from "domain-auth-assets/lib/auth-assets-stack";
-import { SmarthomeStack } from 'smarthome/lib/smarthome-stack'
 import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "../lib/cdk-constants";
-// import { SES_ARNS } from "../.secrets";
+import { SES_ARNS } from "../.secrets";
 
 const app = new App();
 
@@ -50,13 +49,14 @@ const apiStack = new ApiStack(app, "IronSpiderService", {
   subDomain: "api",
   corsSubDomains: subDomains,
 });
-// const infraStack = new PasskeyInfraStack(app, "PasskeyInfra", {
-//   env,
-//   userTableName: USER_TABLE_NAME,
-//   credentialsTableName: CREDENTIAL_TABLE_NAME,
-//   operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction],
-//   sesArns: SES_ARNS as any, // made offline
-// });
+
+const infraStack = new PasskeyInfraStack(app, "PasskeyInfra", {
+  env,
+  userTableName: USER_TABLE_NAME,
+  credentialsTableName: CREDENTIAL_TABLE_NAME,
+  operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction],
+  sesArns: SES_ARNS as any, // made offline
+});
 
 //Add Auth UI Stack
 const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
@@ -66,9 +66,6 @@ const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
   certificateArn,
 });
 
-const smarthomeStack = new SmarthomeStack(app, 'SmarthomeStack', {
-  env
-})
 
 // // Main Website stack
 // const remixStack = new RemixAppStack(this, "RemixApp", {

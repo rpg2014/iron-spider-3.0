@@ -35,7 +35,7 @@ Server -> Database: Get User Challenge (?)
 Database --> Server
 Server -> Server: verifyRegistrationResponse
 Server -> Database: Save credential for user
-Server  --> UI: return verfied result
+Server  --> UI: return verfied result and set user cookie
 
 
 end Registration

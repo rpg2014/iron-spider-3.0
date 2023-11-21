@@ -1,0 +1,32 @@
+@startuml
+participant UI
+participant Server
+participant Database
+
+title auth flow
+
+
+UI -> UI: load page
+group If userid is present in state
+UI -> Server: Send request with userId if in state on page load
+Server --> UI: return auth options
+UI -> UI: startAuthentication(options, true) for autocomplete 
+end
+group No userId in state
+UI -> UI: wait for email to be supplied and submit button pressed
+UI -> Server: send request with email 
+Server -> Server: generate auth options
+Server --> UI: return auth options
+UI -> UI: startAuthentication
+end
+UI -> Server: Call VerifyAuthenticationResponse
+Server --> Server: verify 
+
+group if verified
+Server -> Database: update counter
+end
+Server --> UI: return result and set cookie if verifed
+
+
+
+@enduml

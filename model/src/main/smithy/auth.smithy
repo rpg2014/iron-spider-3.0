@@ -69,23 +69,25 @@ structure VerifyRegistrationOutput {
     userId: String,
 }
 
- @http(code: 200, method: "POST", uri: "/v1/authentication/options")
+ @http(code: 200, method: "GET", uri: "/v1/authentication/options")
  operation GenerateAuthenticationOptions {
-    input: GenerateAuthenticationOptionInput,
-    output: GenerateAuthenticationOptionOutput,
+    input: GenerateAuthenticationOptionsInput,
+    output: GenerateAuthenticationOptionsOutput,
     errors: [InternalServerError, BadRequestError, ValidationException]
  }
 
-structure GenerateAuthenticationOptionInput {
-     @httpHeader("Cookie")
-     cookies: String,
+structure GenerateAuthenticationOptionsInput {
+    @httpQuery("userId")
      userId: String,
+     @httpQuery("email")
+     email: String
 }
 
-structure GenerateAuthenticationOptionOutput {
+structure GenerateAuthenticationOptionsOutput {
     @required
-    @httpPayload
     authenticationResponseJSON: String,
+    @required
+    userId: String
 }
 
 @http(code: 200, method: "POST", uri: "/v1/authentication/verification")
@@ -96,10 +98,27 @@ operation VerifyAuthentication {
 }
 
 structure VerifyAuthenticationInput {
-    @httpPayload
-    body: String
+    @required
+    verificationResponse: String
+    @required
+    userId: String
 }
-
+list SiteAccessList {
+    member: String
+}
+structure UserData {
+    @required
+    displayName: String
+    @required
+    siteAccess: SiteAccessList,
+    @required
+    numberOfCreds: Integer
+}
 structure VerifyAuthenticationOutput {
-    verified: Boolean
+    @required
+    verified: Boolean,
+    @httpHeader("Set-Cookie")
+    userCookie: String,
+    userId: String,
+    userData: UserData
 }

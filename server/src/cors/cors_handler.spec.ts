@@ -1,5 +1,6 @@
 import { HttpRequest } from "@aws-sdk/protocol-http";
-import { CorsOperation, validateCors } from "./cors_handler";
+import { CorsOperation } from "./cors_handler";
+import { validateCors } from "./CorsProcessor";
 
 describe("Cors handler", () => {
   beforeEach(() => {

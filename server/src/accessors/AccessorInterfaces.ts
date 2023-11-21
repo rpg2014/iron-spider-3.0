@@ -2,9 +2,10 @@ import { CredentialModel, UserModel } from "../model/Auth/authModels";
 
 //TODO: figure out dependency injection here.
 export abstract class CredentialsAccessor {
-  abstract getCredential(credentialId: Uint8Array): Promise<CredentialModel | undefined>;
-  abstract getCredentialsForUser(userId: String): Promise<CredentialModel[]>;
+  abstract getCredential(credentialId: string): Promise<CredentialModel | undefined>;
+  abstract getCredentialsForUser(userId: string): Promise<CredentialModel[]>;
   abstract saveCredentials(credential: CredentialModel): Promise<void>;
+  abstract updateCounter(credentialId: string, newCount: number): Promise<void>;
 }
 
 export type KeyPair = {
@@ -31,7 +32,7 @@ export abstract class UserAccessor {
    * @param email
    * @param displayName
    */
-  abstract getUserByEmailAndDisplayName(email: string, displayName: string): Promise<UserModel | null>;
+  abstract getUserByEmailAndDisplayName(email: string, displayName?: string): Promise<UserModel | null>;
 
   abstract createUser(user: UserModel): Promise<void>;
 

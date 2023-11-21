@@ -10,3 +10,4 @@
 
 .secrets.ts
 .keypair.json
+.smithy.lsp.log

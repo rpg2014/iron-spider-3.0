@@ -2,8 +2,8 @@ import { convertEvent, convertVersion1Response } from "@aws-smithy/server-apigat
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { ServiceHandler } from "@aws-smithy/server-common";
 import { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
-import { validateCors } from "./handlers/cors_handler";
 import { HttpResponse } from "@aws-sdk/protocol-http";
+import { validateCors } from "./cors/CorsProcessor";
 
 /**
  * cors data

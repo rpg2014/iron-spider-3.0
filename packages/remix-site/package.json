@@ -35,7 +35,6 @@
     "react-dom": "^18.2.0",
     "remix": "^2.0.0",
     "roadhouse-wasm": "github:rpg2014/roadhouse-wasm",
-    "rust-functions": "./rust-functions/pkg",
     "swr": "^2.2.2"
   },
   "devDependencies": {

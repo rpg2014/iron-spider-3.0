@@ -7,11 +7,7 @@ import {
   ServerStatusOutput,
 } from "iron-spider-ssdk";
 import { HandlerContext } from "../apigateway";
-import jwt, { Jwt, JwtPayload } from "jsonwebtoken";
-import { SecretKeyAccessor } from "../accessors/AccessorInterfaces";
-import { JWT_AUDIENCE, JWT_ISSUER } from "../constants/passkeyConst";
 import passkeyFlowProcessor from "../processors/PasskeyFlowProcessor";
-import { getSecretKeyAccessor } from "../accessors/AccessorFactory";
 
 export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistrationOptionsServerInput, GenerateRegistrationOptionsServerOutput, HandlerContext> =
   async (input, context) => {
@@ -26,7 +22,4 @@ export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistratio
     } catch (e: any) {
       throw new InternalServerError({ message: "Error " + e.message });
     }
-    // get display name and
-
-    return {};
   };

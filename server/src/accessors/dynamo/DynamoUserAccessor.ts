@@ -71,7 +71,7 @@ export class DynamoUserAccessor extends UserAccessor {
    * @param email
    * @param displayName
    */
-  async getUserByEmailAndDisplayName(email: string, displayName: string): Promise<UserModel | null> {
+  async getUserByEmailAndDisplayName(email: string, displayName?: string): Promise<UserModel | null> {
     let result: ScanCommandOutput = await this.ddbdocClient.send(
       new ScanCommand({
         TableName: this.TABLE_NAME,
@@ -88,7 +88,10 @@ export class DynamoUserAccessor extends UserAccessor {
       return null;
     }
     // if length is > 1 filter by the display name.
-    if (result.Items.length > 1) {
+    if (result.Items.length > 1)  {
+      if(displayName === null){
+        throw new InternalServerError({message: "This email has more than 1 user, but no DisplayName was provided."})
+      }
       result.Items = result.Items.filter(item => item.displayName === displayName);
     }
     // if there is only one, return it.

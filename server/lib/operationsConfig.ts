@@ -39,7 +39,7 @@ const AuthOperations: Partial<IEntryPoints> = {
     memorySize: 256,
   },
   GenerateRegistrationOptions: {
-    handlerFile: "auth_handler",
+    handlerFile: "handlers/GetRegistrationOptionsHandler",
     handlerFunction: "getRegistrationOptions",
     memorySize: 256,
   },
@@ -48,6 +48,16 @@ const AuthOperations: Partial<IEntryPoints> = {
     handlerFunction: "verifyRegistrationHandler",
     memorySize: 256,
   },
+  GenerateAuthenticationOptions: {
+    handlerFile: 'handlers/AuthHandler',
+    handlerFunction: "getAuthOptions",
+    memorySize: 256,
+  },
+  VerifyAuthentication: {
+    handlerFile: 'handlers/AuthHandler',
+    handlerFunction: "verifyAuthResponse",
+    memorySize: 256
+  }
 };
 
 export const operations = {

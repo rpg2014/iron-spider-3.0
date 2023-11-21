@@ -72,9 +72,9 @@ export class ApiStack extends Stack {
     } as IEntryPoints;
     //define Cors helper function
     this.corsFunction = new NodejsFunction(this, "CorsFunction", {
-      entry: path.join(__dirname, "../src/handlers/cors_handler.ts"),
+      entry: path.join(__dirname, "../src/cors/cors_handler.ts"),
       handler: "corsHandler",
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       memorySize: 128,
       timeout: Duration.seconds(5),
       logRetention: RetentionDays.FIVE_DAYS,
@@ -86,6 +86,7 @@ export class ApiStack extends Stack {
         esbuildArgs: {
           "--tree-shaking": true,
         },
+        metafile: false,
         format: OutputFormat.CJS,
         minify: true,
         tsconfig: path.join(__dirname, "../tsconfig.json"),
@@ -98,7 +99,7 @@ export class ApiStack extends Stack {
       const fn = new NodejsFunction(this, operation + "Function", {
         entry: path.join(__dirname, `../src/${operationData[operation].handlerFile}.ts`),
         handler: !!op.handlerFunction ? op.handlerFunction : "lambdaHandler",
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         memorySize: !!op.memorySize ? op.memorySize : undefined,
         timeout: !!op.timeout ? op.timeout : undefined,
         logRetention: RetentionDays.SIX_MONTHS,
@@ -110,9 +111,11 @@ export class ApiStack extends Stack {
         },
         bundling: {
           esbuildArgs: {
-            "--tree-shaking": true,
+            "--tree-shaking": "true",
           },
-          format: OutputFormat.CJS,
+          //Change to true to analyse bundle size
+          metafile: false,
+          format: OutputFormat.ESM,
           logLevel: LogLevel.INFO,
           minify: true,
           tsconfig: path.join(__dirname, "../tsconfig.json"),

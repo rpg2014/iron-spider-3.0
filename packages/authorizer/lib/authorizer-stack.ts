@@ -25,6 +25,7 @@ export class AuthorizerStack extends cdk.Stack {
       bundling: {
         minify: true,
         tsconfig: path.join(__dirname, "../tsconfig.json"),
+        metafile: false
       }
     })
 

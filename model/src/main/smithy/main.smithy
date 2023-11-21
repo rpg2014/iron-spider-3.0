@@ -33,7 +33,9 @@ service IronSpider {
         StopServer,
         CreateUser,
         GenerateRegistrationOptions,
-        VerifyRegistration],
+        VerifyRegistration,
+        GenerateAuthenticationOptions,
+        VerifyAuthentication],
 }
 
 @httpError(500)
