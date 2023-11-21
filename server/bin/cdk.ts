@@ -66,7 +66,6 @@ const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
   certificateArn,
 });
 
-
 // // Main Website stack
 // const remixStack = new RemixAppStack(this, "RemixApp", {
 //   env,

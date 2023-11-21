@@ -3,7 +3,7 @@ export type UserModel = {
   email: string; //userName in auth
   displayName: string; // display name in auth
   apiAccess: string[]; // used to determine if the user can all an api, 'all' is accepted
-  siteAccess: string[];// used to determine if the user can acces the site, 'all' is accepted
+  siteAccess: string[]; // used to determine if the user can acces the site, 'all' is accepted
   currentChallenge?: string;
   domainAccess?: boolean;
   emailValidated?: boolean;
@@ -14,7 +14,7 @@ export type CredentialDeviceType = "singleDevice" | "multiDevice";
 export type CredentialModel = {
   userID: string;
   // SQL: Encode to base64url then store as `TEXT`. Index this column
-  credentialID: String //Uint8Array;
+  credentialID: String; //Uint8Array;
   // SQL: Store raw bytes as `BYTEA`/`BLOB`/etc...
   credentialPublicKey: Uint8Array;
   // SQL: Consider `BIGINT` since some authenticators return atomic timestamps as counters

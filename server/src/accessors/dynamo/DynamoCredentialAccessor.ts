@@ -15,12 +15,12 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
     this.client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
   }
   async getCredential(credentialId: string): Promise<CredentialModel | undefined> {
-    console.log(`Fetching credential: ${credentialId}`)
+    console.log(`Fetching credential: ${credentialId}`);
     const output = await this.client.send(
       new GetCommand({
         TableName: this.TABLE_NAME,
         Key: {
-          "credentialID": credentialId
+          credentialID: credentialId,
         },
       })
     );
@@ -57,23 +57,22 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
     return;
   }
   // update the dynamo db entry's counter
-  async  updateCounter(credentialId: String, newCount: number): Promise<void> {
+  async updateCounter(credentialId: String, newCount: number): Promise<void> {
     console.log("Updating counter for credential: " + credentialId + " to " + newCount);
-    
+
     try {
-    const output: PutCommandOutput = await this.client.send(
-      new PutCommand({
-        TableName: this.TABLE_NAME,
-        Item: {
-          "credentialID": credentialId,
-          "counter": newCount
-        },
-      }));
-    }catch(e: any){
+      const output: PutCommandOutput = await this.client.send(
+        new PutCommand({
+          TableName: this.TABLE_NAME,
+          Item: {
+            credentialID: credentialId,
+            counter: newCount,
+          },
+        })
+      );
+    } catch (e: any) {
       console.log("Error updating counter: " + e.message);
       throw new InternalServerError({ message: "Unable to update counter" });
-    
     }
-    
   }
 }
