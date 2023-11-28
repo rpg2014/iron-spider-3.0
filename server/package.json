@@ -2,9 +2,10 @@
   "name": "iron-spider",
   "version": "0.0.1",
   "description": "The serverless backend implementation for my website",
-  "packageManager": "yarn@3.1.1",
+  "packageManager": "yarn@4.0.2",
   "author": "",
   "license": "Apache-2.0",
+  "type": "commonjs",
   "private": true,
   "bin": {
     "cdk": "dist/bin/cdk.js"
@@ -26,24 +27,25 @@
     "dist"
   ],
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.414.0",
-    "@aws-sdk/client-ec2": "^3.414.0",
-    "@aws-sdk/client-route-53": "^3.414.0",
-    "@aws-sdk/client-secrets-manager": "^3.414.0",
-    "@aws-sdk/client-sesv2": "^3.414.0",
-    "@aws-sdk/lib-dynamodb": "^3.414.0",
+    "@aws-sdk/client-dynamodb": "^3.458.0",
+    "@aws-sdk/client-ec2": "^3.458.0",
+    "@aws-sdk/client-route-53": "^3.458.0",
+    "@aws-sdk/client-secrets-manager": "^3.458.0",
+    "@aws-sdk/client-sesv2": "^3.458.0",
+    "@aws-sdk/lib-dynamodb": "^3.458.0",
     "@aws-smithy/server-apigateway": "^1.0.0-alpha.7",
     "@aws-smithy/server-common": "^1.0.0-alpha.7",
     "@simplewebauthn/server": "^8.3.5",
     "@types/aws-lambda": "^8.10.85",
     "@types/uuid": "^9.0.2",
-    "iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen",
+    "iron-spider-ssdk": "workspace:*",
     "jsonwebtoken": "^9.0.1",
+    "jwt-lib": "workspace:^",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@simplewebauthn/typescript-types": "^8.3.4",
-    "@tsconfig/node18": "^18.2.0",
+    "@tsconfig/node20": "^20.1.2",
     "@types/jest": "^26.0.24",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^18.11.18",
@@ -52,7 +54,6 @@
     "authorizer": "workspace:^",
     "aws-cdk": "^2.110.0",
     "aws-cdk-lib": "^2.110.0",
-    "cdk-bundle-analyzer": "^0.1.1",
     "constructs": "^10.2.70",
     "domain-auth-assets": "workspace:^",
     "esbuild": "^0.19.6",
@@ -68,6 +69,7 @@
     "remix-site": "workspace:^",
     "rimraf": "^3.0.0",
     "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
   "lint-staged": {

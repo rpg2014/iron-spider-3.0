@@ -15,3 +15,6 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
   }
   return data;
 };
+
+
+export const isSSR = (typeof window === "undefined" || window.document === undefined);

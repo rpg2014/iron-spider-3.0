@@ -10,7 +10,7 @@ export class SESEmailAccessor extends EmailAccessor {
   }
   async sendVerificationEmail(email: string, verificationCode: string): Promise<string | undefined> {
     const command = new SendEmailCommand({
-      FromEmailAddress: "account@mail.parkergiven.com",
+      FromEmailAddress: "accounts@mail.parkergiven.com",
       Destination: {
         ToAddresses: [email],
       },

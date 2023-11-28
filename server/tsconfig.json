@@ -1,5 +1,7 @@
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "module": "ESNext",
+  "esModuleInterop": true,
   "compilerOptions": {
     "resolveJsonModule": true,
     "incremental": true,

@@ -2,15 +2,15 @@
   "compilerOptions": {
     "esModuleInterop": true,
 
-    "target": "ES2022",
+    "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "CommonJS",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
 
     "skipLibCheck": true,
 
-    /* Bundler mode */
-    "moduleResolution": "node",
+    /* Bundler mode */ // was node
+    "moduleResolution": "Bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

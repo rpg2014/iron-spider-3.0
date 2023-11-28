@@ -1,10 +1,12 @@
 // import fs from "node:fs";
 // import path from "node:path";
 // import { fileURLToPath } from "url";
-// must use require b/c CDK doesn't support ESM? I think it actually does I just need to migrate everything
+// must use require b/c CDK doesn't support ESM? I think it actually does I just need to migrate everything.   migrated some things,
+// but import.meta.dirname isn't added till v21, which lambda doesn't support yet.
+// Mainly blocked tho b/c the main server / cdk doesn't support ESM.
 const fs = require("node:fs");
 const path = require("node:path");
-const { fileURLToPath } = require("url");
+// const { fileURLToPath } = require("url");
 
 // const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const toAbsolute = (p) => path.resolve(__dirname, p);

@@ -1,0 +1,8 @@
+{
+  "name": "jwt-lib",
+  "description": "a lib for creating and verifying jwts to use across the infra",
+  "packageManager": "yarn@4.0.2",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  }
+}

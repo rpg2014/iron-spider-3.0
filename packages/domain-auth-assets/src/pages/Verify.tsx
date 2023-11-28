@@ -4,7 +4,7 @@ import Alert from "../components/Alert";
 import { useEffect, useState } from "react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { fetcher } from "../util";
-import {USER_ID_TOKEN_KEY} from "../constants.ts";
+import { USER_ID_TOKEN_KEY } from "../constants.ts";
 
 const EMAIL_TOKEN_QUERY_PARAM = "magic";
 
@@ -70,7 +70,10 @@ export const Verify = () => {
           setResults(verificationResponse.verified);
           //set username token in localstorage
           try {
-            localStorage.setItem(USER_ID_TOKEN_KEY, btoa(verificationResponse.userId));
+            localStorage.setItem(
+              USER_ID_TOKEN_KEY,
+              btoa(verificationResponse.userId),
+            );
             console.log("User Id saved: " + verificationResponse.userId);
           } catch (e: any) {
             console.error(e.message);
@@ -109,7 +112,9 @@ export const Verify = () => {
           {error}
         </Alert>
       )}
-      {results && <Alert variant="success">Successfully Registered! Now go login</Alert>}
+      {results && (
+        <Alert variant="success">Successfully Registered! Now go log in</Alert>
+      )}
       {!error && !results && <Alert variant="grey">{state}</Alert>}
     </>
   );

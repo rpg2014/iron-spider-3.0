@@ -84,7 +84,7 @@ export class ApiStack extends Stack {
       },
       bundling: {
         esbuildArgs: {
-          "--tree-shaking": true,
+          "--tree-shaking": "true",
         },
         metafile: false,
         format: OutputFormat.CJS,
@@ -115,7 +115,7 @@ export class ApiStack extends Stack {
           },
           //Change to true to analyse bundle size
           metafile: false,
-          format: OutputFormat.ESM,
+          format: OutputFormat.CJS,
           logLevel: LogLevel.INFO,
           minify: true,
           tsconfig: path.join(__dirname, "../tsconfig.json"),

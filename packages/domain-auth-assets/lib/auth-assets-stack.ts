@@ -1,11 +1,10 @@
+import { CfnOutput, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import {
-  CfnOutput,
-  Duration,
-  RemovalPolicy,
-  Stack,
-  StackProps,
-} from "aws-cdk-lib";
-import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+  ARecord,
+  AaaaRecord,
+  HostedZone,
+  RecordTarget,
+} from "aws-cdk-lib/aws-route53";
 import {
   AllowedMethods,
   Distribution,
@@ -75,7 +74,7 @@ export class DomainAuthAssetsStack extends Stack {
 
       /**
        * For sample purposes only, if you create an S3 bucket then populate it, stack destruction fails.  This
-       * setting will enable full cleanup of the demo.
+       * setting will enable full cleanup.
        */
       autoDeleteObjects: true, // NOT recommended for production code
     });
@@ -93,10 +92,9 @@ export class DomainAuthAssetsStack extends Stack {
       }),
     );
 
-    //TODO: create a cloudfront function that will attach a .html to the end of paths in order to serve the ssr version of it
+    // Cloudfront function that will attach a .html to the end of paths in order to serve the ssr version of it
     // when that occurs remove the /index.html error response from the 403 error.
-
-    // try removing the default object first too.
+    // (try removing the default object first too.)? why did I write this?
     const pathRewriteFunction = new Function(this, "PathRewriteFunction", {
       code: FunctionCode.fromFile({
         filePath: path.resolve(__dirname, "../cloudfrontFunction.js"),
@@ -146,6 +144,12 @@ export class DomainAuthAssetsStack extends Stack {
 
     // Route53 alias record for the CloudFront distribution
     new ARecord(this, `${name}SiteAliasRecord`, {
+      recordName: siteDomain,
+      target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+      zone,
+    });
+
+    new AaaaRecord(this, `${name}SiteAAAAAliasRecord`, {
       recordName: siteDomain,
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
       zone,

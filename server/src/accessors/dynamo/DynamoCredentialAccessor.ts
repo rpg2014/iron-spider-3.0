@@ -1,6 +1,15 @@
 import { CredentialsAccessor } from "../AccessorInterfaces";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, PutCommand, PutCommandOutput, QueryCommand, QueryCommandOutput } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  PutCommandOutput,
+  QueryCommand,
+  QueryCommandOutput,
+  UpdateCommand,
+  UpdateCommandOutput,
+} from "@aws-sdk/lib-dynamodb";
 import { CredentialModel } from "../../model/Auth/authModels";
 import process from "process";
 import { InternalServerError } from "iron-spider-ssdk";
@@ -24,6 +33,7 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
         },
       })
     );
+    // console.log("Output: " + JSON.stringify(output));
     return output.Item ? (output.Item as CredentialModel) : undefined;
   }
 
@@ -61,13 +71,22 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
     console.log("Updating counter for credential: " + credentialId + " to " + newCount);
 
     try {
-      const output: PutCommandOutput = await this.client.send(
-        new PutCommand({
+      const output: UpdateCommandOutput = await this.client.send(
+        new UpdateCommand({
           TableName: this.TABLE_NAME,
-          Item: {
+          Key: {
             credentialID: credentialId,
-            counter: newCount,
           },
+          UpdateExpression: "set #c = :counter",
+          ExpressionAttributeNames: {
+            "#c": "counter",
+          },
+          ExpressionAttributeValues: {
+            ":counter": newCount,
+          },
+          ReturnValues: "UPDATED_NEW",
+          ConditionExpression: "attribute_exists(credentialId)",
+          ReturnConsumedCapacity: "TOTAL",
         })
       );
     } catch (e: any) {

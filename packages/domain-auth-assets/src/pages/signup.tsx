@@ -54,7 +54,7 @@ export default function Signup() {
     <div className={styles.container}>
       <h2 className={styles.title}>Create Account</h2>
       <p>First you need to verify your email, and choose a username.</p>
-      <div className={styles.formContainer}>
+      <form onSubmit={() => submitEmail()} className={styles.formContainer}>
         <div className={styles.inputDiv}>
           <label htmlFor="name">Username:</label>
           <input
@@ -82,15 +82,6 @@ export default function Signup() {
             name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onKeyUp={(e) => {
-              // If the user presses the "Enter" key on the keyboard
-              if (e.key === "Enter") {
-                // Cancel the default action, if needed
-                e.preventDefault();
-                // Trigger the button element with a click
-                submitEmail();
-              }
-            }}
             required
           />
           {validationErrors.email && <Alert>{validationErrors.email}</Alert>}
@@ -109,7 +100,7 @@ export default function Signup() {
             )}
           </div>
         )}
-      </div>
+      </form>
       {success && (
         <Alert variant="success">
           <span style={{ fontWeight: "bolder", fontSize: "large" }}>

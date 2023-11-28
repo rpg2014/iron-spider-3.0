@@ -28,6 +28,7 @@ const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<s
     "access-control-allow-origin": allowed.origin,
     "access-control-allow-headers": allowed.headers,
     "access-control-allow-methods": "POST, GET, OPTIONS",
+    "access-control-allow-credentials": "true",
   };
 };
 

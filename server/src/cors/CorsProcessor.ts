@@ -1,6 +1,6 @@
 import { HttpRequest } from "@aws-sdk/protocol-http";
 import { DELIMITER } from "../constants/common";
-const ALLOW_HEADERS = "content-type, spider-access-token";
+const ALLOW_HEADERS = "content-type, spider-access-token, Access-Control-Allow-Credentials";
 
 export const validateCors = (request: HttpRequest, handlerContext: any): { origin: string; headers: string } => {
   const domainName = process.env.DOMAIN;

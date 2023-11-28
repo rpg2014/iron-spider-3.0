@@ -6,6 +6,8 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   GetCommandOutput,
+  PutCommand,
+  PutCommandOutput,
   ScanCommand,
   ScanCommandOutput,
   UpdateCommand,
@@ -27,28 +29,34 @@ export class DynamoUserAccessor extends UserAccessor {
 
   //Creates a user using the update item command
   async createUser(user: UserModel): Promise<void> {
-    let updates: Record<string, AttributeValueUpdate> = {};
-    Object.keys(user)
-      .filter(key => key !== "id")
-      .forEach((key: string) => {
-        updates[key] = {
-          Action: "PUT",
-          Value: user[key as keyof UserModel],
-        } as AttributeValueUpdate;
-      });
-    console.log("Creating user: " + JSON.stringify(updates));
+    // let updates: Record<string, AttributeValueUpdate> = {};
+    // Object.keys(user)
+    //   .filter(key => key !== "id")
+    //   .forEach((key: string) => {
+    //     updates[key] = {
+    //       Action: "PUT",
+    //       Value: user[key as keyof UserModel],
+    //     } as AttributeValueUpdate;
+    //   });
+    console.log("Creating user: " + JSON.stringify(user) + "\n in table " + this.TABLE_NAME);
     try {
-      const output: UpdateCommandOutput = await this.ddbdocClient.send(
-        new UpdateCommand({
+      const output: PutCommandOutput /*UpdateCommandOutput */ = await this.ddbdocClient.send(
+        new PutCommand({
           TableName: this.TABLE_NAME,
-          Key: {
-            id: user.id,
-          },
-          AttributeUpdates: updates,
+          Item: user,
         })
+        // new UpdateCommand({
+        //   TableName: this.TABLE_NAME,
+        //   Key: {
+        //     id: user.id,
+        //   },
+        //   AttributeUpdates: updates,
+        // })
       );
+      console.log("User created");
       return;
     } catch (e: any) {
+      console.error(e);
       console.log("Error creating user: " + e.message);
       throw new InternalServerError({ message: "Unable to create user" });
     }

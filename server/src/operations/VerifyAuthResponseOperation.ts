@@ -4,9 +4,9 @@ import { HandlerContext } from "src/apigateway";
 import passkeyFlowProcessor from "../processors/PasskeyFlowProcessor";
 
 export const VerifyAuthOperation: Operation<VerifyAuthenticationInput, VerifyAuthenticationOutput, HandlerContext> = async (input, context) => {
-  if (!input.verificationResponse || !input.userId) {
+  if (!input.authenticationResponse || !input.userId) {
     throw new BadRequestError({ message: "Verification response or id not provided" });
   }
-
-  return await passkeyFlowProcessor.verifyAuthResponse(JSON.parse(input.verificationResponse), input.userId);
+  console.log("verifyAuthResponse", input.userId);
+  return await passkeyFlowProcessor.verifyAuthResponse(JSON.parse(input.authenticationResponse), input.userId);
 };

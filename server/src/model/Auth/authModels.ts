@@ -14,7 +14,7 @@ export type CredentialDeviceType = "singleDevice" | "multiDevice";
 export type CredentialModel = {
   userID: string;
   // SQL: Encode to base64url then store as `TEXT`. Index this column
-  credentialID: String; //Uint8Array;
+  credentialID: string; //Uint8Array;
   // SQL: Store raw bytes as `BYTEA`/`BLOB`/etc...
   credentialPublicKey: Uint8Array;
   // SQL: Consider `BIGINT` since some authenticators return atomic timestamps as counters

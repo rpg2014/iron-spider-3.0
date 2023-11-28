@@ -99,7 +99,7 @@ operation VerifyAuthentication {
 
 structure VerifyAuthenticationInput {
     @required
-    verificationResponse: String
+    authenticationResponse: String
     @required
     userId: String
 }

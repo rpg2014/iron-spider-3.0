@@ -76,7 +76,9 @@
   &:focus &:active {
     transform: scale(1.05);
   }
-
+  &:hover {
+    cursor: pointer;
+  }
   @media (max-width: 720px) {
     width: auto;
   }
