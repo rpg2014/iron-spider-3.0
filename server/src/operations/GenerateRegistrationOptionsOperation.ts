@@ -6,7 +6,7 @@ import {
   BadRequestError,
   ServerStatusOutput,
 } from "iron-spider-ssdk";
-import { HandlerContext } from "../apigateway";
+import { HandlerContext } from 'authorizer/src/model/models'
 import passkeyFlowProcessor from "../processors/PasskeyFlowProcessor";
 
 export const GenerateRegistrationOptionsOperation: Operation<GenerateRegistrationOptionsServerInput, GenerateRegistrationOptionsServerOutput, HandlerContext> =

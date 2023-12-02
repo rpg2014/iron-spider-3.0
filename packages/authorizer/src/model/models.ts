@@ -29,4 +29,17 @@ export interface event {
       "resourcePath": string,
       "apiId": "abcdef123"
     }
-  
+  /**
+  * Defines anything the operation handler needs that is not modeled in the operation's Smithy model but comes from
+  * other context, in this case my lambda authorizer
+  */
+ export interface HandlerContext {
+   //legacy
+   user?: string;
+ 
+   //new
+   userId?: string;
+   displayName?: string;
+   siteAccess?: string[]
+   apiAccess?: string[]
+ }

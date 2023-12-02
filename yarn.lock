@@ -5903,13 +5903,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^27.0.3, @types/jest@npm:^27.5.2":
+"@types/jest@npm:^27.0.3":
   version: 27.5.2
   resolution: "@types/jest@npm:27.5.2"
   dependencies:
     jest-matcher-utils: "npm:^27.0.0"
     pretty-format: "npm:^27.0.0"
   checksum: 8608696fbdea81bc9a600d1c5aeb290063357eaa55c0174e7db15087c4f483113b35f8b4c4ae364d2632cfed15a4dd674786254826b946c896de5612c8cb1a26
+  languageName: node
+  linkType: hard
+
+"@types/jest@npm:^29.5.10":
+  version: 29.5.10
+  resolution: "@types/jest@npm:29.5.10"
+  dependencies:
+    expect: "npm:^29.0.0"
+    pretty-format: "npm:^29.0.0"
+  checksum: f31cdc9cf840a3bc2230148bb5cba1e0369e3180ae75d85804038905300dd8cfa1d989a4dbbd909633c04568d0c1a9251b2ee5c4197309ec033403dd2a08ea42
   languageName: node
   linkType: hard
 
@@ -5953,6 +5963,15 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 62599dea2c16e3043135620780e88785e81f9cebe5e4fd155ab30030eaefba4b04b0ea5e49ab08feab6838021b2e9a289f7e733966ce288e2d70813631c228bb
+  languageName: node
+  linkType: hard
+
+"@types/jsonwebtoken@npm:^9.0.5":
+  version: 9.0.5
+  resolution: "@types/jsonwebtoken@npm:9.0.5"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 48493129464b88b8ab3c3be7931d41da3ffba6efe97fc138b2b5aa42141725dd9086b0494cc069abd5c41ed7ca86d3cfd8efb256cec063853313c75f6179d066
   languageName: node
   linkType: hard
 
@@ -6836,17 +6855,18 @@ __metadata:
   resolution: "authorizer@workspace:packages/authorizer"
   dependencies:
     "@aws-sdk/client-dynamodb": "npm:^3.159.0"
-    "@types/jest": "npm:^27.5.2"
+    "@jest/globals": "npm:^29.7.0"
+    "@types/jest": "npm:^29.5.10"
     "@types/node": "npm:^18.11.18"
     "@types/prettier": "npm:2.6.0"
     aws-cdk-lib: "npm:^2.110.0"
     aws-jwt-verify: "npm:^3.1.0"
     constructs: "npm:^10.2.70"
-    jest: "npm:^29"
+    jest: "npm:^29.7.0"
     source-map-support: "npm:^0.5.21"
-    ts-jest: "npm:^29"
+    ts-jest: "npm:^29.1.1"
     ts-node: "npm:^10.9.1"
-    typescript: "npm:^5.1.6"
+    typescript: "npm:^5.3.2"
   bin:
     authorizer: bin/authorizer.js
   languageName: unknown
@@ -12008,7 +12028,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^29, jest@npm:^29.6.2":
+"jest@npm:^29.6.2":
   version: 29.6.3
   resolution: "jest@npm:29.6.3"
   dependencies:
@@ -12027,7 +12047,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^29.6.4":
+"jest@npm:^29.6.4, jest@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest@npm:29.7.0"
   dependencies:
@@ -12231,7 +12251,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "jwt-lib@workspace:packages/jwt-lib"
   dependencies:
+    "@types/jsonwebtoken": "npm:^9.0.5"
     jsonwebtoken: "npm:^9.0.2"
+    typescript: "npm:^5.1.6"
   languageName: unknown
   linkType: soft
 
@@ -15786,7 +15808,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29, ts-jest@npm:^29.1.1":
+"ts-jest@npm:^29.1.1":
   version: 29.1.1
   resolution: "ts-jest@npm:29.1.1"
   dependencies:
@@ -16035,6 +16057,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:^5.3.2":
+  version: 5.3.2
+  resolution: "typescript@npm:5.3.2"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 415e5fb6611f5713e460bad48039f00bcfdbde53a2f911727862d5aa9c5d5edd250059a419df382d8f031709e15a169c41eb62b6a401da5eec7ac0f4e359d6ac
+  languageName: node
+  linkType: hard
+
 "typescript@npm:next":
   version: 5.3.0-dev.20230919
   resolution: "typescript@npm:5.3.0-dev.20230919"
@@ -16072,6 +16104,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: f79cc2ba802c94c2b78dbb00d767a10adb67368ae764709737dc277273ec148aa4558033a03ce901406b35fddf4eac46dabc94a1e1d12d2587e2b9cfe5707b4a
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^5.3.2#optional!builtin<compat/typescript>":
+  version: 5.3.2
+  resolution: "typescript@patch:typescript@npm%3A5.3.2#optional!builtin<compat/typescript>::version=5.3.2&hash=e012d7"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 1b45cdfb577a78ae7a9a9d0b77a7b772142cb98ba05e4e5aefba7044a028ded885bcecef63166407a5986645cea816fe4986894336aacd5e791796ea79a6a7ed
   languageName: node
   linkType: hard
 

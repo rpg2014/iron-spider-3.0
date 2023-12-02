@@ -1,6 +1,6 @@
 import { Operation } from "@aws-smithy/server-common";
 import { GenerateAuthenticationOptionsInput, GenerateAuthenticationOptionsOutput, BadRequestError } from "iron-spider-ssdk";
-import { HandlerContext } from "src/apigateway";
+import { HandlerContext } from 'authorizer/src/model/models'
 import passkeyFlowProcessor from "../processors/PasskeyFlowProcessor";
 
 export const GetAuthOptionsOperation: Operation<GenerateAuthenticationOptionsInput, GenerateAuthenticationOptionsOutput, HandlerContext> = async (

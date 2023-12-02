@@ -1,22 +1,42 @@
 import { authHandler } from '../src/Authorizer';
 import {event} from '../src/model/models';
+import {beforeEach, describe, expect, test} from '@jest/globals';
+import { JWTProcessor } from 'jwt-lib/src';
 
-// example test. To run these tests, uncomment this file 
-test('Given event, generate Deny', async () => {
-    //@ts-ignore
-    // let e: event = {
-    //     "type": "REQUEST",
-    //     "headers": {
-            
-    //         "spider-access-token": "test",
-          
-    //     },
-    // }
-
-    // let callback = (n, result) => {
-    //     console.log(result)
-    //     expect(result.policyDocument.Statement[0].effect).toEqual("Deny")
+const getEffect =(result: any) => {
+    return result.policyDocument.Statement[0].Effect
+}
+const DENY="Deny"
+const ALLOW="Allow";
+describe("Authorizer Tests" , () => {
+    let e;
+    beforeEach(() => {
+        e = {
+            "type": "REQUEST",
+            "path": "/server/start",
+            methodArn: "methodArn",
+            "headers": {
+                
+                
+                
+            },
+        }
+    })
+    test('Given event with no token, , generate Deny', async () => {
         
-    // }
-    // await authHandler(e, null, callback)
-});
+    
+        const result = await authHandler(e, null)
+        
+        expect(getEffect(result)).toEqual("Deny")
+    }); 
+    test('Given event with Cookie, generate Allow', async () => {
+        e.headers.Cookie = `token=${JWTProcessor.generateTokenForUser({
+            userId: "userId",
+            displayName: 'testname'
+        })}`
+        const result = await authHandler(e, null)
+        
+        expect(getEffect(result)).toEqual("Allow")
+    })   
+})
+

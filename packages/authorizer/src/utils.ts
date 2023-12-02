@@ -1,3 +1,5 @@
+import { HandlerContext } from "./model/models";
+
 // Help function to generate an IAM policy
 const generatePolicy = function(principalId: string, effect: string, resource: string, context?: any) {
     // Required output:
@@ -25,7 +27,7 @@ const generatePolicy = function(principalId: string, effect: string, resource: s
     return authResponse;
 }
      
-export const generateAllow = function(principalId: string, resource: string, context?: any) {
+export const generateAllow = function(principalId: string, resource: string, context?: HandlerContext) {
     return generatePolicy(principalId, 'Allow', resource, context);
 }
      

@@ -1,7 +1,7 @@
 import { getServerStatusHandler, getServerDetailsHandler, getStartServerHandler, getStopServerHandler } from "iron-spider-ssdk";
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { ServerDetailsOperation, ServerStatusOperation, StartServerOperation, StopServerOperation } from "./server";
-import { getApiGatewayHandler } from "./apigateway";
+import { getApiGatewayHandler } from "./apigatewayAdapter";
 
 // This is the entry point for the Lambda Function that services the ServerStatus Operation.
 export const statusHandler: APIGatewayProxyHandler = getApiGatewayHandler(getServerStatusHandler(ServerStatusOperation));

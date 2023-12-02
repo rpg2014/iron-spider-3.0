@@ -1,5 +1,5 @@
 import { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
-import { getApiGatewayHandler } from "../apigateway";
+import { getApiGatewayHandler } from "../apigatewayAdapter";
 import { HttpRequest, HttpResponse } from "@aws-sdk/protocol-http";
 
 export const CorsOperation = {

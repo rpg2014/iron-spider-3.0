@@ -1,8 +1,17 @@
 import { HttpRequest } from "@aws-sdk/protocol-http";
 import { DELIMITER } from "../constants/common";
-const ALLOW_HEADERS = "content-type, spider-access-token, Access-Control-Allow-Credentials";
+const ALLOW_HEADERS = "content-type, spider-access-token";
 
-export const validateCors = (request: HttpRequest, handlerContext: any): { origin: string; headers: string } => {
+/**
+
+  Validates the CORS request and returns the allowed origin and headers.
+  uses regex to match the subdomain and mirror it if it is in the allowed subdomains list
+  
+  @param {HttpRequest} request - The HTTP request object
+  @param {any} handlerContext - The handler context
+  @returns {{origin: string, headers: string}} - An object with the allowed origin and headers 
+*/
+export const validateCors = (request: HttpRequest, handlerContext?: any): { origin: string; headers: string } => {
   const domainName = process.env.DOMAIN;
   if (!domainName) {
     throw new Error("Domain name not set");

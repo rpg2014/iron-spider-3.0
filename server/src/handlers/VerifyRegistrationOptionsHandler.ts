@@ -1,5 +1,5 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { getApiGatewayHandler } from "../apigateway";
+import { getApiGatewayHandler } from "../apigatewayAdapter";
 import { getVerifyRegistrationHandler } from "iron-spider-ssdk";
 import { VerifyRegistrationOperation } from "../operations/VerifyRegistrationOperation";
 

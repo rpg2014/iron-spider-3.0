@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, Duration } from 'aws-cdk-lib';
 import { ManagedPolicy, PolicyDocument, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import * as path from "path";
@@ -18,12 +18,16 @@ export class AuthorizerStack extends cdk.Stack {
     this.AuthorizerFunction = new NodejsFunction(this, 'IronAuthFunction', {
       entry: path.join(__dirname, '../src/Authorizer.ts'),
       handler: 'authHandler',
-      runtime: Runtime.NODEJS_16_X,
+      runtime: Runtime.NODEJS_20_X,
       memorySize: 256,
       timeout: Duration.seconds(10),
-      logRetention: RetentionDays.SIX_MONTHS,
+      logRetention: RetentionDays.SIX_MONTHS,      
       bundling: {
+        esbuildArgs: {
+          "--tree-shaking": "true",
+        },
         minify: true,
+        format: OutputFormat.ESM,
         tsconfig: path.join(__dirname, "../tsconfig.json"),
         metafile: false
       }

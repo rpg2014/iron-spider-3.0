@@ -1,5 +1,5 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { getApiGatewayHandler } from "../apigateway";
+import { getApiGatewayHandler } from "../apigatewayAdapter";
 import { getGenerateAuthenticationOptionsHandler, getVerifyAuthenticationHandler } from "iron-spider-ssdk";
 import { GetAuthOptionsOperation } from "../operations/GetAuthOptionsOperation";
 import { VerifyAuthOperation } from "src/operations/VerifyAuthResponseOperation";

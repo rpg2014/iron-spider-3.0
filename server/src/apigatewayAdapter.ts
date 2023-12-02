@@ -4,21 +4,8 @@ import { ServiceHandler } from "@aws-smithy/server-common";
 import { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
 import { HttpResponse } from "@aws-sdk/protocol-http";
 import { validateCors } from "./cors/CorsProcessor";
+import { HandlerContext } from 'authorizer/src/model/models'
 
-/**
- * cors data
- *
- */
-const subDomains = ["auth", "remix", "pwa"];
-const domain = process.env.DOMAIN; // get from env var
-
-/**
- * Defines anything the operation handler needs that is not modeled in the operation's Smithy model but comes from
- * other context
- */
-export interface HandlerContext {
-  user: string;
-}
 
 const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<string, string> => {
   if (!allowed || !allowed.origin || !allowed.headers) {
@@ -42,30 +29,29 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
   return async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // Extract anything from the APIGateway requestContext that you'd need in your operation handler
 
-    // check cors headers
+    // basic check cors headers
     const origin = event.headers["origin"];
 
     if (!origin || !origin.includes("parkergiven.com")) {
     }
-    //TODO: authorizer is sometimes null when it shouldn't be
-    //TODO non-server paths don't care about this.
-    const username = event.requestContext.authorizer?.username;
-    console.log(`Username from authorizer is: ${username}`);
+    const authContext: HandlerContext | undefined | null = event.requestContext.authorizer;
+    console.log("Auth context: " + JSON.stringify(authContext));
+
     //Require username for server API's
-    if (event.httpMethod !== "OPTIONS" && !username && event.path.includes("server")) {
+    //TODO: figure out a more extensible way to do this.
+    if (event.httpMethod !== "OPTIONS" && !authContext && event.path.includes("server")) {
       console.error(event);
       throw new Error("Request didn't go through authorizer, no username found.");
     }
-    const context = { user: username, username: username };
+    const context = { user: authContext?.user, username: authContext?.displayName, ...authContext };
 
     const httpRequest = convertEvent(event);
     try {
-      const allowed = validateCors(httpRequest, context);
+      const allowed = validateCors(httpRequest);
 
       const httpResponse = await handler.handle(httpRequest, context);
-      //configure CORS
-      //TODO: make the cors header mirror the origin if it matches parkergiven.com, and cleaner
-      // will need to do this in a seperate options route
+      
+      // dont forget to add the cors headers
       httpResponse.headers = { ...httpResponse.headers, ...addCORSHeaders(allowed) };
       return convertVersion1Response(httpResponse);
     } catch (e: any) {

@@ -20,6 +20,7 @@ import { NeedDomainAccessError, InternalServerError, VerifyRegistrationOutput, V
 import { CredentialModel, UserModel } from "../model/Auth/authModels";
 import { JWTProcessor } from "./JWTProcessor";
 import { getCredentialsAccessor, getSESAccessor, getSecretKeyAccessor, getUserAccessor } from "../accessors/AccessorFactory";
+import { createUserCookie } from "./CookieProcessor";
 
 interface PasskeyFlowProcessor {
   createUser(email: string, displayName: string): Promise<{ success: boolean; verificationCode: string }>;
@@ -61,7 +62,7 @@ const processor: PasskeyFlowProcessor = {
 
     console.log("Generating email verification token");
     // create verification code
-    const verificationCode = await JWTProcessor.generateTokenForUser(user.id);
+    const verificationCode = await JWTProcessor.generateTokenForUser(user);
     //  save code in db for later reference.
     console.log("Saving token to user");
     await userAccessor.saveChallenge(user.id, verificationCode);
@@ -169,7 +170,7 @@ const processor: PasskeyFlowProcessor = {
       }
       return {
         verified: verification.verified,
-        userCookie: await createUserCookie(user.id),
+        userCookie: await createUserCookie(user),
         userId: user.id,
       };
     } catch (e: any) {
@@ -270,7 +271,7 @@ const processor: PasskeyFlowProcessor = {
       }
       return {
         verified: verification.verified,
-        userCookie: await createUserCookie(user.id),
+        userCookie: await createUserCookie(user),
         userId: userId,
         userData: {
           siteAccess: user.siteAccess,
@@ -285,11 +286,6 @@ const processor: PasskeyFlowProcessor = {
   },
 };
 
-//Todo Move this to authorizer or jwt-lib
-async function createUserCookie(userId: string): Promise<string> {
-  const userToken = await JWTProcessor.generateTokenForUser(userId, "1h"); // change to 365d
-  return `${USER_TOKEN_COOKIE_NAME}=${userToken}; HttpOnly; Max-Age=86400; domain=${process.env.DOMAIN}; Secure; SameSite=None; Path=/ `; //31556952 1year max age
-}
 
 export default processor;
 export { PasskeyFlowProcessor, NeedDomainAccessError };
