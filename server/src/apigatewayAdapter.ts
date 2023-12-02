@@ -4,8 +4,7 @@ import { ServiceHandler } from "@aws-smithy/server-common";
 import { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
 import { HttpResponse } from "@aws-sdk/protocol-http";
 import { validateCors } from "./cors/CorsProcessor";
-import { HandlerContext } from 'authorizer/src/model/models'
-
+import { HandlerContext } from "authorizer/src/model/models";
 
 const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<string, string> => {
   if (!allowed || !allowed.origin || !allowed.headers) {
@@ -31,28 +30,34 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
     // basic check cors headers
     const origin = event.headers["origin"];
-
     if (!origin || !origin.includes("parkergiven.com")) {
     }
+
+    // pull out auth context from the event
     const authContext: HandlerContext | undefined | null = event.requestContext.authorizer;
     console.log("Auth context: " + JSON.stringify(authContext));
 
     //Require username for server API's
-    //TODO: figure out a more extensible way to do this.
+    //TODO: figure out a more extensible way to do this.  Basically just verify request went through authorzier, not sure if necessary
     if (event.httpMethod !== "OPTIONS" && !authContext && event.path.includes("server")) {
       console.error(event);
       throw new Error("Request didn't go through authorizer, no username found.");
     }
+    // build user context
     const context = { user: authContext?.user, username: authContext?.displayName, ...authContext };
 
+    // convert event to smithy handler request
     const httpRequest = convertEvent(event);
     try {
+      // validate cors and get response headers
       const allowed = validateCors(httpRequest);
 
+      // Perform the operation
       const httpResponse = await handler.handle(httpRequest, context);
-      
-      // dont forget to add the cors headers
+
+      // dont forget to add the cors headers to the response
       httpResponse.headers = { ...httpResponse.headers, ...addCORSHeaders(allowed) };
+      // convert from smithy generated handler response to apig response
       return convertVersion1Response(httpResponse);
     } catch (e: any) {
       console.error("CORS error");

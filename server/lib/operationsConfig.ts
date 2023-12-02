@@ -5,26 +5,26 @@ import { getCreateUser } from "../src/handlers/CreateUserHandler";
 
 const minecraftServerOperations: Partial<IEntryPoints> = {
   ServerStatus: {
-    handlerFile: "server_handler",
+    handlerFile: "handlers/MCServerHandlers",
     handlerFunction: "statusHandler",
     memorySize: 256,
     policies: getMinecraftPolicies(),
   },
   ServerDetails: {
-    handlerFile: "server_handler",
+    handlerFile: "handlers/MCServerHandlers",
     handlerFunction: "detailsHandler",
     memorySize: 256,
     policies: getMinecraftPolicies(),
   },
   StartServer: {
-    handlerFile: "server_handler",
+    handlerFile: "handlers/MCServerHandlers",
     handlerFunction: "startHandler",
     memorySize: 256,
     timeout: Duration.minutes(5),
     policies: getMinecraftPolicies(),
   },
   StopServer: {
-    handlerFile: "server_handler",
+    handlerFile: "handlers/MCServerHandlers",
     handlerFunction: "stopHandler",
     timeout: Duration.minutes(14),
     memorySize: 256,

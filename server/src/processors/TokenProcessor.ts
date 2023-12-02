@@ -4,6 +4,6 @@ import { JWTProcessor } from "./JWTProcessor";
 
 //Todo Move this to authorizer or jwt-lib
 export async function createUserCookie(user: UserModel): Promise<string> {
-    const userToken = await JWTProcessor.generateTokenForUser(user, "accesscode", "1h"); // change to 365d
-    return `${USER_TOKEN_COOKIE_NAME}=${userToken}; HttpOnly; Max-Age=86400; domain=${process.env.DOMAIN}; Secure; SameSite=None; Path=/ `; //31556952 1year max age
-  }
+  const userToken = await JWTProcessor.generateTokenForUser(user, "accesscode", "1h"); // change to 365d
+  return `${USER_TOKEN_COOKIE_NAME}=${userToken}; HttpOnly; Max-Age=86400; domain=${process.env.DOMAIN}; Secure; SameSite=None; Path=/ `; //31556952 1year max age
+}

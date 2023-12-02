@@ -1,11 +1,11 @@
 import { Operation } from "@aws-smithy/server-common";
 import { ServerStatusOutput, InternalServerError, ServerDetailsOutput, StartServerOutput, StopServerOutput, BadRequestError } from "iron-spider-ssdk";
-import {HandlerContext} from 'authorizer/src/model/models'
-import { MinecraftDBWrapper } from "./wrappers/MinecraftDynamoWrapper";
-import { MinecraftEC2Wrapper } from "./wrappers/MinecraftEC2Wrapper";
-import { Route53Wrapper } from "./wrappers/Route53Wrapper";
-import { Status } from "./model/Status";
-import * as AuthDynamoWrapper from './wrappers/AuthDynamoWrapper';
+import { HandlerContext } from "authorizer/src/model/models";
+import { MinecraftDBWrapper } from "../wrappers/MinecraftDynamoWrapper";
+import { MinecraftEC2Wrapper } from "../wrappers/MinecraftEC2Wrapper";
+import { Route53Wrapper } from "../wrappers/Route53Wrapper";
+import { Status } from "../model/Status";
+import * as AuthDynamoWrapper from "../wrappers/AuthDynamoWrapper";
 
 // This is the implementation of business logic of the ServerStatusOperation
 export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerContext> = async (input, context) => {
@@ -48,14 +48,14 @@ export const StartServerOperation: Operation<{}, StartServerOutput, HandlerConte
 };
 
 export const StopServerOperation: Operation<{}, StopServerOutput, HandlerContext> = async (input, context) => {
-//   console.log("user: ", context.user)
-//   if(context.user){
-//     const authDetails = await AuthDynamoWrapper.isAuthorized(context.user)
-//     if( !authDetails.allowedToStartServer ) {
-//         throw new BadRequestError({ message: "You are not allowed to start the server." })
-//     }
-//     await AuthDynamoWrapper.startedServer(authDetails)
-// }
+  //   console.log("user: ", context.user)
+  //   if(context.user){
+  //     const authDetails = await AuthDynamoWrapper.isAuthorized(context.user)
+  //     if( !authDetails.allowedToStartServer ) {
+  //         throw new BadRequestError({ message: "You are not allowed to start the server." })
+  //     }
+  //     await AuthDynamoWrapper.startedServer(authDetails)
+  // }
   let ec2Wrapper = MinecraftEC2Wrapper.getInstance();
   let route53Wrapper = Route53Wrapper.getInstance();
   const result = await ec2Wrapper.stopInstance();

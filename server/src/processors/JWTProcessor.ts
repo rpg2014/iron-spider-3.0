@@ -12,13 +12,13 @@ export const JWTProcessor = {
   async verifyToken(token: string): Promise<JwtUserObject> {
     return await jwtlib.verifyToken(token, JWT_ISSUER, JWT_AUDIENCE);
   },
-  async generateTokenForUser(user: UserModel, scope:string = "none", expiresIn: string = "1h", ): Promise<string> {
+  async generateTokenForUser(user: UserModel, scope: string = "none", expiresIn: string = "1h"): Promise<string> {
     return await jwtlib.generateTokenForUser({
       userId: user.id,
       scope,
       displayName: user.displayName,
       siteAccess: user.siteAccess,
-      apiAccess:  user.apiAccess,
+      apiAccess: user.apiAccess,
       expiresIn,
       issuer: JWT_ISSUER,
       aud: JWT_AUDIENCE,

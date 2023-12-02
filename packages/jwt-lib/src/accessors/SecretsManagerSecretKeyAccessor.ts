@@ -12,6 +12,7 @@ export class SecretsManagerSecretKeyAccessor extends SecretKeyAccessor {
     this.keyPair = undefined;
   }
 
+  // TODO: if in dev, generate key on the fly, so no aws access is needed.
   public async getKey(): Promise<KeyPair> {
     if (!this.keyPair) {
       const input: GetSecretValueRequest = {

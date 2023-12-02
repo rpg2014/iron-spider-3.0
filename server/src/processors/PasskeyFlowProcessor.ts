@@ -20,7 +20,7 @@ import { NeedDomainAccessError, InternalServerError, VerifyRegistrationOutput, V
 import { CredentialModel, UserModel } from "../model/Auth/authModels";
 import { JWTProcessor } from "./JWTProcessor";
 import { getCredentialsAccessor, getSESAccessor, getSecretKeyAccessor, getUserAccessor } from "../accessors/AccessorFactory";
-import { createUserCookie } from "./CookieProcessor";
+import { createUserCookie } from "./TokenProcessor";
 
 interface PasskeyFlowProcessor {
   createUser(email: string, displayName: string): Promise<{ success: boolean; verificationCode: string }>;
@@ -269,6 +269,8 @@ const processor: PasskeyFlowProcessor = {
           console.log("Unable to update counter for id: ", authenticationResponse.id);
         }
       }
+      //wipe challange to prevent replay attacks
+      await getUserAccessor().saveChallenge(user.id, "");
       return {
         verified: verification.verified,
         userCookie: await createUserCookie(user),
@@ -285,7 +287,6 @@ const processor: PasskeyFlowProcessor = {
     }
   },
 };
-
 
 export default processor;
 export { PasskeyFlowProcessor, NeedDomainAccessError };
