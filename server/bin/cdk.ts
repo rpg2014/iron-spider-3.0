@@ -33,6 +33,7 @@ const authStack = new AuthorizerStack(app, "IronSpiderAuthorizer", {
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
   env,
+  domainName: domainName,
 });
 
 /**

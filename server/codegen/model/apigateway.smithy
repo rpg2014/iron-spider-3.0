@@ -58,6 +58,11 @@ apply VerifyAuthentication @aws.apigateway#integration(
     httpMethod: "POST",
     uri: ""
 )
+apply UserInfo @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
 //Auth stuff
 apply IronSpider @authorizers(
     "iron-auth": {
@@ -67,7 +72,9 @@ apply IronSpider @authorizers(
         //lambda authorizor ARN, will be created later, in cdk
         uri: "{{AUTH_FUNCTION_ARN}}",
         // Need to put the IAM role that the APIG can assume to call the auth function. 
-        credentials: "{{AUTH_ROLE_ARN}}"
+        credentials: "{{AUTH_ROLE_ARN}}",
+        //Disables caching + reuse of auth responses, could be worth setting higher
+        resultTtlInSeconds: 0
     }
 )
 apply IronSpider @authorizer("iron-auth")

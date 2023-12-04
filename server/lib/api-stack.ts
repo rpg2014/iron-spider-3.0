@@ -220,13 +220,6 @@ export class ApiStack extends Stack {
         const integration = op["x-amazon-apigateway-integration"];
         // Don't try to mess with mock integrations
         if (integration !== null && integration !== undefined && integration["type"] === "mock") {
-          // Not needed for cors anymore
-          // // check if options operation, then add allowed origins to default integration, as smithy only supports a single allowed origin currently
-          // if (operation === "options") {
-          //   op["x-amazon-apigateway-integration"].responses.default.responseParameters[
-          //     "method.response.header.Access-Control-Allow-Origin"
-          //   ] = `'${this.allowedOrigins}'`;
-          // }
           continue;
         }
         const functionArn = functions[op.operationId as IronSpiderServiceOperations]?.functionArn;
@@ -325,7 +318,25 @@ export class ApiStack extends Stack {
         },
       } as any;
     }
-
+    // Add cors headers to authorizer rejected responses.
+    // doc: https://stackoverflow.com/questions/36913196/401-return-from-an-api-gateway-custom-authorizer-is-missing-access-control-allo/44403490#44403490
+    openapi["x-amazon-apigateway-gateway-responses"] = {
+      UNAUTHORIZED: {
+        responseParameters: {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+        },
+      },
+      MISSING_AUTHENTICATION_TOKEN: {
+        responseParameters: {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+        },
+      },
+      ACCESS_DENIED: {
+        responseParameters: {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+        },
+      },
+    };
     //Add authorizer fn and role to the open API def, easy way
     let openapiString = JSON.stringify(openapi)
       .replace("{{AUTH_FUNCTION_ARN}}", `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${authorizerInfo.fnArn}/invocations`)

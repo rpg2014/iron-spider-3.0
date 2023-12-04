@@ -2,11 +2,8 @@ import React from "react";
 import ReactDOM, { hydrateRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import { isSSR } from "./util";
 
-
-
-if (isSSR) {
+if (!import.meta.env.DEV) {
   hydrateRoot(document.getElementById("root")!, <App />);
   console.log("hydrated dom");
 } else {

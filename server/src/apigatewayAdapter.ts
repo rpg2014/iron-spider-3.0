@@ -35,6 +35,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
     // pull out auth context from the event
     const authContext: HandlerContext | undefined | null = event.requestContext.authorizer;
+    console.log(event.requestContext);
     console.log("Auth context: " + JSON.stringify(authContext));
 
     //Require username for server API's
@@ -48,17 +49,20 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
     // convert event to smithy handler request
     const httpRequest = convertEvent(event);
+    console.debug("httpRequest:", httpRequest);
     try {
       // validate cors and get response headers
       const allowed = validateCors(httpRequest);
 
       // Perform the operation
       const httpResponse = await handler.handle(httpRequest, context);
-
+      console.debug("httpResponse: ", httpResponse);
       // dont forget to add the cors headers to the response
       httpResponse.headers = { ...httpResponse.headers, ...addCORSHeaders(allowed) };
-      // convert from smithy generated handler response to apig response
-      return convertVersion1Response(httpResponse);
+      // convert from smithy generated handler response to apig response\
+      const apiResponse = convertVersion1Response(httpResponse);
+      console.debug("apiResponse: ", apiResponse);
+      return apiResponse;
     } catch (e: any) {
       console.error("CORS error");
       console.error(e.message);

@@ -1,4 +1,4 @@
-import { ID_PREFIX, JWT_AUDIENCE, JWT_ISSUER, rpId, rpName, rpOrigin, USER_TOKEN_COOKIE_NAME } from "../constants/passkeyConst";
+import { ID_PREFIX, rpId, rpName, rpOrigin } from "../constants/passkeyConst";
 import { v4 as uuidv4 } from "uuid";
 import {
   generateAuthenticationOptions,
@@ -62,7 +62,7 @@ const processor: PasskeyFlowProcessor = {
 
     console.log("Generating email verification token");
     // create verification code
-    const verificationCode = await JWTProcessor.generateTokenForUser(user);
+    const verificationCode = await JWTProcessor.generateTokenForEmail(user);
     //  save code in db for later reference.
     console.log("Saving token to user");
     await userAccessor.saveChallenge(user.id, verificationCode);
@@ -80,7 +80,7 @@ const processor: PasskeyFlowProcessor = {
   async verifyTokenAndGenerateRegistrationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsJSON> {
     // verify token
     console.log("Verifying token");
-    const decoded = await JWTProcessor.verifyToken(token);
+    const decoded = await JWTProcessor.verifyEmailToken(token);
     console.log("Got UserId from token: ", decoded.userId);
     const user = await getUserAccessor().getUser(decoded.userId);
     console.log("Got User from DB: ", user);
@@ -125,7 +125,7 @@ const processor: PasskeyFlowProcessor = {
 
   async verifyRegistrationResponse(registrationResponse: RegistrationResponseJSON & any, transports: any, token: string): Promise<VerifyRegistrationOutput> {
     console.log("Verifying token");
-    const decodedToken = await JWTProcessor.verifyToken(token);
+    const decodedToken = await JWTProcessor.verifyEmailToken(token);
     console.log("Got UserId from token: ", decodedToken.userId);
     const user = await getUserAccessor().getUser(decodedToken.userId);
     console.log("Got User from DB: ", user);
@@ -262,6 +262,11 @@ const processor: PasskeyFlowProcessor = {
       // if verified, update counter
       if (verification.verified) {
         try {
+          if (credential.counter >= verification.authenticationInfo.newCounter) {
+            console.warn(
+              `New counter value is less than or equal to the old counter.  New: ${verification.authenticationInfo.newCounter}, Old: ${credential.counter} `
+            );
+          }
           await getCredentialsAccessor().updateCounter(credential.credentialID, verification.authenticationInfo.newCounter);
         } catch (e: any) {
           console.error(e);

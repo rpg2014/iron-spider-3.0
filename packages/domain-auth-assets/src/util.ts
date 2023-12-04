@@ -1,12 +1,20 @@
-export const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
+export const fetcher = async (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  includeContentType: boolean = true,
+) => {
+  let headers: any = {
+    ...init?.headers,
+    "spider-access-token": "no-token",
+  };
+  if (includeContentType) {
+    headers["content-type"] = "application/json";
+  }
+
   const res = await fetch(input, {
     ...init,
     mode: "cors",
-    headers: {
-      ...init?.headers,
-      "spider-access-token": "no-token",
-      "content-type": "application/json",
-    },
+    headers,
   });
   const data = await res.json();
   if (res.status >= 400) {
@@ -16,5 +24,5 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
   return data;
 };
 
-
-export const isSSR = (typeof window === "undefined" || window.document === undefined);
+export const isSSR =
+  typeof window === "undefined" || window.document === undefined;

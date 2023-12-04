@@ -58,6 +58,12 @@ const AuthOperations: Partial<IEntryPoints> = {
     handlerFunction: "verifyAuthResponse",
     memorySize: 256,
   },
+  //TODO: move this to other section, as it doens't need all the ddb permissions
+  UserInfo: {
+    handlerFile: "handlers/UserInfoHandler",
+    handlerFunction: "userInfo",
+    memorySize: 256,
+  },
 };
 
 export const operations = {

@@ -40,6 +40,7 @@ export interface event {
    //new
    userId?: string;
    displayName?: string;
-   siteAccess?: string[]
-   apiAccess?: string[]
+   siteAccess?: string
+   apiAccess?: string
+   tokenExpiry?: string,
  }

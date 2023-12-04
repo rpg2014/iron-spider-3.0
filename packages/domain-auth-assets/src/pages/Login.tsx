@@ -10,11 +10,9 @@ import {
 import Alert from "../components/Alert.tsx";
 import { useLoaderData } from "react-router-dom";
 
-export const loader = async () => {
+const generateAuthOptions = async () => {
   if (isSSR) {
-    return {
-      verified: false,
-    };
+    return null;
   }
   const userIdEncoded = localStorage.getItem(USER_ID_TOKEN_KEY);
 
@@ -30,32 +28,15 @@ export const loader = async () => {
       `https://api.parkergiven.com/v1/authentication/options?userId=${userId}`,
     );
     console.log(results);
-    const authResponse: any = await startAuthentication(
-      JSON.parse(results.authenticationResponseJSON),
-      true,
-    );
-    const verifyResults = await fetcher(
-      "https://api.parkergiven.com/v1/authentication/verification",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          userId: results.userId,
-          authenticationResponse: JSON.stringify(authResponse), // was JSON.stringified()
-        }),
-      },
-    );
-    if (verifyResults.verified) {
-      console.log("User verified: ", verifyResults);
-      localStorage.setItem(USER_ID_TOKEN_KEY, btoa(verifyResults.userId));
-      console.log("user", verifyResults.userData);
-    }
-    return verifyResults;
+    return results;
   } else {
     console.log("No user token found, or autocomplete not supported");
-    return {
-      verified: false,
-    };
+    return null;
   }
+};
+
+export const loader = async () => {
+  return await generateAuthOptions();
 };
 
 function Login() {
@@ -78,35 +59,34 @@ function Login() {
   const [user, setUser] = useState<
     undefined | { displayName: string; userId: string; siteAccess: string[] }
   >();
-  const data: {
-    userId: string;
-    verified: boolean;
-    userData: { displayName: string; sitesAllowed: string[] };
-  } = useLoaderData() as any;
+  const data: any = useLoaderData() as any;
 
   //print state on state change
   useEffect(() => {
     console.log(`State = ${state}`);
   }, [state]);
+  useEffect(() => {
+    console.log(`Data = `, data);
+    if (data) {
+      doAuthFlow(data, true);
+    }
+  }, [data]);
   //TODO: move this stuff to a react-router loader.
   useEffect(() => {
     const func = async () => {
-      const userIdEncoded = localStorage.getItem(USER_ID_TOKEN_KEY);
+      if (data) {
+        console.log("returning b/c loader data exists");
+        return;
+      }
       const autoFillSupported = await browserSupportsWebAuthnAutofill();
+      const results = await generateAuthOptions();
       setAutocompletedSupported(autoFillSupported);
       console.log(`Auto fill supported = ${autoFillSupported}`);
-      if (userIdEncoded && autoFillSupported) {
-        console.log(`Found user token: `, userIdEncoded);
-        const userId = atob(userIdEncoded);
-        console.log(`Got User Id: ${userId}`);
-        setState("AUTO_FETCH_OPTS");
-        const results = await fetcher(
-          `https://api.parkergiven.com/v1/authentication/options?userId=${userId}`,
-        );
-        console.log(results);
+      console.log(`Results = `, results);
+      if (results) {
         await doAuthFlow(results, true);
       } else {
-        console.log("No user token found, or autocomplete not supported");
+        console.log("no results return from generate function");
       }
     };
     console.log("Doing auto-complete func");
@@ -208,8 +188,6 @@ function Login() {
                   required
                 />
               </div>
-              <div>{`State: ${state}`}</div>
-              <div>{`AutoComplete supported: ${autocompleteSupported}`}</div>
 
               <div className={`${styles.inputDiv} ${styles.submitDiv}`}>
                 {loading ? (
@@ -224,13 +202,15 @@ function Login() {
                 )}
               </div>
             </form>
+            <div>{`State: ${state}`}</div>
+            <div>{`AutoComplete supported: ${autocompleteSupported}`}</div>
           </>
         )}
         {success && (
           <Alert variant="success">{`Welcome back ${user?.displayName}`}</Alert>
         )}
         {error && <Alert variant="danger">{error}</Alert>}
-        <Alert variant="grey">{`loader data: ${JSON.stringify(data)}`}</Alert>
+        {/* <Alert variant="grey">{`loader data: ${JSON.stringify(data)}`}</Alert> */}
       </div>
       {/* <div>
         <a href="https://vitejs.dev" target="_blank">

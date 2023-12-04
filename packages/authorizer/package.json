@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "bin": "bin/authorizer.js",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
+    "build": "esbuild src/Authorizer.ts --minify --tree-shaking=true --format=esm --tsconfig=./tsconfig.json --platform=node --target=node20 --bundle --outdir=build/",
     "test": "jest",
     "cdk": "cdk"
   },
@@ -15,6 +14,7 @@
     "@types/prettier": "2.6.0",
     "aws-cdk-lib": "^2.110.0",
     "constructs": "^10.2.70",
+    "esbuild": "^0.19.8",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",

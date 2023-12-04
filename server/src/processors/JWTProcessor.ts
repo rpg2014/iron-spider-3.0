@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { KeyPair } from "../accessors/AccessorInterfaces";
-import { JWT_AUDIENCE, JWT_ISSUER } from "../constants/passkeyConst";
+import { JWT_AUDIENCE_EMAIL, JWT_ISSUER, JWT_ISSUER_EMAIL } from "../constants/passkeyConst";
 import { getSecretKeyAccessor } from "../accessors/AccessorFactory";
 import { JWTProcessor as jwtlib } from "jwt-lib/src/index";
 import { UserModel } from "src/model/Auth/authModels";
@@ -9,10 +9,19 @@ interface JwtUserObject {
   userId: string;
 }
 export const JWTProcessor = {
-  async verifyToken(token: string): Promise<JwtUserObject> {
-    return await jwtlib.verifyToken(token, JWT_ISSUER, JWT_AUDIENCE);
+  async verifyEmailToken(token: string): Promise<JwtUserObject> {
+    return await jwtlib.verifyToken(token, JWT_ISSUER_EMAIL, JWT_AUDIENCE_EMAIL);
   },
-  async generateTokenForUser(user: UserModel, scope: string = "none", expiresIn: string = "1h"): Promise<string> {
+  async generateTokenForEmail(user: UserModel, scope: string = "none", expiresIn: string = "1h"): Promise<string> {
+    return await jwtlib.generateTokenForUser({
+      userId: user.id,
+      displayName: user.displayName,
+      expiresIn,
+      issuer: JWT_ISSUER_EMAIL,
+      aud: JWT_AUDIENCE_EMAIL,
+    });
+  },
+  async generateTokenForCookie(user: UserModel, scope: string = "none", expiresIn: string = "1h"): Promise<string> {
     return await jwtlib.generateTokenForUser({
       userId: user.id,
       scope,
@@ -21,7 +30,7 @@ export const JWTProcessor = {
       apiAccess: user.apiAccess,
       expiresIn,
       issuer: JWT_ISSUER,
-      aud: JWT_AUDIENCE,
+      aud: `auth.${process.env.DOMAIN}`,
     });
   },
 };

@@ -30,6 +30,7 @@ import {
   TerminateInstancesCommand,
   TerminateInstancesCommandInput,
   TerminateInstancesCommandOutput,
+  _InstanceType,
 } from "@aws-sdk/client-ec2";
 import { InternalServerError } from "iron-spider-ssdk";
 import { EC2State } from "src/model/Status";
@@ -59,7 +60,7 @@ export class MinecraftEC2Wrapper {
     if (!(await MinecraftEC2Wrapper.SERVER_DETAILS.isServerRunning()) || !(await this.isInstanceRunning())) {
       const runInstancesCommandInput: RunInstancesCommandInput = {
         ImageId: await MinecraftEC2Wrapper.SERVER_DETAILS.getAmiId(),
-        InstanceType: MinecraftEC2Wrapper.INSTANCE_TYPE,
+        InstanceType: MinecraftEC2Wrapper.INSTANCE_TYPE as _InstanceType,
         MaxCount: 1,
         MinCount: 1,
         UserData: MinecraftEC2Wrapper.USER_DATA,

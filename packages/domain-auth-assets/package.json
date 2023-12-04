@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@simplewebauthn/browser": "^8.0.2",
+    "iron-spider-client": "workspace:typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.16.0"

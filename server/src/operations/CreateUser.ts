@@ -1,6 +1,6 @@
 import { Operation } from "@aws-smithy/server-common";
 import { BadRequestError, CreateUserInput, CreateUserOutput, InternalServerError } from "iron-spider-ssdk";
-import { HandlerContext } from "../apigatewayAdapter";
+import { HandlerContext } from "authorizer/src/model/models";
 
 import processor from "../processors/PasskeyFlowProcessor";
 

@@ -11,7 +11,7 @@ import * as path from "path";
 export class AuthorizerStack extends cdk.Stack {
   public AuthorizerFunction;
   public role;
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps & {domainName: string}) {
     super(scope, id, props);
 
     
@@ -21,13 +21,17 @@ export class AuthorizerStack extends cdk.Stack {
       runtime: Runtime.NODEJS_20_X,
       memorySize: 256,
       timeout: Duration.seconds(10),
-      logRetention: RetentionDays.SIX_MONTHS,      
+      logRetention: RetentionDays.SIX_MONTHS,   
+      environment: {
+        DOMAIN: props ? props.domainName : "Unknown",
+      }, 
       bundling: {
+        platform: "node",
         esbuildArgs: {
           "--tree-shaking": "true",
         },
         minify: true,
-        format: OutputFormat.ESM,
+        format: OutputFormat.CJS,
         tsconfig: path.join(__dirname, "../tsconfig.json"),
         metafile: false
       }

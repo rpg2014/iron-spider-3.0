@@ -85,10 +85,11 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
             ":counter": newCount,
           },
           ReturnValues: "UPDATED_NEW",
-          ConditionExpression: "attribute_exists(credentialId)",
+          ConditionExpression: "attribute_exists(credentialID)",
           ReturnConsumedCapacity: "TOTAL",
         })
       );
+      console.log("Update counter output: " + JSON.stringify(output));
     } catch (e: any) {
       console.log("Error updating counter: " + e.message);
       throw new InternalServerError({ message: "Unable to update counter" });

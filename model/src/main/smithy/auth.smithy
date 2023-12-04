@@ -10,6 +10,41 @@ operation CreateUser {
     output: CreateUserOutput,
     errors: [ValidationException, InternalServerError, NeedDomainAccessError]
 }
+@http(code: 200, method: "POST", uri: "/v1/registration/options")
+operation GenerateRegistrationOptions {
+    input: GenerateRegistrationOptionsInput,
+    output: GenerateRegistrationOptionsOutput,
+    errors: [ValidationException, InternalServerError, BadRequestError],
+}
+@http(code:200, method: "POST", uri: "/v1/registration/verification")
+operation VerifyRegistration {
+    input: VerifyRegistrationInput,
+    output: VerifyRegistrationOutput,
+    errors: [ValidationException, InternalServerError],
+}
+ @http(code: 200, method: "GET", uri: "/v1/authentication/options")
+ operation GenerateAuthenticationOptions {
+    input: GenerateAuthenticationOptionsInput,
+    output: GenerateAuthenticationOptionsOutput,
+    errors: [InternalServerError, BadRequestError, ValidationException]
+ }
+@http(code: 200, method: "POST", uri: "/v1/authentication/verification")
+operation VerifyAuthentication {
+    input: VerifyAuthenticationInput,
+    output: VerifyAuthenticationOutput,
+    errors: [InternalServerError, BadRequestError, ValidationException]
+}
+@http(code: 200, method: "GET", uri: "/v1/userInfo")
+operation UserInfo {
+    output: UserInfoOutput,
+    errors: [InternalServerError, BadRequestError, ValidationException]
+}
+
+@http(code: 200, method: "POST", uri: "/v1/logout")
+operation Logout {
+    output: LogoutOutput,
+    errors: [InternalServerError, BadRequestError, ValidationException]
+}
 
 
 structure CreateUserInput {
@@ -26,12 +61,7 @@ structure CreateUserOutput {
 }
 
 
-@http(code: 200, method: "POST", uri: "/v1/registration/options")
-operation GenerateRegistrationOptions {
-    input: GenerateRegistrationOptionsInput,
-    output: GenerateRegistrationOptionsOutput,
-    errors: [ValidationException, InternalServerError, BadRequestError],
-}
+
 structure GenerateRegistrationOptionsInput {
     @required
     challenge: String,
@@ -41,12 +71,7 @@ structure GenerateRegistrationOptionsOutput {
     results: String
 }
 
-@http(code:200, method: "POST", uri: "/v1/registration/verification")
-operation VerifyRegistration {
-    input: VerifyRegistrationInput,
-    output: VerifyRegistrationOutput,
-    errors: [ValidationException, InternalServerError],
-}
+
 
 structure VerifyRegistrationInput {
     @required
@@ -69,12 +94,6 @@ structure VerifyRegistrationOutput {
     userId: String,
 }
 
- @http(code: 200, method: "GET", uri: "/v1/authentication/options")
- operation GenerateAuthenticationOptions {
-    input: GenerateAuthenticationOptionsInput,
-    output: GenerateAuthenticationOptionsOutput,
-    errors: [InternalServerError, BadRequestError, ValidationException]
- }
 
 structure GenerateAuthenticationOptionsInput {
     @httpQuery("userId")
@@ -90,12 +109,7 @@ structure GenerateAuthenticationOptionsOutput {
     userId: String
 }
 
-@http(code: 200, method: "POST", uri: "/v1/authentication/verification")
-operation VerifyAuthentication {
-    input: VerifyAuthenticationInput,
-    output: VerifyAuthenticationOutput,
-    errors: [InternalServerError, BadRequestError, ValidationException]
-}
+
 
 structure VerifyAuthenticationInput {
     @required
@@ -121,4 +135,19 @@ structure VerifyAuthenticationOutput {
     userCookie: String,
     userId: String,
     userData: UserData
+}
+structure UserInfoOutput {
+    @required
+    verified: Boolean,
+    userId: String,
+    displayName: String,
+    siteAccess: SiteAccessList,
+    apiAccess: SiteAccessList,
+    credentials: SiteAccessList,
+    tokenExpiry: Timestamp,
+}
+
+structure LogoutOutput {
+    @httpHeader("Set-Cookie")
+    userCookie: String,
 }

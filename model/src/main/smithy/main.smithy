@@ -35,7 +35,10 @@ service IronSpider {
         GenerateRegistrationOptions,
         VerifyRegistration,
         GenerateAuthenticationOptions,
-        VerifyAuthentication],
+        VerifyAuthentication,
+        UserInfo
+        // Logout
+        ],
 }
 
 @httpError(500)
