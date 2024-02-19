@@ -2,22 +2,26 @@
   "name": "iron-spider-build",
   "version": "0.0.1",
   "description": "A yarn project for the iron spider monorepo",
-  "packageManager": "yarn@3.6.2",
+  "packageManager": "yarn@4.0.2",
   "author": "",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
     "generate": "./gradlew clean build",
     "build:client": "cd typescript-client && yarn build",
+    "build:authorizer": "cd packages/authorizer && yarn build",
     "build:server": "cd server && yarn build",
-    "build": "yarn generate && yarn build:client && yarn build:server"
+    "build:domain-auth": "cd packages/domain-auth-assets && yarn build",
+    "build": "yarn generate && yarn build:client && yarn build:domain-auth && yarn build:server"
   },
   "devDependencies": {
+    "@aws-sdk/protocol-http": "^3.374.0",
     "esbuild": "^0.14.27",
     "rimraf": "^3.0.0"
   },
   "workspaces": [
     "typescript-client",
+    "packages/*",
     "server"
   ]
 }

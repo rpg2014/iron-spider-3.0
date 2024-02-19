@@ -1,0 +1,13 @@
+node_modules
+
+/.cache
+/build
+/public/build
+/server/build
+/rust-functions
+
+.cdk.staging
+cdk.out
+
+.idea
+.yarn

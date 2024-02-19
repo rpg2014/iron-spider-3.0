@@ -26,6 +26,9 @@ or
 5 Backend api's for regestering and authing + creating and emailing users 
 see: https://simplewebauthn.dev/docs/packages/server#registration
 
+## TODO
+Set up sessions on backend and UI
+
 ### Authorizer
 token validation intercepter lambda:
 should be essentially a proxy that checks for an auth cookie set by the verify auth api.

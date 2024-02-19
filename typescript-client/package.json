@@ -9,7 +9,7 @@
   "scripts": {
     "generate": "cd ../ && ./gradlew :typescript-client-codegen:build",
     "build:client": "cd codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen && yarn install && yarn build",
-    "build": "yarn generate && yarn build:client && tsc"
+    "build": "yarn generate  && tsc"
   },
   "bin": {
     "str-length": "./dist/length.js"

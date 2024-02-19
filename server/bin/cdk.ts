@@ -1,22 +1,27 @@
 #!/usr/bin/env node
 import { App } from "aws-cdk-lib";
-import { AuthorizerStack } from "../lib/authorizer-stack";
+import { AuthorizerStack } from "authorizer/lib/authorizer-stack";
 import "source-map-support/register";
 import { ApiStack } from "../lib/api-stack";
 import { PasskeyInfraStack } from "../lib/passkey-stack";
-import { USER_TABLE_NAME, CREDENTIAL_TABLE_NAME } from "../lib/cdk-constants";
+import { DomainAuthAssetsStack } from "domain-auth-assets/lib/auth-assets-stack";
+import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "../lib/cdk-constants";
+import { SES_ARNS } from "../.secrets";
 
 const app = new App();
 
+const certificateArn = "arn:aws:acm:us-east-1:593242635608:certificate/e4ad77f4-1e1b-49e4-9afb-ac94e35bc378";
+const domainName = "parkergiven.com";
+const subDomains = ["auth", "pwa", "remix"];
+const env = {
+  account: process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION,
+};
 
+/**
+ * Lambda authorizer function for api layer
+ */
 const authStack = new AuthorizerStack(app, "IronSpiderAuthorizer", {
-  env: {
-      account: process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT,
-      region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION,
-    },
-})
-
-const apiStack =  new ApiStack(app, "IronSpiderService", {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -27,26 +32,46 @@ const apiStack =  new ApiStack(app, "IronSpiderService", {
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
-  env: {
-    account: process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION,
-  },
+  env,
+  domainName: domainName,
+});
+
+/**
+ * Api Stack.
+ */
+const apiStack = new ApiStack(app, "IronSpiderService", {
+  env: env,
   authorizerInfo: {
     fnArn: authStack.AuthorizerFunction.functionArn,
     roleArn: authStack.role.roleArn,
   },
-  allowedOrigins: "https://pwa.parkergiven.com, https://auth.parkergiven.com"
-
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+  certificateArn,
+  domainName: domainName,
+  subDomain: "api",
+  corsSubDomains: subDomains,
 });
 
-
 const infraStack = new PasskeyInfraStack(app, "PasskeyInfra", {
-  env: {
-    account: process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION,
-  },
+  env,
   userTableName: USER_TABLE_NAME,
   credentialsTableName: CREDENTIAL_TABLE_NAME,
-  operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction]
-})
+  operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction],
+  sesArns: SES_ARNS as any, // made offline
+});
+
+//Add Auth UI Stack
+const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
+  env,
+  domainName,
+  subDomain: "auth",
+  certificateArn,
+});
+
+// // Main Website stack
+// const remixStack = new RemixAppStack(this, "RemixApp", {
+//   env,
+//   certificateArn,
+//   domainName,
+//   subDomain: "remix",
+//   computeType: "EdgeFunction", //useStreams ? "HTTPStreaming" : "EdgeFunction",
+// })

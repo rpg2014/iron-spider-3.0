@@ -1,41 +1,18 @@
-import {Operation} from "@aws-smithy/server-common";
-import {
-    CreateUserInput, CreateUserOutput,
-    GenerateRegistrationOptionsServerInput,
-    GenerateRegistrationOptionsServerOutput
-} from "iron-spider-ssdk";
-import {HandlerContext} from "../apigateway";
-import jwt  from 'jsonwebtoken'
+import { Operation } from "@aws-smithy/server-common";
+import { BadRequestError, CreateUserInput, CreateUserOutput, InternalServerError } from "iron-spider-ssdk";
+import { HandlerContext } from "authorizer/src/model/models";
 
-import {KeyPair} from "../accessors/SecretsManagerSecretKeyAccessor";
-import {JWT_AUDIENCE, JWT_ISSUER} from "../constants/passkeyConst";
-import {SecretKeyAccessor} from "../accessors/AccessorInterfaces";
+import processor from "../processors/PasskeyFlowProcessor";
 
-
-
-export const CreateUserOperation: Operation<CreateUserInput, CreateUserOutput, HandlerContext> = async (
-    input,
-    context
-) => {
-
-    // do some sort of robot check? captcha?
-    const keyPair: KeyPair = await SecretKeyAccessor.getSecretKeyAccessor().getKey();
-    // create verification code
-    const verificationCode = jwt.sign({
-        email: input.email,
-        displayName: input.displayName,
-
-    }, keyPair.privateKey, {
-        expiresIn: '1h',
-        issuer: JWT_ISSUER,
-        algorithm: "RS256",
-        audience: JWT_AUDIENCE,
-    });
-    // create user in db and save code
-
-
-    // send email to user with magic link
-
-
-    return {}
-}
+export const CreateUserOperation: Operation<CreateUserInput, CreateUserOutput, HandlerContext> = async (input, context) => {
+  // check input fields are not null
+  if (input.email == null || input.displayName == null) {
+    throw new BadRequestError({ message: "Missing fields in input" });
+  }
+  console.log(`Got Create User Request with email: ${input.email}, displayName: ${input.displayName}`);
+  try {
+    return await processor.createUser(input.email, input.displayName);
+  } catch (e: any) {
+    throw new InternalServerError({ message: e.message });
+  }
+};

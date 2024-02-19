@@ -1,4 +1,4 @@
 module.exports = {
-    // Custom
-    printWidth: 120,
+  // Custom
+  printWidth: 120,
 };
