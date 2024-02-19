@@ -5,6 +5,7 @@ import "source-map-support/register";
 import { ApiStack } from "../lib/api-stack";
 import { PasskeyInfraStack } from "../lib/passkey-stack";
 import { DomainAuthAssetsStack } from "domain-auth-assets/lib/auth-assets-stack";
+import { RemixAppStack } from "remix-site/lib/remix-app-stack";
 import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "../lib/cdk-constants";
 import { SES_ARNS } from "../.secrets";
 
@@ -68,10 +69,10 @@ const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
 });
 
 // // Main Website stack
-// const remixStack = new RemixAppStack(this, "RemixApp", {
-//   env,
-//   certificateArn,
-//   domainName,
-//   subDomain: "remix",
-//   computeType: "EdgeFunction", //useStreams ? "HTTPStreaming" : "EdgeFunction",
-// })
+const remixStack = new RemixAppStack(app, "RemixApp", {
+  env,
+  certificateArn,
+  domainName,
+  subDomain: "remix",
+  computeType: "EdgeFunction", //useStreams ? "HTTPStreaming" : "EdgeFunction",
+})

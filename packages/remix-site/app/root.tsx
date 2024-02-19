@@ -3,7 +3,7 @@ import * as React from "react";
 import type { LinksFunction } from "@remix-run/node";
 
 import globalStylesUrl from "~/styles/global.css";
-import darkStylesUrl from "~/styles/dark.css";
+import themeUrl from "~/styles/themes.css";
 
 import favicon from "~/images/favicon.ico";
 import * as EB from "~/components/ErrorBoundary";
@@ -11,17 +11,20 @@ import { Layout, links as LayoutLinks } from "~/components/Layout";
 import { Document } from "~/components/Document";
 import { cssBundleHref } from "@remix-run/css-bundle";
 import { Outlet } from "@remix-run/react";
+import { ThemeProvider } from "./hooks/useTheme";
 
 export let links: LinksFunction = () => {
   return [
     ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
     { rel: "icon", href: favicon },
     { rel: "stylesheet", href: globalStylesUrl },
-    {
-      rel: "stylesheet",
-      href: darkStylesUrl,
-      media: "(prefers-color-scheme: dark)",
-    },
+    {rel: "manifest" , href: "/static/manifest.json"},
+    // {
+    //   rel: "stylesheet",
+    //   href: darkStylesUrl,
+    //   media: "(prefers-color-scheme: dark)",
+    // },
+    {rel: "stylesheet", href: themeUrl},
     ...LayoutLinks(),
   ];
 };
@@ -37,11 +40,13 @@ export let links: LinksFunction = () => {
  */
 export default function App() {
   return (
+    <ThemeProvider>
     <Document>
       <Layout>
         <Outlet />
       </Layout>
     </Document>
+    </ThemeProvider>
   );
 }
 

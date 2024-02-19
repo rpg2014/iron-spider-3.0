@@ -23,7 +23,7 @@
     "react-router-dom": "^6.16.0"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.95.1",
+    "aws-cdk-lib": "^2.128.0",
     "constructs": "^10.2.70"
   },
   "devDependencies": {
@@ -34,7 +34,7 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vitejs/plugin-react": "^4.0.3",
-    "aws-cdk-lib": "^2.102.0",
+    "aws-cdk-lib": "^2.128.0",
     "compression": "^1.7.4",
     "eslint": "^8.45.0",
     "eslint-plugin-react": "^7.33.2",

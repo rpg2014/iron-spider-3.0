@@ -1,5 +1,6 @@
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, CacheControl, Source } from "aws-cdk-lib/aws-s3-deployment";
+import type { Construct } from "constructs";
 import type { StackProps } from "aws-cdk-lib";
 import { Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import { LogLevel, NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -26,7 +27,7 @@ import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { AaaaRecord, ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
-export type RemixAppStackProps = {
+type RemixAppStackProps = {
   env?: any;
   computeType?: "EdgeFunction"; //| "HTTPStreaming",
   certificateArn: string;
@@ -34,7 +35,7 @@ export type RemixAppStackProps = {
   subDomain: string;
 };
 export class RemixAppStack extends Stack {
-  constructor(scope: any, id: string, props: StackProps & RemixAppStackProps) {
+  constructor(scope: Construct, id: string, props: StackProps & RemixAppStackProps) {
     super(scope, id, props);
 
     //Was attempting to support http streams, but AWS only supports them as lambda function URL's
@@ -48,19 +49,30 @@ export class RemixAppStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
+    //service worker bucket, needed for separate cache control
+    const serviceWorkerBucket = new Bucket(this, "ServiceWorkerBucket", {
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
     const assetsBucketOriginAccessIdentity = new OriginAccessIdentity(this, "AssetsBucketOriginAccessIdentity");
 
     const assetsBucketS3Origin = new S3Origin(assetsBucket, {
       originAccessIdentity: assetsBucketOriginAccessIdentity,
     });
+    const serviceWorkerBucketS3Origin = new S3Origin(serviceWorkerBucket, {
+      originAccessIdentity: assetsBucketOriginAccessIdentity,
+    });
 
     assetsBucket.grantRead(assetsBucketOriginAccessIdentity);
+    serviceWorkerBucket.grantRead(assetsBucketOriginAccessIdentity);
 
     const fn = new NodejsFunction(this, "RemixServerFn", {
       currentVersionOptions: {
         removalPolicy: RemovalPolicy.DESTROY,
       },
-      entry: path.join(__dirname, "../server/index.ts"),
+      entry: path.join(__dirname,"../server/index.ts"),
       handler: isStreamingFunction ? "streamingHandler" : "nonStreamingHandler",
       logRetention: RetentionDays.THREE_DAYS,
       memorySize: 256,
@@ -78,9 +90,10 @@ export class RemixAppStack extends Stack {
         commandHooks: {
           afterBundling(inputDir, outputDir) {
             return [
+              //moving dependencies from the input to the output
               `cp ${path.join(__dirname, "../rust-functions/pkg/rust-functions_bg.wasm")} ${outputDir}`,
-              // `cp ${path.join(__dirname, "../build/server/*.map")} ${outputDir}`,
-              `cp ${path.join(__dirname, "../build/server/*.json")} ${outputDir}`,
+              // `cp ${inputDir}/build/server/*.map ${outputDir}`,
+              // `cp ${inputDir}/build/server/*.json ${outputDir}`,
             ];
           },
           beforeBundling: (inputDir: string, outputDir: string): string[] => [],
@@ -142,6 +155,20 @@ export class RemixAppStack extends Stack {
           origin: assetsBucketS3Origin,
           viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
+        "/sw.js": {
+          allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: CachePolicy.CACHING_DISABLED, // might change
+          compress: true,
+          origin: serviceWorkerBucketS3Origin,
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
+        "static/*": {
+          allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+          compress: true,
+          origin: serviceWorkerBucketS3Origin,
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        }
       },
     });
 
@@ -150,11 +177,23 @@ export class RemixAppStack extends Stack {
       destinationBucket: assetsBucket,
       distribution,
       prune: true,
-      sources: [Source.asset(path.join(__dirname ,"../build/public"))],
+      sources: [Source.asset(path.join(__dirname, "../build/public"))],
       cacheControl: [CacheControl.maxAge(Duration.days(365)), CacheControl.sMaxAge(Duration.days(365))],
     });
 
-    const hostedZone = HostedZone.fromLookup(this, 'DomainHostedZone', { domainName: props.domainName });
+    // deploy SW to S3, with no cache
+    new BucketDeployment(this, id + "SWDeployment", {
+      destinationBucket: serviceWorkerBucket,
+      distribution,
+      prune: true,
+      sources: [Source.asset(path.join(__dirname, "../build/public/otherAssets"))],
+      cacheControl: [CacheControl.noCache(), CacheControl.noStore()],
+      distributionPaths: ["/sw.js", "/static"],
+    })
+
+    const hostedZone = HostedZone.fromLookup(this, "DomainHostedZone", {
+      domainName: props.domainName,
+    });
 
     new ARecord(this, id + "ARecord", {
       zone: hostedZone,

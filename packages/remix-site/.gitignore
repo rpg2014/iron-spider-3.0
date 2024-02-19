@@ -8,9 +8,12 @@ node_modules
 
 .cdk.staging
 cdk.out
+# should be using yarn
+package-lock.json 
 
 
 #Ignores for scss, I think it makes sense to ignore the sass generated css files.
 *.css.map
 app/styles/demos/about.scss.css
 app/styles/demos/rust.css
+app/styles/demos/rust.module.css

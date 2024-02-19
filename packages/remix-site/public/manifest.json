@@ -1,0 +1,40 @@
+{
+    "name": "Iron Spider Remix Site",
+    "short_name": "Remix Site",
+    "start_url": "/",
+    "display": "standalone",
+    "description": "One of parker's websites. Install to get badges when the mc server turns on",
+    "orientation": "portrait-primary",
+    "background_color": "#1b1f2a",
+    "theme_color": "#1b1f2a",
+    "icons": [
+        {
+            "src": "remix-icon.512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "remix-icon.512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "remix-icon.512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "label": "Parker's remix site",
+            "form-factor": "narrow"
+        },
+        {
+            "src": "remix-icon.512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "label": "Parker's remix site",
+            "form-factor": "wide"
+        }
+    ]
+}
