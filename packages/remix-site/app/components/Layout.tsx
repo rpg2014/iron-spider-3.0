@@ -28,19 +28,35 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
                 </Link>
               </li>
               <li>
+                <Link prefetch={"viewport"} to={"/chat"}>
+                  Chat
+                </Link>
+                
+              </li>
+              <li>
+                <Link prefetch={"none"} to={"/settings"}>
+                  Settings
+                </Link>
+                
+              </li>
+              <li>
                 <Link prefetch={"none"} to={"/404"}>
                   404 Page
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <a href="https://github.com/rpg2014/remix-aws-cdk-template/">GitHub</a>
-              </li>
+              </li> */}
             </ul>
           </nav>
         </div>
       </header>
       <div className="remix-app__main">
-        <div className="container remix-app__main-content">{children}</div>
+        <div className="container remix-app__main-content">
+          <React.Suspense fallback={<div>Loading...</div>}>
+          {children}
+          </React.Suspense>
+          </div>
       </div>
       <footer className="remix-app__footer">
         <div className="container remix-app__footer-content">

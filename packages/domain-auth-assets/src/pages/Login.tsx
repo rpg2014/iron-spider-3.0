@@ -52,6 +52,7 @@ function Login() {
     | "VERIFY"
     | "ERROR"
     | "DONE"
+    | "REDIRECTING"
   >("INIT");
   const [autocompleteSupported, setAutocompletedSupported] = useState<
     undefined | boolean
@@ -60,6 +61,26 @@ function Login() {
     undefined | { displayName: string; userId: string; siteAccess: string[] }
   >();
   const data: any = useLoaderData() as any;
+
+  const [redirectUrl, setRedirctUrl] = useState<string | null>();
+
+  //useEffect hook gets return_url query parameter from the URL on load, and validates it
+  // to be from parkergiven.com, and sets it in the state.
+  useEffect(() => {
+    const func = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const return_url = urlParams.get("return_url");
+      if (return_url) {
+        console.log(`Got return url: ${return_url}`)
+        const url = new URL(return_url);
+        // if the url is from parkergiven.com or any subdomain, set state
+        if (url.hostname.endsWith("parkergiven.com")) {
+          setRedirctUrl(return_url);
+        }
+      }
+    };
+    func();
+  }, []);
 
   //print state on state change
   useEffect(() => {
@@ -93,6 +114,11 @@ function Login() {
     func();
   }, []);
 
+  /**
+   *
+   * @param generateResults
+   * @param autocomplete
+   */
   const doAuthFlow = async (
     generateResults: any,
     autocomplete: boolean = false,
@@ -129,6 +155,15 @@ function Login() {
           ...verifyResults.userData,
           userId: verifyResults.userId,
         });
+        if (redirectUrl) {
+          // redirect to redirectUrl in 2 seconds
+          setState("REDIRECTING");
+          setTimeout(() => {
+            //url decode redirectUrl
+            const decodedUrl = decodeURIComponent(redirectUrl);
+            window.location.href = decodedUrl;
+          }, 2000);
+        }
       }
     } catch (e: any) {
       //TODO: dedupe error handling here
