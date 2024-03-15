@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Link } from "@remix-run/react";
 import layoutStyles from "~/styles/layout.css";
-import { useTheme } from "~/hooks/useTheme";
 
 export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
 
@@ -11,9 +10,7 @@ export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
  * @constructor
  */
 export function Layout({ children }: React.PropsWithChildren<{}>) {
- 
   return (
-    
     <div className="remix-app">
       <header className="remix-app__header">
         <div className="container remix-app__header-content">
@@ -31,13 +28,11 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
                 <Link prefetch={"viewport"} to={"/chat"}>
                   Chat
                 </Link>
-                
               </li>
               <li>
                 <Link prefetch={"none"} to={"/settings"}>
                   Settings
                 </Link>
-                
               </li>
               <li>
                 <Link prefetch={"none"} to={"/404"}>
@@ -53,10 +48,8 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
       </header>
       <div className="remix-app__main">
         <div className="container remix-app__main-content">
-          <React.Suspense fallback={<div>Loading...</div>}>
-          {children}
-          </React.Suspense>
-          </div>
+          <React.Suspense fallback={<div>Loading...</div>}>{children}</React.Suspense>
+        </div>
       </div>
       <footer className="remix-app__footer">
         <div className="container remix-app__footer-content">

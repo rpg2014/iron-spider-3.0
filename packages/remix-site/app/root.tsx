@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 
 import globalStylesUrl from "~/styles/global.css";
 import themeUrl from "~/styles/themes.css";
@@ -10,24 +10,33 @@ import * as EB from "~/components/ErrorBoundary";
 import { Layout, links as LayoutLinks } from "~/components/Layout";
 import { Document } from "~/components/Document";
 import { cssBundleHref } from "@remix-run/css-bundle";
-import { Outlet } from "@remix-run/react";
+import { Outlet, defer, json, redirectDocument, useLoaderData } from "@remix-run/react";
 import { ThemeProvider } from "./hooks/useTheme";
+import { fetcher } from "./utils";
+import { AUTH_DOMAIN, USER_INFO_PATH } from "./constants";
+import { DEFAULT_AUTH_LOADER, doAuthRedirect } from "./utils.server";
 
 export let links: LinksFunction = () => {
   return [
     ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
     { rel: "icon", href: favicon },
     { rel: "stylesheet", href: globalStylesUrl },
-    {rel: "manifest" , href: "/static/manifest.json"},
+    { rel: "manifest", href: "/static/manifest.json" },
     // {
     //   rel: "stylesheet",
     //   href: darkStylesUrl,
     //   media: "(prefers-color-scheme: dark)",
     // },
-    {rel: "stylesheet", href: themeUrl},
+    { rel: "stylesheet", href: themeUrl },
     ...LayoutLinks(),
   ];
 };
+
+
+
+
+
+export const loader = DEFAULT_AUTH_LOADER;
 
 /**
  * The root module's default export is a component that renders the current
@@ -39,13 +48,17 @@ export let links: LinksFunction = () => {
  * if not logged in, redirect to auth flow.
  */
 export default function App() {
+  const { hasCookie } = useLoaderData<typeof loader>();
+  React.useEffect(() => {
+    console.log(`hasCookie: ${hasCookie}`);
+  }, [hasCookie]);
   return (
     <ThemeProvider>
-    <Document>
-      <Layout>
-        <Outlet />
-      </Layout>
-    </Document>
+      <Document>
+        <Layout>
+          <Outlet />
+        </Layout>
+      </Document>
     </ThemeProvider>
   );
 }
@@ -62,3 +75,6 @@ export const ErrorBoundary = () => (
     </Layout>
   </Document>
 );
+function isNotPublicRoute(url: string) {
+  throw new Error("Function not implemented.");
+}

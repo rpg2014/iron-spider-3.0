@@ -33,7 +33,7 @@
   width: 100%;
 }
 /* this is a single row in a table, make the contents sit side by side */
-.cacheUpdate{
+.cacheUpdate {
   display: flex;
   flex-direction: row;
   justify-content: space-between;

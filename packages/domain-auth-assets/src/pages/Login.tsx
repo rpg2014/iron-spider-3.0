@@ -72,6 +72,7 @@ function Login() {
       const return_url = urlParams.get("return_url");
       if (return_url) {
         console.log(`Got return url: ${return_url}`)
+        console.log(`decoded url = ${decodeURIComponent(return_url)}`)
         const url = new URL(return_url);
         // if the url is from parkergiven.com or any subdomain, set state
         if (url.hostname.endsWith("parkergiven.com")) {
@@ -161,8 +162,8 @@ function Login() {
           setTimeout(() => {
             //url decode redirectUrl
             const decodedUrl = decodeURIComponent(redirectUrl);
-            window.location.href = decodedUrl;
-          }, 2000);
+            window.location.replace(decodedUrl);
+          }, 1000);
         }
       }
     } catch (e: any) {
@@ -205,7 +206,7 @@ function Login() {
         {!success && (
           <>
             <h2 className={styles.title}>Login</h2>
-            <p>Provide your email to sign in.</p>
+            <p>Provide your email to sign in. {redirectUrl && "Login is required to access that page"}</p>
             {/* TODO: switch this div to a form to get free submit on enter*/}
             <form
               onSubmit={() => generateOptions()}

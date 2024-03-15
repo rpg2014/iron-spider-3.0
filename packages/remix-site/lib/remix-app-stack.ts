@@ -72,7 +72,7 @@ export class RemixAppStack extends Stack {
       currentVersionOptions: {
         removalPolicy: RemovalPolicy.DESTROY,
       },
-      entry: path.join(__dirname,"../server/index.ts"),
+      entry: path.join(__dirname, "../server/index.ts"),
       handler: isStreamingFunction ? "streamingHandler" : "nonStreamingHandler",
       logRetention: RetentionDays.THREE_DAYS,
       memorySize: 256,
@@ -168,7 +168,7 @@ export class RemixAppStack extends Stack {
           compress: true,
           origin: serviceWorkerBucketS3Origin,
           viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        }
+        },
       },
     });
 
@@ -189,7 +189,7 @@ export class RemixAppStack extends Stack {
       sources: [Source.asset(path.join(__dirname, "../build/public/otherAssets"))],
       cacheControl: [CacheControl.noCache(), CacheControl.noStore()],
       distributionPaths: ["/sw.js", "/static"],
-    })
+    });
 
     const hostedZone = HostedZone.fromLookup(this, "DomainHostedZone", {
       domainName: props.domainName,

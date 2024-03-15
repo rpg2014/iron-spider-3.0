@@ -105,7 +105,7 @@ export class ApiStack extends Stack {
         logRetention: RetentionDays.SIX_MONTHS,
         environment: {
           AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
-          EC2_INSTANCE_TYPE: "m6i.xlarge",
+          EC2_INSTANCE_TYPE: "m6i.large",
           DOMAIN: props.domainName,
           SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
         },
