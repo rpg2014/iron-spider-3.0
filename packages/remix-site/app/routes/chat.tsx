@@ -1,8 +1,9 @@
-import { ClientActionFunctionArgs, Form } from "@remix-run/react";
+import { ClientActionFunctionArgs, Form, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { completion } from "../genAi/genAiUtils";
 import { useAICompletions } from "~/hooks/useAICompletions";
 import { DEFAULT_AUTH_LOADER, doAuthRedirect } from "~/utils.server";
+import { AUTH_DOMAIN } from "~/constants";
 
 type Message = {
   role: string;
@@ -28,6 +29,7 @@ export default function Chat() {
   const [userMessage, setUserMessage] = useState("");
   // const [message, setMessage] = useState('');
   const settings = useAICompletions(0);
+  const {hasCookie} = useLoaderData<typeof loader>();
 
   // Send message and update chat history
   const sendMessage = (message: string) => {
@@ -41,6 +43,13 @@ export default function Chat() {
       setMessages([...messages, {role: "assistant", text: settings.response.response.map(chunk => chunk.content).join("")}])
     }
   },[settings.response.response, settings.response.complete])
+
+  if(!hasCookie) {
+    return <a href={`${AUTH_DOMAIN}?return_url=${encodeURIComponent(location.href)}&message=${encodeURIComponent(`Unable To login`)}`}>
+      <button >Click here to login</button>
+      </a>
+  }
+
 
   return (
     <Form>

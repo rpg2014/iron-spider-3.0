@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "@remix-run/react";
-import layoutStyles from "~/styles/layout.css";
+import layoutStyles from "~/styles/layout.css?url";
 
 export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
 

@@ -177,7 +177,7 @@ export class RemixAppStack extends Stack {
       destinationBucket: assetsBucket,
       distribution,
       prune: true,
-      sources: [Source.asset(path.join(__dirname, "../build/public"))],
+      sources: [Source.asset(path.join(__dirname, "../build/client"))],
       cacheControl: [CacheControl.maxAge(Duration.days(365)), CacheControl.sMaxAge(Duration.days(365))],
     });
 
@@ -186,7 +186,7 @@ export class RemixAppStack extends Stack {
       destinationBucket: serviceWorkerBucket,
       distribution,
       prune: true,
-      sources: [Source.asset(path.join(__dirname, "../build/public/otherAssets"))],
+      sources: [Source.asset(path.join(__dirname, "../build/client/otherAssets"))],
       cacheControl: [CacheControl.noCache(), CacheControl.noStore()],
       distributionPaths: ["/sw.js", "/static"],
     });

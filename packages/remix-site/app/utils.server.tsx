@@ -33,7 +33,7 @@ export const doAuthRedirect = (request: Request) => {
     // const authCookie = authCookieString.split("=")[1];
     return json({ hasCookie: true });
   } else if (!authCookieString && !isPublicRoute(request.url)) {
-    return redirectDocument(`${AUTH_DOMAIN}?return_url=${encodeURIComponent(request.url)}&message=${encodeURIComponent(`Unable To login`)}`);
+    return json({hasCookie: false});
   } else {
     console.log("No auth cookie, but is a public route, returning no data");
     return json({ hasCookie: false });

@@ -2,18 +2,17 @@ import * as React from "react";
 
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 
-import globalStylesUrl from "~/styles/global.css";
-import themeUrl from "~/styles/themes.css";
+import globalStylesUrl from "~/styles/global.css?url";
+import themeUrl from "~/styles/themes.css?url";
 
 import favicon from "~/images/favicon.ico";
 import * as EB from "~/components/ErrorBoundary";
 import { Layout, links as LayoutLinks } from "~/components/Layout";
 import { Document } from "~/components/Document";
 import { cssBundleHref } from "@remix-run/css-bundle";
-import { Outlet, defer, json, redirectDocument, useLoaderData } from "@remix-run/react";
+import { Outlet, useLoaderData } from "@remix-run/react";
 import { ThemeProvider } from "./hooks/useTheme";
-import { fetcher } from "./utils";
-import { AUTH_DOMAIN, USER_INFO_PATH } from "./constants";
+
 import { DEFAULT_AUTH_LOADER, doAuthRedirect } from "./utils.server";
 
 export let links: LinksFunction = () => {
@@ -33,11 +32,6 @@ export let links: LinksFunction = () => {
 };
 
 
-
-
-
-export const loader = DEFAULT_AUTH_LOADER;
-
 /**
  * The root module's default export is a component that renders the current
  * route via the `<Outlet />` component. Think of this as the global layout
@@ -48,10 +42,6 @@ export const loader = DEFAULT_AUTH_LOADER;
  * if not logged in, redirect to auth flow.
  */
 export default function App() {
-  const { hasCookie } = useLoaderData<typeof loader>();
-  React.useEffect(() => {
-    console.log(`hasCookie: ${hasCookie}`);
-  }, [hasCookie]);
   return (
     <ThemeProvider>
       <Document>

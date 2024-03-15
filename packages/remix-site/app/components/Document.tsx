@@ -78,7 +78,6 @@ export function Document({ children, title }: { children: React.ReactNode; title
         {children}
         <ScrollRestoration />
         <Scripts />
-        {process.env.NODE_ENV === "development" && <LiveReload />}
       </body>
     </html>
   );
