@@ -36,8 +36,9 @@ service IronSpider {
         VerifyRegistration,
         GenerateAuthenticationOptions,
         VerifyAuthentication,
-        UserInfo
-        // Logout
+        UserInfo,
+        Logout,
+        GetPublicKeys,
         ],
 }
 

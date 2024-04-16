@@ -1,5 +1,5 @@
 import React from "react";
-import { Links, LiveReload, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
+import { Links, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
 import { useTheme } from "~/hooks/useTheme";
 
 const registerServiceWorker = async () => {
@@ -74,7 +74,7 @@ export function Document({ children, title }: { children: React.ReactNode; title
         <Meta />
         <Links />
       </head>
-      <body data-theme={theme}>
+      <body data-theme={theme} className="dark">
         {children}
         <ScrollRestoration />
         <Scripts />

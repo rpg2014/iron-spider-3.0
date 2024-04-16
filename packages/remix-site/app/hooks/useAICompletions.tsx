@@ -1,6 +1,6 @@
 // a react hook that contains a local state. the state includes fields for temperature, top_k, top_p n_predict, n_keep
 import { useCallback, useState } from "react";
-import type { AIEndpointSettings, AISettings} from "../genAi/genAiUtils";
+import type { AIEndpointSettings, AISettings } from "../genAi/genAiUtils";
 import { completion, getTokenCount } from "../genAi/genAiUtils";
 import { useLocalStorage } from "./useLocalStorage.client";
 
@@ -21,13 +21,14 @@ export const useAICompletions = (model: number) => {
     n_keep: 1,
   });
 
-  const [response, setResponse] = useState<{content: string, stop: boolean}[] | any[]>([]);
+  const [response, setResponse] = useState<{ content: string; stop: boolean }[] | any[]>([]);
   const [responseTokens, setResponseTokens] = useState(0);
   const [error, setError] = useState<string | undefined>();
   const [complete, setComplete] = useState(false);
 
   const [prompt, setPrompt] = useState("");
 
+  //TODO Figure out what this is doing.
   const [cancel, setCancel] = useState<Function | null>(null);
 
   //include a function that when called calls the completion function and fetches ai completions
@@ -45,10 +46,10 @@ export const useAICompletions = (model: number) => {
         await new Promise(resolve => setTimeout(resolve, 500));
         if (cancelled) return;
       }
-      setComplete(false)
+      setComplete(false);
       setResponse([]);
       setResponseTokens(0);
-    
+
       console.log(
         `Sending prompt ${prompt} to ${endpointSettings.endpointAPIType} at ${endpointSettings.endpoint} with settings ${JSON.stringify(aiSettings)}`,
       );
@@ -88,7 +89,7 @@ export const useAICompletions = (model: number) => {
           ac.signal.throwIfAborted();
           if (chunk.stopping_word) chunk.content = chunk.stopping_word;
           if (!chunk.content) continue;
-          if(chunk.stop) setComplete(true);
+          if (chunk.stop) setComplete(true);
           setResponse(p => [...p, chunk]);
           setResponseTokens(t => t + (chunk?.completion_probabilities?.length ?? 1));
         }
@@ -108,7 +109,7 @@ export const useAICompletions = (model: number) => {
         return false;
       } finally {
         setCancel(c => (c === cancelThis ? null : c));
-        setComplete(true)
+        setComplete(true);
         // if (undoStack.current.at(-1) === chunkCount)
         //     undoStack.current.pop();
       }
@@ -126,6 +127,6 @@ export const useAICompletions = (model: number) => {
       execute,
       cancel,
     },
-    response: { response, responseTokens, complete  },
+    response: { response, responseTokens, complete },
   } as const;
 };

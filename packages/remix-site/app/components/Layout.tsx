@@ -1,49 +1,68 @@
 import * as React from "react";
 import { Link } from "@remix-run/react";
 import layoutStyles from "~/styles/layout.css?url";
+import { DEFAULT_AUTH_LOADER } from "~/utils.server";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "./ui/NavigationMenu";
+import { Suspense } from "react";
 
 export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
 
 /**
  * Header and footer that will be present on every route, think of it as the shell app.
+ * TODO: rewrite the nav to be what i want
  * @param children
  * @constructor
  */
 export function Layout({ children }: React.PropsWithChildren<{}>) {
   return (
-    <div className="remix-app">
+    <div className="remix-app dark">
       <header className="remix-app__header">
-        <div className="container remix-app__header-content">
+        <div className=" remix-app__header-content">
+        <Suspense>{/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
           <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
             <RemixLogo />
           </Link>
-          <nav aria-label="Main navigation" className="remix-app__header-nav">
-            <ul>
-              <li>
+          <NavigationMenu /*className="remix-app__header-nav"*/>
+            <NavigationMenuList>
+              <NavigationMenuItem>
                 <Link prefetch={"intent"} to="/">
-                  Home
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
                 </Link>
-              </li>
-              <li>
-                <Link prefetch={"viewport"} to={"/chat"}>
-                  Chat
-                </Link>
-              </li>
-              <li>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Pages</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <Link prefetch={"viewport"} to={"/chat"}>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Chat</NavigationMenuLink>
+                  </Link>
+                  <Link prefetch={"none"} to={"/intranetLinks"}>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Links</NavigationMenuLink>
+                  </Link>
+                  <Link prefetch={"none"} to={"/404"}>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>404 Page</NavigationMenuLink>
+                  </Link>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
                 <Link prefetch={"none"} to={"/settings"}>
-                  Settings
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>Settings</NavigationMenuLink>
                 </Link>
-              </li>
-              <li>
-                <Link prefetch={"none"} to={"/404"}>
-                  404 Page
-                </Link>
-              </li>
+              </NavigationMenuItem>
+
               {/* <li>
                 <a href="https://github.com/rpg2014/remix-aws-cdk-template/">GitHub</a>
               </li> */}
-            </ul>
-          </nav>
+            </NavigationMenuList>
+          </NavigationMenu>
+          </Suspense>
         </div>
       </header>
       <div className="remix-app__main">

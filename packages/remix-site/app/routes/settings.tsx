@@ -1,5 +1,7 @@
+import { Button } from "~/components/ui/Button";
 import styles from "../styles/settings.module.css";
 import { useEffect, useState } from "react";
+import { notificationSettingKey } from "~/constants";
 
 export default function Settings() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>();
@@ -18,7 +20,8 @@ export default function Settings() {
 
       <div className={styles.setting}>
         <label className={styles.settingsLabel}>Notifications</label>
-        <button
+        <Button
+          variant="outline"
           disabled={notificationPermission === "granted"}
           className={styles.button}
           onClick={() => {
@@ -29,24 +32,25 @@ export default function Settings() {
             // if ( notificationsOptIn !== null) {
             //     localStorage.setItem(notificationSettingKey, !notificationsOptIn)
             // } else {
-            Notification.requestPermission().then(result => {
+            Notification.requestPermission().then((result: string | undefined) => {
               setNotificationPermission(result);
               if (result === "granted" && "localStorage" in window) {
-                localStorage.setItem(notificationSettingKey, true);
+                localStorage.setItem(notificationSettingKey, result);
               }
             });
             // }
           }}
         >
           Request Permissions
-        </button>
+        </Button>
         {/* <Switch state={notificationsOptIn} setState={setNotificationsOptIn} /> */}
       </div>
       <div className={styles.setting}>
         <label className={styles.settingsLabel}>Test Notifications</label>
 
-        <button
+        <Button
           className={styles.button}
+          variant="outline"
           disabled={notificationPermission === undefined || notificationPermission !== "granted"}
           onClick={async () => {
             if (notificationPermission === "granted") {
@@ -73,7 +77,7 @@ export default function Settings() {
           }}
         >
           {notificationPermission === undefined ? "Loading" : notificationPermission === "granted" ? "Send Notification" : "Get Notification Permission"}
-        </button>
+        </Button>
       </div>
     </main>
   );

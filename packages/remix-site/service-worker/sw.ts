@@ -114,14 +114,15 @@ self.addEventListener("periodicsync", event => {
         } else {
           navigator.clearAppBadge();
         }
+        // display notification
+    self.registration.showNotification(`Server Status: ${data.status}`, {
+      body: `Fetching server status, periodicSync was triggered.`,
+    });
       } catch (e) {
         console.error(e);
       }
     };
-    // display notification 
-    self.registration.showNotification("MC Server Status Fetch triggered", {
-      body: "Fetching server status, periodicSync was triggered",
-    });
+    
     event.waitUntil(updateBadge());
   }
 });

@@ -30,7 +30,6 @@ apply StopServer @aws.apigateway#integration(
     uri: ""
 )
 
-
 apply GenerateRegistrationOptions @aws.apigateway#integration(
     type: "aws_proxy",
     httpMethod: "POST",
@@ -63,6 +62,19 @@ apply UserInfo @aws.apigateway#integration(
     httpMethod: "POST",
     uri: ""
 )
+
+apply Logout @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
+apply GetPublicKeys @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
 //Auth stuff
 apply IronSpider @authorizers(
     "iron-auth": {

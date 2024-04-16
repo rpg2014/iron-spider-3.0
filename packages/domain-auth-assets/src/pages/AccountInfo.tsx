@@ -1,27 +1,13 @@
-import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import styles from "./Signup.module.scss";
-// import { IronSpiderClient} from "iron-spider-client";
-import { fetcher } from "../util";
 import Alert from "../components/Alert";
 
 // Shows user info, including User id, display name, api and site access, and the credentials.
 // Allow the user to edit display name and delete credentials.
 const AccountInfo = () => {
-  const [userData, setUserData] = useState(null);
+  const { userData } = useOutletContext();
   // const client = new IronSpiderClient({endpoint:""} )
-  useEffect(() => {
-    const func = async () => {
-      const results = await fetcher(
-        "https://api.parkergiven.com/v1/userInfo",
-        {
-          credentials: "include",
-        },
-        false,
-      );
-      setUserData(results);
-    };
-    func();
-  }, []);
+
   return (
     <>
       <div className={styles.container}>

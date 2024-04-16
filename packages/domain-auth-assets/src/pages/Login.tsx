@@ -8,7 +8,7 @@ import {
   browserSupportsWebAuthnAutofill,
 } from "@simplewebauthn/browser";
 import Alert from "../components/Alert.tsx";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useOutletContext } from "react-router-dom";
 
 const generateAuthOptions = async () => {
   if (isSSR) {
@@ -44,16 +44,7 @@ function Login() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState();
   const [email, setEmail] = useState("");
-  const [state, setState] = useState<
-    | "INIT"
-    | "AUTO_FETCH_OPTS"
-    | "GEN_OPTS"
-    | "AUTHING"
-    | "VERIFY"
-    | "ERROR"
-    | "DONE"
-    | "REDIRECTING"
-  >("INIT");
+  const { state, setState } = useOutletContext();
   const [autocompleteSupported, setAutocompletedSupported] = useState<
     undefined | boolean
   >();
@@ -71,8 +62,8 @@ function Login() {
       const urlParams = new URLSearchParams(window.location.search);
       const return_url = urlParams.get("return_url");
       if (return_url) {
-        console.log(`Got return url: ${return_url}`)
-        console.log(`decoded url = ${decodeURIComponent(return_url)}`)
+        console.log(`Got return url: ${return_url}`);
+        console.log(`decoded url = ${decodeURIComponent(return_url)}`);
         const url = new URL(return_url);
         // if the url is from parkergiven.com or any subdomain, set state
         if (url.hostname.endsWith("parkergiven.com")) {
@@ -157,11 +148,13 @@ function Login() {
           userId: verifyResults.userId,
         });
         if (redirectUrl) {
-          // redirect to redirectUrl in 2 seconds
+          // redirect to redirectUrl in 1 seconds
           setState("REDIRECTING");
+          console.log("Creating Redirect timeout");
           setTimeout(() => {
             //url decode redirectUrl
             const decodedUrl = decodeURIComponent(redirectUrl);
+            console.log(`Redirecting to ${decodedUrl}`);
             window.location.replace(decodedUrl);
           }, 1000);
         }
@@ -206,7 +199,10 @@ function Login() {
         {!success && (
           <>
             <h2 className={styles.title}>Login</h2>
-            <p>Provide your email to sign in. {redirectUrl && "Login is required to access that page"}</p>
+            <p>
+              Provide your email to sign in.{" "}
+              {redirectUrl && "Login is required to access that page"}
+            </p>
             {/* TODO: switch this div to a form to get free submit on enter*/}
             <form
               onSubmit={() => generateOptions()}
@@ -243,7 +239,11 @@ function Login() {
           </>
         )}
         {success && (
-          <Alert variant="success">{`Welcome back ${user?.displayName}`}</Alert>
+          <>
+            <Alert variant="success">{`Welcome back ${user?.displayName}`}</Alert>
+            <div>{`Redirect Url: ${redirectUrl}`}</div>
+            <div>{`State: ${state}`}</div>
+          </>
         )}
         {error && <Alert variant="danger">{error}</Alert>}
         {/* <Alert variant="grey">{`loader data: ${JSON.stringify(data)}`}</Alert> */}

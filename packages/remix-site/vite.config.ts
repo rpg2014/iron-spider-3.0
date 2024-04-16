@@ -10,14 +10,17 @@ export default defineConfig({
   },
   base: "/",
   publicDir: "/static",
-  plugins: [remix({
-    appDirectory: "app",
-    buildDirectory: "build",
-    ignoredRouteFiles: ["**/.*"],
-    // publicPath: "/assets",
-    serverBuildFile: "index.js",
-    // I cant get lambda to fully support esm, i get dynamic import related errors. 
-    serverModuleFormat: "cjs",
-  }), tsconfigPaths(),
-  wasm()],
+  plugins: [
+    remix({
+      appDirectory: "app",
+      buildDirectory: "build",
+      ignoredRouteFiles: ["**/.*"],
+      // publicPath: "/assets",
+      serverBuildFile: "index.js",
+      // I cant get lambda to fully support esm, i get dynamic import related errors.
+      serverModuleFormat: "cjs",
+    }),
+    tsconfigPaths(),
+    wasm(),
+  ],
 });

@@ -23,6 +23,7 @@ operation VerifyRegistration {
     errors: [ValidationException, InternalServerError],
 }
  @http(code: 200, method: "GET", uri: "/v1/authentication/options")
+ @readonly
  operation GenerateAuthenticationOptions {
     input: GenerateAuthenticationOptionsInput,
     output: GenerateAuthenticationOptionsOutput,
@@ -35,6 +36,7 @@ operation VerifyAuthentication {
     errors: [InternalServerError, BadRequestError, ValidationException]
 }
 @http(code: 200, method: "GET", uri: "/v1/userInfo")
+@readonly
 operation UserInfo {
     output: UserInfoOutput,
     errors: [InternalServerError, BadRequestError, ValidationException]
@@ -46,6 +48,12 @@ operation Logout {
     errors: [InternalServerError, BadRequestError, ValidationException]
 }
 
+@http(code: 200, method: "GET", uri: "/v1/jwks")
+@readonly
+operation GetPublicKeys {
+    output: GetPublicKeysOutput
+    errors: [InternalServerError, BadRequestError, ValidationException]
+}
 
 structure CreateUserInput {
     @required
@@ -150,4 +158,13 @@ structure UserInfoOutput {
 structure LogoutOutput {
     @httpHeader("Set-Cookie")
     userCookie: String,
+}
+
+
+structure GetPublicKeysOutput {
+    @required
+    keys: KeyList
+}
+list KeyList {
+    member: String
 }

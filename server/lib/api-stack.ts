@@ -105,7 +105,7 @@ export class ApiStack extends Stack {
         logRetention: RetentionDays.SIX_MONTHS,
         environment: {
           AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
-          EC2_INSTANCE_TYPE: "m6i.large",
+          EC2_INSTANCE_TYPE: "m6i.xlarge",
           DOMAIN: props.domainName,
           SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
         },
@@ -249,12 +249,6 @@ export class ApiStack extends Stack {
           );
         }
         integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
-
-        // no more cors within apig
-        // //Add extra origin headers to cors allowed origin header in the api gateway integration
-        // if(integration.responses) {
-        //   integration.responses.default.responseParameters["method.response.header.Access-Control-Allow-Origin"] = `'${this.allowedOrigins}'`;
-        // }
 
         // Tried to make the stop function async but it jsut times out instead? or throws a 502.
         if (path === "/server/stop") {

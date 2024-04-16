@@ -1,7 +1,6 @@
 import { Duration } from "aws-cdk-lib";
 import { getMinecraftPolicies } from "./cdk-constants";
 import { IEntryPoints } from "./api-stack";
-import { getCreateUser } from "../src/handlers/CreateUserHandler";
 
 const minecraftServerOperations: Partial<IEntryPoints> = {
   ServerStatus: {
@@ -34,17 +33,17 @@ const minecraftServerOperations: Partial<IEntryPoints> = {
 
 const AuthOperations: Partial<IEntryPoints> = {
   CreateUser: {
-    handlerFile: "handlers/CreateUserHandler",
+    handlerFile: "handlers/AuthHandler",
     handlerFunction: "getCreateUser",
     memorySize: 256,
   },
   GenerateRegistrationOptions: {
-    handlerFile: "handlers/GetRegistrationOptionsHandler",
+    handlerFile: "handlers/AuthHandler",
     handlerFunction: "getRegistrationOptions",
     memorySize: 256,
   },
   VerifyRegistration: {
-    handlerFile: "handlers/VerifyRegistrationOptionsHandler",
+    handlerFile: "handlers/AuthHandler",
     handlerFunction: "verifyRegistrationHandler",
     memorySize: 256,
   },
@@ -58,15 +57,27 @@ const AuthOperations: Partial<IEntryPoints> = {
     handlerFunction: "verifyAuthResponse",
     memorySize: 256,
   },
-  //TODO: move this to other section, as it doens't need all the ddb permissions
   UserInfo: {
-    handlerFile: "handlers/UserInfoHandler",
+    handlerFile: "handlers/OtherAPIs",
     handlerFunction: "userInfo",
+    memorySize: 256,
+  },
+  GetPublicKeys: {
+    handlerFile: "handlers/OtherAPIs",
+    handlerFunction: "getPublicKeys",
+    memorySize: 256,
+  },
+};
+
+const OtherAPIs: Partial<IEntryPoints> = {
+  Logout: {
+    handlerFile: "handlers/OtherAPIs",
+    handlerFunction: "logout",
     memorySize: 256,
   },
 };
 
 export const operations = {
-  apiOperationsList: [minecraftServerOperations],
+  apiOperationsList: [minecraftServerOperations, OtherAPIs],
   authOperations: AuthOperations,
 };

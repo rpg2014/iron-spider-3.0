@@ -1,0 +1,22 @@
+.shrink-to-fit {
+  display: inline-block;
+}
+
+.translucent-bg {
+  background-color: rgba(43, 49, 54, 0.9);
+}
+
+.not-translucent {
+  opacity: 1 !important;
+}
+
+.width-control {
+  width: fit-content;
+  width: -moz-fit-content;
+}
+
+@media (max-width: 576px) {
+  .width-control {
+    width: fit-content;
+  }
+}

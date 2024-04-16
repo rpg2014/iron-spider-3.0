@@ -75,4 +75,4 @@ const remixStack = new RemixAppStack(app, "RemixApp", {
   domainName,
   subDomain: "remix",
   computeType: "EdgeFunction", //useStreams ? "HTTPStreaming" : "EdgeFunction",
-})
+});

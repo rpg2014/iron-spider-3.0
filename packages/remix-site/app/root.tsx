@@ -12,8 +12,7 @@ import { Document } from "~/components/Document";
 import { cssBundleHref } from "@remix-run/css-bundle";
 import { Outlet, useLoaderData } from "@remix-run/react";
 import { ThemeProvider } from "./hooks/useTheme";
-
-import { DEFAULT_AUTH_LOADER, doAuthRedirect } from "./utils.server";
+import stylesheet from "~/tailwind.css?url";
 
 export let links: LinksFunction = () => {
   return [
@@ -21,6 +20,7 @@ export let links: LinksFunction = () => {
     { rel: "icon", href: favicon },
     { rel: "stylesheet", href: globalStylesUrl },
     { rel: "manifest", href: "/static/manifest.json" },
+    { rel: "stylesheet", href: stylesheet },
     // {
     //   rel: "stylesheet",
     //   href: darkStylesUrl,
@@ -30,7 +30,6 @@ export let links: LinksFunction = () => {
     ...LayoutLinks(),
   ];
 };
-
 
 /**
  * The root module's default export is a component that renders the current
