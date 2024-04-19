@@ -10,6 +10,19 @@ import {
 import Alert from "../components/Alert.tsx";
 import { useLoaderData, useOutletContext } from "react-router-dom";
 
+function getRedirectURL(): string | undefined {
+  const urlParams = new URLSearchParams(window.location.search);
+  const return_url = urlParams.get("return_url");
+  if (return_url) {
+    console.log(`Got return url: ${return_url}`);
+    console.log(`decoded url = ${decodeURIComponent(return_url)}`);
+    const url = new URL(return_url);
+    // if the url is from parkergiven.com or any subdomain, set state
+    if (url.hostname.endsWith("parkergiven.com")) {
+      return return_url;
+    }
+  }
+}
 const generateAuthOptions = async () => {
   if (isSSR) {
     return null;
@@ -59,17 +72,7 @@ function Login() {
   // to be from parkergiven.com, and sets it in the state.
   useEffect(() => {
     const func = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const return_url = urlParams.get("return_url");
-      if (return_url) {
-        console.log(`Got return url: ${return_url}`);
-        console.log(`decoded url = ${decodeURIComponent(return_url)}`);
-        const url = new URL(return_url);
-        // if the url is from parkergiven.com or any subdomain, set state
-        if (url.hostname.endsWith("parkergiven.com")) {
-          setRedirctUrl(return_url);
-        }
-      }
+      setRedirctUrl(getRedirectURL());
     };
     func();
   }, []);
@@ -147,13 +150,14 @@ function Login() {
           ...verifyResults.userData,
           userId: verifyResults.userId,
         });
-        if (redirectUrl) {
+        const urlFromQueryParams = getRedirectURL();
+        if (urlFromQueryParams) {
           // redirect to redirectUrl in 1 seconds
           setState("REDIRECTING");
           console.log("Creating Redirect timeout");
           setTimeout(() => {
             //url decode redirectUrl
-            const decodedUrl = decodeURIComponent(redirectUrl);
+            const decodedUrl = decodeURIComponent(urlFromQueryParams);
             console.log(`Redirecting to ${decodedUrl}`);
             window.location.replace(decodedUrl);
           }, 1000);
@@ -273,3 +277,5 @@ function Login() {
 }
 
 export default Login;
+
+

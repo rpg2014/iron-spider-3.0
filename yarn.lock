@@ -6804,6 +6804,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jsonwebtoken@npm:^9":
+  version: 9.0.6
+  resolution: "@types/jsonwebtoken@npm:9.0.6"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/1f2145222f62da1b3dbfc586160c4f9685782a671f4a4f4a72151c773945fe25807fd88ed1c270536b76f49053ed932c5dbf714ea0ed77f785665abb75beef05
+  languageName: node
+  linkType: hard
+
 "@types/jsonwebtoken@npm:^9.0.2":
   version: 9.0.3
   resolution: "@types/jsonwebtoken@npm:9.0.3"
@@ -15682,6 +15691,7 @@ __metadata:
     "@remix-run/server-runtime": "npm:^2.8.1"
     "@types/aws-lambda": "npm:^8.10.119"
     "@types/jest": "npm:^27.0.3"
+    "@types/jsonwebtoken": "npm:^9"
     "@types/node": "npm:^20.6.0"
     "@types/react": "npm:^18.2.21"
     "@types/react-dom": "npm:^18.2.7"
@@ -15697,6 +15707,7 @@ __metadata:
     eslint-config-prettier: "npm:^9.0.0"
     isbot: "npm:latest"
     jest: "npm:^29.6.4"
+    jsonwebtoken: "npm:^9.0.2"
     lucide-react: "npm:^0.358.0"
     prettier: "npm:3.0.3"
     react: "npm:^18.2.0"
@@ -16023,8 +16034,8 @@ __metadata:
 
 "rust-functions@file:./rust-functions/pkg::locator=remix-site%40workspace%3Apackages%2Fremix-site":
   version: 0.1.0
-  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=f95a5b&locator=remix-site%40workspace%3Apackages%2Fremix-site"
-  checksum: 10/16a1d9093c4e3c26e68890dcd8188830b1c0d711cbfc3a42f598479f14f73b382e8fd20ff1af07fa8f7285f6b37272f81b7376e049b43e57f8c1f4bc56a6f264
+  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=ac2709&locator=remix-site%40workspace%3Apackages%2Fremix-site"
+  checksum: 10/9efda74054732fd3d53c2e5f265adf22f83e69eeaef6447314e582ba6382e362e13905eba2b953f1ef2bedee2d97b603424f60328af45353b31549083565b04e
   languageName: node
   linkType: hard
 

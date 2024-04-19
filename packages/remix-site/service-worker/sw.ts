@@ -4,7 +4,7 @@
 
 const sw = self as ServiceWorkerGlobalScope & typeof globalThis;
 
-const VERSION = "v2";
+const VERSION = "v3";
 
 const addResourcesToCache = async (resources: Request[]) => {
   const cache = await caches.open(VERSION);
@@ -31,7 +31,7 @@ const deleteCache = async key => {
 };
 
 const deleteOldCaches = async () => {
-  const cacheKeepList = ["v2"];
+  const cacheKeepList = [VERSION];
   const keyList = await caches.keys();
   const cachesToDelete = keyList.filter(key => !cacheKeepList.includes(key));
   await Promise.all(cachesToDelete.map(deleteCache));
@@ -115,9 +115,9 @@ self.addEventListener("periodicsync", event => {
           navigator.clearAppBadge();
         }
         // display notification
-    self.registration.showNotification(`Server Status: ${data.status}`, {
-      body: `Fetching server status, periodicSync was triggered.`,
-    });
+        self.registration.showNotification(`Server Status: ${data.status}`, {
+          body: `Fetching server status, periodicSync was triggered.`,
+        });
       } catch (e) {
         console.error(e);
       }

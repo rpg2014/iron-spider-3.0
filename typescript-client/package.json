@@ -2,7 +2,7 @@
   "name": "iron-spider-service-client-build",
   "version": "0.0.1",
   "description": "A yarn project for the IronSpider service TypeScript client build process",
-  "packageManager": "yarn@3.1.1",
+  "packageManager": "yarn@4.1.1",
   "author": "",
   "license": "Apache-2.0",
   "private": true,
