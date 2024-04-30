@@ -13,7 +13,7 @@ const app = new App();
 
 const certificateArn = "arn:aws:acm:us-east-1:593242635608:certificate/e4ad77f4-1e1b-49e4-9afb-ac94e35bc378";
 const domainName = "parkergiven.com";
-const subDomains = ["auth", "pwa", "remix"];
+const subDomains = ["auth", "pwa", "remix", "ai"];
 const env = {
   account: process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION,

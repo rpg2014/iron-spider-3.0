@@ -1,17 +1,19 @@
-import { ClientActionFunctionArgs, Form, useLoaderData } from "@remix-run/react";
+import type { LinksFunction } from "@remix-run/node";
+import type { MetaFunction} from "@remix-run/react";
+import { NavLink, isRouteErrorResponse, useRouteError , Link, Outlet , ClientActionFunctionArgs, Form, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { completion } from "../genAi/genAiUtils";
-import { useAICompletions } from "~/hooks/useAICompletions";
 import { DEFAULT_AUTH_LOADER, doAuthRedirect } from "~/utils.server";
 import { AUTH_DOMAIN } from "~/constants";
 import { Button } from "~/components/ui/Button";
-import { ChevronRight } from "lucide-react";
-import { Textarea } from "~/components/ui/TextArea";
+import { ChevronRight, CogIcon } from "lucide-react";
+import * as EB from "~/components/ErrorBoundary";
+import styles from "~/styles/chat.css?url";
+import { useLocalStorage } from "~/hooks/useLocalStorage.client";
+import { Slider } from "~/components/ui/Slider";
+import { Input } from "~/components/ui/Input";
+import { Label } from "~/components/ui/Label";
 
-type Message = {
-  role: string;
-  text: string;
-};
+export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
 // //remix client action to create and send an LLama.cpp compatible completion
 // export const clientAction = async ({
@@ -27,25 +29,29 @@ type Message = {
 // }
 export const loader = DEFAULT_AUTH_LOADER;
 
+export const meta: MetaFunction = () => [
+  // your meta here
+  { title: "AI Agent" },
+];
+
 export default function Chat() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [userMessage, setUserMessage] = useState("");
-  // const [message, setMessage] = useState('');
-  const settings = useAICompletions(0);
   const { hasCookie } = useLoaderData<typeof loader>();
 
-  // Send message and update chat history
-  const sendMessage = (message: string) => {
-    setUserMessage("");
-    setMessages([...messages, { role: "user", text: message }]);
-    settings.actions.execute(message);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [temperature, setTemperature] = useLocalStorage("modelTemperature", 0.5);
+  const [maxTokens, setMaxTokens] = useLocalStorage("modelMaxTokens", 2048);
+
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
   };
 
-  useEffect(() => {
-    if (settings.response.complete) {
-      setMessages(m => [...m, { role: "assistant", text: settings.response.response.map(chunk => chunk.content).join("") }]);
-    }
-  }, [settings.response.response, settings.response.complete]);
+  const handleTemperatureChange = e => {
+    setTemperature(parseFloat(e[0]));
+  };
+
+  const handleMaxTokensChange = e => {
+    setMaxTokens(parseInt(e.target.value));
+  };
 
   if (!hasCookie) {
     return (
@@ -56,30 +62,64 @@ export default function Chat() {
       </div>
     );
   }
-
   return (
-    <Form className="flex flex-col">
-      {messages.map((msg, index) => (
-        <p key={index}>{`${msg.role}: ${msg.text}`}</p>
-      ))}
-      <div>
-        {!settings.response.complete &&
-          settings.response.response.map(chunk => {
-            return <>{chunk.content}</>;
-          })}
+    <div className="navigation-container">
+      <nav>
+        <ul>
+          <li>
+            <NavLink className={"navigation-link"} to="agent">
+              Agent
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="streaming-agent">Streaming Agent</NavLink>
+          </li>
+        </ul>
+        <button className="settings-button" onClick={toggleModal}>
+          <CogIcon />
+        </button>
+      </nav>
+
+      <div className="outlet-container ">
+        <Outlet context={{ temperature, maxTokens }} />
       </div>
-      <Textarea value={userMessage} onChange={e => setUserMessage(e.target.value)} />
-      <div>
-        {/* TODO: "Send Message" popover on hover */}
-        <Button size="sm" variant={"outline"} onClick={() => sendMessage(userMessage)}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-        {!settings.response.complete && (
-          <Button size="sm" variant="destructive" onClick={() => settings.actions.cancel && settings.actions.cancel()}>
-            Cancel
-          </Button>
-        )}
-      </div>
-    </Form>
+
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="mb-1">Global Settings</h2>
+            <Label className="model-label my-2">
+              Temperature:
+              <Slider
+                className="my-1"
+                // type="range"
+                min={0}
+                max={1}
+                step={0.1}
+                value={[temperature]}
+                onValueChange={handleTemperatureChange}
+              />
+              {temperature.toFixed(1)}
+            </Label>
+
+            <Label className="modal-label">
+              Max Tokens:
+              <Input className="my-1" type="number" min="1" max="8096" value={maxTokens} onChange={handleMaxTokensChange} />
+            </Label>
+            <button className="close-button" onClick={toggleModal}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  if (isRouteErrorResponse(error)) {
+    return <div />;
+  }
+  return <EB.ErrorBoundary />;
 }

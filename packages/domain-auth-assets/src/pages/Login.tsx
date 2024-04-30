@@ -245,7 +245,6 @@ function Login() {
         {success && (
           <>
             <Alert variant="success">{`Welcome back ${user?.displayName}`}</Alert>
-            <div>{`Redirect Url: ${redirectUrl}`}</div>
             <div>{`State: ${state}`}</div>
           </>
         )}

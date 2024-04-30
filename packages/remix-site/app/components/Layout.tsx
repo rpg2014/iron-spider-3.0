@@ -26,47 +26,48 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
     <div className="remix-app dark">
       <header className="remix-app__header">
         <div className=" remix-app__header-content">
-        <Suspense>{/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
-          <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
-            <RemixLogo />
-          </Link>
-          <NavigationMenu /*className="remix-app__header-nav"*/>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <Link prefetch={"intent"} to="/">
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>Pages</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <Link prefetch={"viewport"} to={"/chat"}>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Chat</NavigationMenuLink>
+          <Suspense>
+            {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
+            <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
+              <RemixLogo />
+            </Link>
+            <NavigationMenu /*className="remix-app__header-nav"*/>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <Link prefetch={"intent"} to="/">
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
                   </Link>
-                  <Link prefetch={"none"} to={"/intranetLinks"}>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Links</NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Pages</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <Link prefetch={"viewport"} to={"/chat"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Chat</NavigationMenuLink>
+                    </Link>
+                    <Link prefetch={"none"} to={"/intranetLinks"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Links</NavigationMenuLink>
+                    </Link>
+                    <Link prefetch={"none"} to={"/404"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>404 Page</NavigationMenuLink>
+                    </Link>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link prefetch={"none"} to={"/settings"}>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Settings</NavigationMenuLink>
                   </Link>
-                  <Link prefetch={"none"} to={"/404"}>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>404 Page</NavigationMenuLink>
-                  </Link>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link prefetch={"none"} to={"/settings"}>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>Settings</NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
+                </NavigationMenuItem>
 
-              {/* <li>
+                {/* <li>
                 <a href="https://github.com/rpg2014/remix-aws-cdk-template/">GitHub</a>
               </li> */}
-            </NavigationMenuList>
-          </NavigationMenu>
+              </NavigationMenuList>
+            </NavigationMenu>
           </Suspense>
         </div>
       </header>
       <div className="remix-app__main">
-        <div className="container remix-app__main-content">
+        <div className="remix-app__main-content">
           <React.Suspense fallback={<div>Loading...</div>}>{children}</React.Suspense>
         </div>
       </div>

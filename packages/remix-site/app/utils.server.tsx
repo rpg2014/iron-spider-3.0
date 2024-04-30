@@ -11,9 +11,9 @@ import { json, redirectDocument } from "@remix-run/server-runtime";
 import { createHash } from "crypto";
 import { API_DOMAIN, AUTH_DOMAIN, PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "./constants";
 import pkg from "jsonwebtoken";
-const { verify } = pkg
-type JwtPayload = pkg.JwtPayload;
 import { fetcher } from "./utils";
+const { verify } = pkg;
+type JwtPayload = pkg.JwtPayload;
 
 export function hash(str: string) {
   return createHash("sha1").update(str).digest("hex").toString();
@@ -38,26 +38,29 @@ export const doAuthRedirect = async (request: Request) => {
     // const authCookie = authCookieString.split("=")[1];
     if (!publicKey) {
       try {
-        publicKey = await fetcher(PUBLIC_KEYS_PATH, {
-          headers: { ...request.headers, Cookie: request.headers.get("Cookie") }
-        }, false)
+        publicKey = await fetcher(
+          PUBLIC_KEYS_PATH,
+          {
+            headers: { ...request.headers, Cookie: request.headers.get("Cookie") },
+          },
+          false,
+        );
       } catch (e) {
         console.warn("Error fetching public key, prob not authorized", e);
-        return { hasCookie: false, userData: undefined }
+        return json({ hasCookie: false, userData: undefined });
       }
     }
     if (publicKey && publicKey.keys) {
       try {
-      const decoded = verifyWithKey({ token: authCookieString.split("=")[1], publicKey: publicKey.keys[0], issuer: "auth.parkergiven.com" })
-      return { userData: decoded, hasCookie: true }
-    }catch (e) {
-      console.warn("Error verifying token", e);
-      return { hasCookie: false, userData: undefined }
-    }
-      
+        const decoded = verifyWithKey({ token: authCookieString.split("=")[1], publicKey: publicKey.keys[0], issuer: "auth.parkergiven.com" });
+        return json({ userData: decoded, hasCookie: true });
+      } catch (e) {
+        console.warn("Error verifying token", e);
+        return json({ hasCookie: false, userData: undefined });
+      }
     } else {
       console.log("No public keys");
-      throw new Error("Unable to fetch public key")
+      throw new Error("Unable to fetch public key");
     }
   } else if (!authCookieString && !isPublicRoute(request.url)) {
     return json({ hasCookie: false });
@@ -71,20 +74,29 @@ export const DEFAULT_AUTH_LOADER = async ({ request }: LoaderFunctionArgs) => {
   return doAuthRedirect(request);
 };
 
-export type VerifyWithKeyOptions = { token: string, issuer?: string | string[] | undefined, aud?: string | RegExp | (string | RegExp)[] | undefined, publicKey: string }
-export const verifyWithKey = (props: VerifyWithKeyOptions): JwtPayload | {
-  userId: string,
-  scope: string,
-  displayName: string,
-  siteAccess: string[],
-  apiAccess: string[]
-} => {
+export type VerifyWithKeyOptions = {
+  token: string;
+  issuer?: string | string[] | undefined;
+  aud?: string | RegExp | (string | RegExp)[] | undefined;
+  publicKey: string;
+};
+export const verifyWithKey = (
+  props: VerifyWithKeyOptions,
+):
+  | JwtPayload
+  | {
+      userId: string;
+      scope: string;
+      displayName: string;
+      siteAccess: string[];
+      apiAccess: string[];
+    } => {
   return verify(props.token, props.publicKey, {
     issuer: props.issuer ? props.issuer : `auth.${process.env.DOMAIN}`,
     audience: props.aud,
     algorithms: ["RS256"],
-  }) as JwtPayload
-}
+  }) as JwtPayload;
+};
 
 //TODO: figure out how to make a reusable component as a login guard component, eg,
 //only render when logged in?  Need remix session first

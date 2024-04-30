@@ -5,7 +5,7 @@
   "license": "MIT",
   "version": "1.0",
   "scripts": {
-    "build": "yarn build:css && remix vite:build && yarn build:sw && echo 'Add or remove build steps to here as needed'",
+    "build": "yarn build:css && yarn build:rust-functions && remix vite:build && yarn build:sw && echo 'Add or remove build steps to here as needed'",
     "build:css": "sass --no-source-map -s compressed app/ ",
     "build:rust-functions": "wasm-pack build rust-functions --target nodejs --out-name rust-functions",
     "build:sw": "node configuration/build_sw.js",
@@ -22,7 +22,10 @@
     "lint": "yarn prettier . --write && yarn run eslint . --fix"
   },
   "dependencies": {
+    "@microsoft/fetch-event-source": "^2.0.1",
+    "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-navigation-menu": "^1.1.4",
+    "@radix-ui/react-slider": "^1.1.2",
     "@radix-ui/react-slot": "^1.0.2",
     "@remix-run/css-bundle": "^2.8.1",
     "@remix-run/node": "^2.8.1",

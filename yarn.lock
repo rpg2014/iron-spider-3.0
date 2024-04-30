@@ -16034,8 +16034,8 @@ __metadata:
 
 "rust-functions@file:./rust-functions/pkg::locator=remix-site%40workspace%3Apackages%2Fremix-site":
   version: 0.1.0
-  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=ac2709&locator=remix-site%40workspace%3Apackages%2Fremix-site"
-  checksum: 10/9efda74054732fd3d53c2e5f265adf22f83e69eeaef6447314e582ba6382e362e13905eba2b953f1ef2bedee2d97b603424f60328af45353b31549083565b04e
+  resolution: "rust-functions@file:./rust-functions/pkg#./rust-functions/pkg::hash=f95a5b&locator=remix-site%40workspace%3Apackages%2Fremix-site"
+  checksum: 10/16a1d9093c4e3c26e68890dcd8188830b1c0d711cbfc3a42f598479f14f73b382e8fd20ff1af07fa8f7285f6b37272f81b7376e049b43e57f8c1f4bc56a6f264
   languageName: node
   linkType: hard
 

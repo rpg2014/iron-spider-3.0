@@ -1,0 +1,116 @@
+.navigation-container {
+  /* background-color: var(--color-background); */
+  color: var(--color-foreground);
+  margin: 0 5rem;
+  border-radius: 5px;
+}
+
+@media print, screen and (max-width: 640px) {
+  .navigation-container {
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+.navigation-container nav {
+  display: flex;
+  justify-content: space-between;
+  align-content: center;
+  flex-direction: row;
+
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.navigation-container nav ul {
+  list-style: none;
+  display: flex;
+  height: fit-content;
+  gap: 20px;
+}
+
+.navigation-container nav a {
+  color: var(--color-foreground);
+  text-decoration: none;
+  font-size: 18px;
+  transition: color 0.3s;
+}
+
+.navigation-container nav a:hover {
+  color: #ccc;
+}
+.navigation-link {
+  padding: 0.5rem 0.5rem;
+  margin: 2px;
+  transition: all 300ms ease-in-out;
+  border-radius: 4px;
+}
+.navigation-link.active {
+  background-color: #333;
+}
+
+.settings-button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.outlet-container {
+  /* background-color: var(--color-background); */
+  /* padding: 0.5rem; */
+  /* border-radius: 4px; */
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #222;
+  padding: 20px;
+  border-radius: 4px;
+  width: 400px;
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+}
+
+.modal-label {
+  display: block;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+pre {
+  white-space: pre-wrap; /* Since CSS 2.1 */
+  white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+  white-space: -pre-wrap; /* Opera 4-6 */
+  white-space: -o-pre-wrap; /* Opera 7 */
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+
+.close-button {
+  background-color: #555;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  /* margin-top: 10px; */
+}

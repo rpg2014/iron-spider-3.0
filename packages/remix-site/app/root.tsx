@@ -13,6 +13,7 @@ import { cssBundleHref } from "@remix-run/css-bundle";
 import { Outlet, useLoaderData } from "@remix-run/react";
 import { ThemeProvider } from "./hooks/useTheme";
 import stylesheet from "~/tailwind.css?url";
+import { ServerProvider } from "./hooks/MCServerHooks";
 
 export let links: LinksFunction = () => {
   return [
@@ -43,11 +44,13 @@ export let links: LinksFunction = () => {
 export default function App() {
   return (
     <ThemeProvider>
-      <Document>
-        <Layout>
-          <Outlet />
-        </Layout>
-      </Document>
+      <ServerProvider>
+        <Document>
+          <Layout>
+            <Outlet />
+          </Layout>
+        </Document>
+      </ServerProvider>
     </ThemeProvider>
   );
 }

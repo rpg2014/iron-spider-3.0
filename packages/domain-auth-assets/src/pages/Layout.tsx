@@ -6,7 +6,7 @@ import { fetcher } from "../util";
 export default function Layout() {
   const classNameFunc = ({ isActive }: { isActive: boolean }) =>
     `${styles.headerLink} ${isActive ? styles.active : ""}`;
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<{verified: boolean}| null>(null);
   const [state, setState] = useState<
     | "INIT"
     | "AUTO_FETCH_OPTS"
@@ -48,7 +48,7 @@ export default function Layout() {
         <NavLink className={classNameFunc} to="/account">
           Account Info
         </NavLink>
-        {userData && (
+        {userData && userData.verified && (
           <NavLink
             className={`${styles.headerLink} ${styles.destructive}`}
             to="#"

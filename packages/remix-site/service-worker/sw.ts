@@ -1,5 +1,4 @@
 /// <reference no-default-lib="true"/>
-/// <reference lib="es2020" />
 /// <reference lib="WebWorker" />
 
 const sw = self as ServiceWorkerGlobalScope & typeof globalThis;
@@ -55,12 +54,18 @@ const getFromCache = async (request: Request) => {
   const cache = await caches.open(VERSION);
   return cache.match(request);
 };
+
 self.addEventListener("fetch", event => {
   // attempt network fetch, then show 404 page on error.
   event.respondWith(
     (async () => {
+      // if the request isn't for the remix.parkergiven.com domain, then we can just return the response
+      if (!event.request.url.includes("remix.parkergiven.com")) {
+        return await fetch(event.request);
+      }
       try {
         const response = await fetch(event.request);
+
         // emit message to client on whats being cached.
         if (event.clientId) {
           const client = await self.clients.get(event.clientId);
@@ -77,7 +82,13 @@ self.addEventListener("fetch", event => {
 
         return response;
       } catch (e) {
-        console.log("Error fetching page, showing offline page");
+        console.log("Error fetching page, showing offline page", e);
+
+        // if the request isn't for the remix.parkergiven.com domain, then we can just return the response
+        if (!event.request.url.includes("remix.parkergiven.com")) {
+          throw response;
+        }
+
         //try to use cache, if its not present, show 404
         const cachedResponse = await getFromCache(event.request);
 
@@ -122,7 +133,7 @@ self.addEventListener("periodicsync", event => {
         console.error(e);
       }
     };
-    
+
     event.waitUntil(updateBadge());
   }
 });

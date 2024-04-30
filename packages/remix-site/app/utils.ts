@@ -10,10 +10,9 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, incl
   if (includeContentType) {
     headers["content-type"] = "application/json";
   }
-  console.log(`Creating request with url ${input}`)
   const res = await fetch(input, {
+    mode: "no-cors", // todo: fix cors
     ...init,
-    mode: "no-cors",// todo: fix cors
     headers,
   });
   const data = await res.json();

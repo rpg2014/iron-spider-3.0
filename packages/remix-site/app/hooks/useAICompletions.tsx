@@ -3,6 +3,8 @@ import { useCallback, useState } from "react";
 import type { AIEndpointSettings, AISettings } from "../genAi/genAiUtils";
 import { completion, getTokenCount } from "../genAi/genAiUtils";
 import { useLocalStorage } from "./useLocalStorage.client";
+import { assistant } from "~/genAi/spiderAssistant";
+import { EventSourceMessage } from "@microsoft/fetch-event-source";
 
 // type ChatSettings
 
@@ -25,14 +27,25 @@ export const useAICompletions = (model: number) => {
   const [responseTokens, setResponseTokens] = useState(0);
   const [error, setError] = useState<string | undefined>();
   const [complete, setComplete] = useState(false);
-
+  const [events, setEvents] = useState<any[]>([]);
+  const [latestMessage, setLatestMessage] = useState<string | undefined>();
   const [prompt, setPrompt] = useState("");
 
-  //TODO Figure out what this is doing.
+  // this is used to save the abort controller to cancel the stream.
   const [cancel, setCancel] = useState<Function | null>(null);
 
   //include a function that when called calls the completion function and fetches ai completions
   // wrap with useCallback
+
+  const invoke = useCallback(
+    async (prompt: string) => {
+      setComplete(false);
+      const response = await assistant.invoke(prompt);
+      setLatestMessage(response);
+      setComplete(true);
+    },
+    [assistant, setLatestMessage],
+  );
 
   const execute = useCallback(
     async (prompt: string) => {
@@ -68,30 +81,55 @@ export const useAICompletions = (model: number) => {
         // so let's set the predictStartTokens beforehand.
         // setPredictStartTokens(tokens);
 
-        const tokenCount = await getTokenCount({
-          endpointSettings,
-          options: {
-            content: ` ${prompt}`,
-          },
-          signal: ac.signal,
-        });
+        // const tokenCount = await getTokenCount({
+        //   endpointSettings,
+        //   options: {
+        //     content: ` ${prompt}`,
+        //   },
+        //   signal: ac.signal,
+        // });
         // setTokens(tokenCount);
         // setPredictStartTokens(tokenCount);
-        for await (const chunk of completion({
-          endpointSettings,
-          signal: ac.signal,
-          options: {
-            prompt,
 
-            ...aiSettings,
-          },
-        })) {
+        //for callback based
+        // await assistant.streamAgent(prompt, ac.signal, (event: EventSourceMessage) => {
+        //   const data = event.
+        //   ac.signal.throwIfAborted();
+        //   console.log(`event Name: ${event.name}`)
+        //   console.log(`event`, event)
+        //   if(event.type === 'llmStream'){
+        //     setResponse(p => [...p, {content: event.text}])
+        //   }else if (event.type ==='llmStart'){
+        //     setResponse([])
+        //   }else if(event.type === 'llmEnd'){
+        //     // setResponse()
+        //   }
+        //   // if (chunk.stopping_word) chunk.content = chunk.stopping_word;
+        //   // if (!chunk.content) continue;
+        //   // if (chunk.stop) setComplete(true);
+        //   // setResponse(p => [...p, event]);
+        //   setEvents(p=> [...p, event]);
+        //   // setResponseTokens(t => t + (chunk?.completion_probabilities?.length ?? 1));
+        // })
+
+        // for if we use a async generator function
+        for await (const event of assistant.streamAgent(prompt, ac.signal)) {
           ac.signal.throwIfAborted();
-          if (chunk.stopping_word) chunk.content = chunk.stopping_word;
-          if (!chunk.content) continue;
-          if (chunk.stop) setComplete(true);
-          setResponse(p => [...p, chunk]);
-          setResponseTokens(t => t + (chunk?.completion_probabilities?.length ?? 1));
+          console.log(`event Name: ${event.name}`);
+          console.log(`event`, event);
+          if (event.type === "llmStream") {
+            setResponse(p => [...p, { content: event.text }]);
+          } else if (event.type === "llmStart") {
+            setResponse([]);
+          } else if (event.type === "llmEnd") {
+            // setResponse()
+          }
+          // if (chunk.stopping_word) chunk.content = chunk.stopping_word;
+          // if (!chunk.content) continue;
+          // if (chunk.stop) setComplete(true);
+          // setResponse(p => [...p, event]);
+          setEvents(p => [...p, event]);
+          // setResponseTokens(t => t + (chunk?.completion_probabilities?.length ?? 1));
         }
       } catch (e) {
         if (e.name !== "AbortError") {
@@ -125,8 +163,9 @@ export const useAICompletions = (model: number) => {
       setEndpointSettings,
       setPrompt,
       execute,
+      invoke,
       cancel,
     },
-    response: { response, responseTokens, complete },
+    response: { response, responseTokens, complete, events, latestMessage },
   } as const;
 };
