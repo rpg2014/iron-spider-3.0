@@ -9,7 +9,6 @@ require("esbuild").buildSync({
 });
 
 console.log("Copying public files");
-//copy all files in the public folder to the /build/public/assets folder
-// no longer needed due to vite doing it automagically
+//copy all files in the public folder to the /build/client/otherAssets/static folder
 const fs = require("fs");
 fs.cpSync(path.join(__dirname, "../public"), path.join(__dirname, "../build/client/otherAssets/static"), { recursive: true });

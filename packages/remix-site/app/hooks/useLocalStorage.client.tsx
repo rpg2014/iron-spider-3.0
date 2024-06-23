@@ -2,9 +2,10 @@
 import { useState, useEffect } from "react";
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
+  const fullKey = `pg.storage.1.${key}`;
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
-      const item = localStorage.getItem(key);
+      const item = localStorage.getItem(fullKey);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       return initialValue;
@@ -13,7 +14,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(key, JSON.stringify(storedValue));
+      localStorage.setItem(fullKey, JSON.stringify(storedValue));
     } catch (e) {
       console.error(e);
       // If user is in private browsing mode or has storage restriction

@@ -5,8 +5,8 @@ import { Button } from "~/components/ui/Button";
 import { Textarea } from "~/components/ui/TextArea";
 import { useAICompletions } from "~/hooks/useAICompletions";
 import * as EB from "~/components/ErrorBoundary";
-import type { Message } from "~/components/chat/Messages";
-import Messages from "~/components/chat/Messages";
+import type { Message } from "~/components/chat/Messages.client";
+import Messages from "~/components/chat/Messages.client";
 
 export default function Invoke() {
   const settings = useAICompletions(0);
@@ -32,7 +32,7 @@ export default function Invoke() {
   }, [settings.response.response, settings.response.complete, settings.response.latestMessage]);
   return (
     <div>
-      <h1>Invoke</h1>
+      <h1>Invoke - Don't use this one currently, its broken and won't work</h1>
       <Form className="flex flex-col">
         <br style={{ margin: "1rem" }} />
         <Messages messages={messages} />
@@ -46,7 +46,7 @@ export default function Invoke() {
         <Textarea value={userMessage} onChange={e => setUserMessage(e.target.value)} />
         <div>
           {/* TODO: "Send Message" popover on hover */}
-          <Button size="sm" variant={"outline"} onClick={() => sendMessage(userMessage)}>
+          <Button size="sm" disabled variant={"outline"} onClick={() => sendMessage(userMessage)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
           {!settings.response.complete && (

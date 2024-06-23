@@ -130,6 +130,13 @@ input:where([type="search"]) {
     --destructive: 0 100% 50%;
     --destructive-foreground: 210 40% 98%;
 
+    /* shadcn themes: new colors */
+    --success: 147 80% 33%;
+    --success-foreground: 48, 96%, 89%;
+
+    --warning: 38, 92%, 50%;
+    --warning-foreground: 48, 96%, 89%;
+
     --ring: 215 20.2% 65.1%;
 
     --radius: 0.5rem;
@@ -162,6 +169,13 @@ input:where([type="search"]) {
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
+
+    /* shadcn themes: new colors */
+    --success: 147 80% 33%;
+    --success-foreground: 48, 96%, 89%;
+
+    --warning: 38, 92%, 50%;
+    --warning-foreground: 48, 96%, 89%;
 
     --ring: 216 34% 17%;
 

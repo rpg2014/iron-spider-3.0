@@ -3,7 +3,7 @@
 
 const sw = self as ServiceWorkerGlobalScope & typeof globalThis;
 
-const VERSION = "v3";
+const VERSION = "v4";
 
 const addResourcesToCache = async (resources: Request[]) => {
   const cache = await caches.open(VERSION);

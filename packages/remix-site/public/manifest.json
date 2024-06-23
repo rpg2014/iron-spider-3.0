@@ -33,18 +33,30 @@
       "sizes": "512x512",
       "type": "image/png",
       "label": "Parker's remix site",
-      "form-factor": "narrow"
+      "form_factor": "narrow"
     },
     {
-      "src": "remix-icon.512x512.png",
+      "src": "remix-icon.hollow.512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "label": "Parker's remix site",
-      "form-factor": "wide"
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Summary tool",
+      "url": "/chat/summarize",
+      "description": "Summarizes a URL"
+    },
+    {
+      "name": "Agent chat",
+      "url": "/chat/agent",
+      "description": "Chat with an ai agent"
     }
   ],
   "share_target": {
-    "action": "/chat/agent/",
+    "action": "/chat/share/",
     "method": "GET",
     "enctype": "application/x-www-form-urlencoded",
     "params": {

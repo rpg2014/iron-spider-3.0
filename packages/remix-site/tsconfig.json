@@ -2,7 +2,7 @@
   "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "server/index.ts", "bin/cdk-remix-app.ts"],
   "exclude": ["node_modules", "cdk.out"],
   "compilerOptions": {
-    "lib": ["dom", "DOM.Iterable", "ES2019"],
+    "lib": ["dom", "DOM.Iterable", "ESNext"],
     "esModuleInterop": true,
     "jsx": "react-jsx",
     //migrating to vite

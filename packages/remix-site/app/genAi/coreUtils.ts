@@ -1,17 +1,21 @@
-export async function* parseEventStream(eventStream) {
-  let buf = "";
+export type ReadableStream2<R = any> = ReadableStream & {
+  [Symbol.asyncIterator](): AsyncIterableIterator<R>;
+};
+export async function* parseEventStream(eventStream: ReadableStream2<Uint8Array>) {
+  let buf: string | undefined = "";
   let ignoreNextLf = false;
 
-  for await (let chunk of eventStream.pipeThrough(new TextDecoderStream())) {
+  for await (let chunk of eventStream.pipeThrough(new TextDecoderStream()) as ReadableStream2) {
     // A CRLF could be split between chunks, so if the last chunk ended in
     // CR and this chunk started with LF, trim the LF
+    console.log(`RecivedChunk: ${JSON.stringify(chunk)}`);
     if (ignoreNextLf && /^\n/.test(chunk)) {
       chunk = chunk.slice(1);
     }
     ignoreNextLf = /\r$/.test(chunk);
 
     // Event streams must be parsed line-by-line (ending in CR, LF, or CRLF)
-    const lines = (buf + chunk).split(/\n|\r\n?/);
+    const lines: string[] = (buf + chunk).split(/\n|\r\n?/);
     buf = lines.pop();
     let type, data;
 
@@ -21,7 +25,7 @@ export async function* parseEventStream(eventStream) {
         data = undefined;
         continue;
       }
-      const { name, value } = /^(?<name>.*?)(?:: ?(?<value>.*))?$/s.exec(line).groups;
+      const { name, value } = /^(?<name>.*?)(?:: ?(?<value>.*))?$/s.exec(line)?.groups;
       switch (name) {
         case "event":
           type = value ?? "";
@@ -32,7 +36,7 @@ export async function* parseEventStream(eventStream) {
       }
       // We only emit message-type events for now (and assume JSON)
       if (data && (type || "message") === "message") {
-        const json = JSON.parse(data);
+        const json = JSON.parse(data); // THis is the data we're getting from the backend.
         // Both Chrome and Firefox suck at debugging
         // text/event-stream, so make it easier by logging events
         console.log("event", json);

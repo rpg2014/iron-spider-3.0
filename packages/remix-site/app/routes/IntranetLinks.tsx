@@ -21,12 +21,13 @@ export type UrlConfig = {
 };
 
 const intranetLinkConfig: UrlConfig[] = [
-  { url: "http://192.168.0.14:32400", name: "Plex" },
-  { url: "http://192.168.0.14:8112", name: "Deluge" },
+  { url: "https://plex.i.parkergiven.com", name: "Plex" },
+  { url: "http://192.168.0.14:8112", name: "Old Deluge" },
   { url: "http://192.168.0.14/admin", name: "PiHole" },
+  { url: "https://i.parkergiven.com", name: "Homepage" },
   { url: "http://dash.parkergiven.com", name: "Bus Dashboard" },
   { url: "http://fleet.parkergiven.com", name: "Fleet Monitor" },
-  { url: "http://notes.parkergiven.com", name: "Notes" },
+  { url: "http://notes.i.parkergiven.com", name: "Notes" },
   { url: "https://nextjs.parkergiven.com", name: "NextJs Tutorial" },
 ];
 export const loader = DEFAULT_AUTH_LOADER;
@@ -37,7 +38,6 @@ export default function IntranetLinks() {
   const [ipAddress, setIpAddress] = React.useState<string | null>(null);
   const [highlightIndex, setHighlightIndex] = React.useState<number | null>(null);
   const [isHighlightingComplete, setIsHighlightingComplete] = React.useState(false);
-  let headers;
   const { hasCookie } = useLoaderData<typeof loader>();
   // if (authToken) {
   //   headers = getHeaders(authToken);

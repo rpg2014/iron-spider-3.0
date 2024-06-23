@@ -43,7 +43,7 @@ export const ServerProvider = ({ children }: { children: React.ReactNode }) => {
   const actions = {
     status: async () => {
       setGetLoading(true);
-      const response: { status: typeof minecraftInitalState.status } = await fetcher(`${SERVER_PATH}/status`, {mode: 'cors'});
+      const response: { status: typeof minecraftInitalState.status } = await fetcher(`${SERVER_PATH}/status`, { mode: "cors" });
       setStatus(response.status);
       // set running to true if status is not terminated
       setRunning(response.status !== "Terminated");
@@ -52,14 +52,14 @@ export const ServerProvider = ({ children }: { children: React.ReactNode }) => {
     details: async () => {
       console.log("details");
       setGetLoading(true);
-      const response: { domainName: string } = await fetcher(`${SERVER_PATH}/details`, {mode: 'cors'});
+      const response: { domainName: string } = await fetcher(`${SERVER_PATH}/details`, { mode: "cors" });
       setDomainName(response.domainName);
       setGetLoading(false);
     },
     start: async () => {
       console.log("start");
       setActionLoading(true);
-      const response: { serverStarted: boolean } = await fetcher(`${SERVER_PATH}/start`, {mode: 'cors'});
+      const response: { serverStarted: boolean } = await fetcher(`${SERVER_PATH}/start`, { mode: "cors" });
       setActionLoading(false);
       setRunning(response.serverStarted);
       setTimeout(actions.status, 1000);
@@ -67,7 +67,7 @@ export const ServerProvider = ({ children }: { children: React.ReactNode }) => {
     stop: async () => {
       console.log("stop");
       setActionLoading(true);
-      const response: { serverStopping: boolean } = await fetcher(`${SERVER_PATH}/stop`, {mode: 'cors'});
+      const response: { serverStopping: boolean } = await fetcher(`${SERVER_PATH}/stop`, { mode: "cors" });
       setActionLoading(false);
       setRunning(!response.serverStopping);
       setTimeout(actions.status, 1000);

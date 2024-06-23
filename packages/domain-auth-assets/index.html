@@ -1,13 +1,46 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Parker's Auth</title>
-  </head>
-  <body>
-    <div id="root"><!--prerender_content--></div>
-    <script type="module" src="/src/entry-client.tsx"></script>
-  </body>
+<head>
+  <script>
+    // prerender script, for prefetching auth options
+    // if the location is on the login page, eg, the root index
+    // make a fetch call to https://api.parkergiven.com/v1/authentication/options?userId=${userId}, grabbing the userid from the localstorage
+    // then set the response json to __PRERENDER_DATA__
+    const userIdEncoded = localStorage.getItem("x-pg-uid");
+    if (userIdEncoded) {
+      const userId = atob(userIdEncoded);
+      console.log(`Got User Id: ${userId}`);
+
+      const res = await fetch(
+        `https://api.parkergiven.com/v1/authentication/options?userId=${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          mode: "cors",
+        }
+      );
+      const data = await res.json();
+      if (res.status >= 400) {
+        console.error(`Got ${res.status} error from backend`);
+      } else {
+        console.log("fetched PrerenderData")
+        //@ts-ignore
+        window.__PRERENDER_DATA__ = data;
+      }
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parker's Auth</title>
+</head>
+
+<body>
+  <div id="root"><!--prerender_content--></div>
+  <script type="module" src="/src/entry-client.tsx"></script>
+</body>
+
 </html>

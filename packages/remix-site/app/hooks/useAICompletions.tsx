@@ -3,11 +3,18 @@ import { useCallback, useState } from "react";
 import type { AIEndpointSettings, AISettings } from "../genAi/genAiUtils";
 import { completion, getTokenCount } from "../genAi/genAiUtils";
 import { useLocalStorage } from "./useLocalStorage.client";
+import type { AgentStep, Output, Step } from "~/genAi/spiderAssistant";
 import { assistant } from "~/genAi/spiderAssistant";
 import { EventSourceMessage } from "@microsoft/fetch-event-source";
+import { useOutletContext } from "@remix-run/react";
+import { createMessage, type Message } from "~/components/chat/Messages.client";
 
 // type ChatSettings
-
+/**
+ * @deprecated
+ * @param model
+ * @returns
+ */
 export const useAICompletions = (model: number) => {
   //Endpoint settings
   const [endpointSettings, setEndpointSettings] = useLocalStorage<AIEndpointSettings>("AIEndpointSettings", {
@@ -169,3 +176,214 @@ export const useAICompletions = (model: number) => {
     response: { response, responseTokens, complete, events, latestMessage },
   } as const;
 };
+
+/**
+ * ground up re-write of the messages state in the agent class.  make it work with the new input and output
+ * types, and it should be reusable everywhere.
+ * will need params for memory i think but idk.
+ * will return array of mesages, and several different completions functions.
+ *
+ * maybe a  context state to store current messages? would need to fetch from bakcend?
+ */
+export const useAIChat = () => {
+  const [userMessage, setUserMessage] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const { temperature, maxTokens } = useOutletContext<{ temperature: number; maxTokens: number }>();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<any>();
+  const [abortController, setAbortController] = useState(new AbortController());
+
+  /**
+   * Parses an AgentStep or Step object and returns an array of Message objects.
+   * If we want to change this to merge the 2 tool messages together, this function would need to change
+   *
+   * @param {AgentStep | Step} step - The AgentStep or Step object to be parsed.
+   * @returns {Message[]} An array of Message objects representing the input and output of the step.
+   */
+  const parseSteps = (step: AgentStep | Step): Message[] => {
+    const messages: Message[] = [];
+    if (isAgentStep(step)) {
+      messages.push(createMessage("tool_input", `${step.action.tool}: ${step.action.toolInput}`));
+      messages.push(createMessage("tool_output", `${step.observation}`));
+    } else {
+      messages.push(createMessage("tool_input", step.input));
+      messages.push(createMessage("tool_output", `${step.name}: ${step.output}`));
+    }
+    return messages;
+  };
+
+  const submit = async (prompt: string, mode: "summarize" | "agent" | "invoke" | "summarize-stream") => {
+    setMessages([...messages, createMessage("user", prompt)]);
+    // need to set outside of react here.
+    const ac = new AbortController();
+    setAbortController(ac);
+    setLoading(true);
+    setUserMessage("");
+    setError(null);
+    try {
+      // todo: extract this so that its easy to sub what function is called?
+      //how to handle both streaming an non-streaming? or not?
+      let response: Output | undefined = undefined;
+      let streamingResponse: AsyncGenerator<Output> | undefined = undefined;
+      switch (mode) {
+        case "summarize-stream":
+          streamingResponse = await assistant.streaming.summarizeStream(
+            {
+              prompt,
+              opts: {
+                temperature,
+                maxTokens,
+              },
+            },
+            ac.signal,
+          );
+          break;
+        case "summarize":
+          response = await assistant.summarize(
+            {
+              prompt: prompt,
+              opts: {
+                temperature,
+                maxTokens,
+              },
+            },
+            ac.signal,
+          );
+          break;
+        case "agent":
+          response = await assistant.agent(
+            {
+              prompt,
+              opts: {
+                temperature,
+                maxTokens,
+              },
+            },
+            ac.signal,
+          );
+          break;
+        case "invoke":
+          const res = await assistant.invoke(prompt);
+          response = {
+            content: res,
+          };
+          break;
+        default:
+          throw new Error(`Invalid mode: ${mode}`);
+      }
+
+      // handle batch response
+      if (response !== undefined) {
+        const messagesToAdd: Message[] = [];
+
+        if (response.steps) {
+          messagesToAdd.push(...response.steps.map(parseSteps).flat());
+        }
+        messagesToAdd.push(createMessage("agent_response", response.content));
+
+        setMessages(p => [...p, ...messagesToAdd]);
+        setLoading(false);
+
+      } else if (streamingResponse !== undefined) {
+
+        const firstChunk = await streamingResponse.next();
+        const messagesToAdd: Message[] = [];
+        // add any steps
+        messagesToAdd.push(...firstChunk.value.steps.map(parseSteps).flat());
+        // add first content as message
+        let responseStr: string = firstChunk.value.content;
+        messagesToAdd.push(createMessage("agent_response", responseStr));
+        setMessages(p => [...p, ...messagesToAdd]);
+        //parse rest of stream.
+        for await (let chunk of streamingResponse) {
+          ac.signal.throwIfAborted();
+          // for now assuming no additional steps come in, works for now. 
+          // set the last message to the current response string
+          setMessages(p => {
+            const lastMessage = p[p.length - 1];
+            if (lastMessage.type === "agent_response") {
+              lastMessage.content += chunk.content;
+            }
+            return [...p];
+          });
+          if(chunk.finalPart) {
+            //break out of for loop
+            console.log("Got final part")
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      setError(e);
+      setLoading(false);
+    }
+  };
+  const cancel = () => {
+    console.log("Aborting request");
+    abortController.abort();
+    setLoading(false);
+    setError({ message: "Aborted" });
+  };
+
+  return {
+    cancel,
+    submit,
+    loading,
+    error,
+    messages,
+    userMessage,
+    setUserMessage,
+  };
+};
+
+const isAgentStep = (step: AgentStep | Step): step is AgentStep => {
+  return (
+    (step as AgentStep).action !== undefined &&
+    (step as AgentStep).action.tool !== undefined &&
+    (step as AgentStep).action.toolInput !== undefined &&
+    (step as AgentStep).observation !== undefined
+  );
+};
+
+//hotkeys, will need to put them in the main logic hook
+// // useEffect(() => {
+// //     function onKeyDown(e) {
+// //         const { altKey, ctrlKey, shiftKey, key, defaultPrevented } = e;
+// //         if (defaultPrevented)
+// //             return;
+// //         switch (`${altKey}:${ctrlKey}:${shiftKey}:${key}`) {
+// //         case 'false:false:true:Enter':
+// //         case 'false:true:false:Enter':
+// //             predict();
+// //             break;
+// //         case 'false:false:false:Escape':
+// //             cancel();
+// //             break;
+// //         case 'false:true:false:r':
+// //         case 'false:false:true:r':
+// //             undoAndPredict();
+// //             break;
+// //         case 'false:true:false:z':
+// //         case 'false:false:true:z':
+// //             if (cancel || !undo()) return;
+// //             break;
+// //         case 'false:true:true:Z':
+// //         case 'false:true:false:y':
+// //         case 'false:false:true:y':
+// //             if (cancel || !redo()) return;
+// //             break;
+
+// //         default:
+// //             keyState.current = e;
+//             return;
+//         }
+//         e.preventDefault();
+//     }
+//     function onKeyUp(e) {
+//         const { altKey, ctrlKey, shiftKey, key, defaultPrevented } = e;
+//         if (defaultPrevented)
+//             return;
+//         keyState.current = e;
+//     }
+
+//     window.addEventListener('keydown', onKeyDown);

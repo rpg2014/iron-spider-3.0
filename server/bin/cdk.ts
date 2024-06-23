@@ -6,6 +6,7 @@ import { ApiStack } from "../lib/api-stack";
 import { PasskeyInfraStack } from "../lib/passkey-stack";
 import { DomainAuthAssetsStack } from "domain-auth-assets/lib/auth-assets-stack";
 import { RemixAppStack } from "remix-site/lib/remix-app-stack";
+import { HomelabStack } from 'homelab-aws-infra/lib/homelab-stack';
 import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "../lib/cdk-constants";
 import { SES_ARNS } from "../.secrets";
 
@@ -76,3 +77,12 @@ const remixStack = new RemixAppStack(app, "RemixApp", {
   subDomain: "remix",
   computeType: "EdgeFunction", //useStreams ? "HTTPStreaming" : "EdgeFunction",
 });
+
+// Homelab aws stack.  used for like dynamic dns and stuff
+const homelabStack = new HomelabStack(app, "HomelabStack", {
+  env,
+  // TODO input domain and stuff to template the hosted zone
+})
+
+
+

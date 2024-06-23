@@ -20,6 +20,6 @@ export async function render(url: string) {
     <StaticRouterProvider
       router={router}
       context={context as any}
-    ></StaticRouterProvider>,
+    />,
   );
 }

@@ -11,4 +11,4 @@ export const SERVER_PATH = API_DOMAIN + "/server";
 
 export const AUTH_DOMAIN = "https://auth.parkergiven.com";
 
-export const AGENT_URL = "https://ai.parkergiven.com";
+export const AGENT_URL = "https://ai.i.parkergiven.com";

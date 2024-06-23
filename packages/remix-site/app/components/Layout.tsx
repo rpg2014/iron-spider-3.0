@@ -26,7 +26,7 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
     <div className="remix-app dark">
       <header className="remix-app__header">
         <div className=" remix-app__header-content">
-          <Suspense>
+          <Suspense fallback={<p>loading...</p>}>
             {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
             <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
               <RemixLogo />
@@ -44,7 +44,7 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
                     <Link prefetch={"viewport"} to={"/chat"}>
                       <NavigationMenuLink className={navigationMenuTriggerStyle()}>Chat</NavigationMenuLink>
                     </Link>
-                    <Link prefetch={"none"} to={"/intranetLinks"}>
+                    <Link prefetch={"viewport"} to={"/intranetLinks"}>
                       <NavigationMenuLink className={navigationMenuTriggerStyle()}>Links</NavigationMenuLink>
                     </Link>
                     <Link prefetch={"none"} to={"/404"}>
@@ -53,7 +53,7 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link prefetch={"none"} to={"/settings"}>
+                  <Link prefetch={"viewport"} to={"/settings"}>
                     <NavigationMenuLink className={navigationMenuTriggerStyle()}>Settings</NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>

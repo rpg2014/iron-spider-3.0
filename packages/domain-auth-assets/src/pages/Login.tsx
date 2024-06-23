@@ -33,6 +33,12 @@ const generateAuthOptions = async () => {
 
   console.log(`Auto fill supported = ${autoFillSupported}`);
   if (userIdEncoded && autoFillSupported) {
+    //@ts-ignore
+    if(window.__PRERENDER_DATA__){
+      console.log(`Found pre-rendered data`);
+      //@ts-ignore
+      return window.__PRERENDER_DATA__
+    }
     console.log(`Found user token: `, userIdEncoded);
     const userId = atob(userIdEncoded);
     console.log(`Got User Id: ${userId}`);
@@ -160,7 +166,7 @@ function Login() {
             const decodedUrl = decodeURIComponent(urlFromQueryParams);
             console.log(`Redirecting to ${decodedUrl}`);
             window.location.replace(decodedUrl);
-          }, 1000);
+          }, 50);
         }
       }
     } catch (e: any) {

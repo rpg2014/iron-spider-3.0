@@ -31,12 +31,15 @@ export const ServerDetailsOperation: Operation<{}, ServerDetailsOutput, HandlerC
 };
 
 export const StartServerOperation: Operation<{}, StartServerOutput, HandlerContext> = async (input, context) => {
-  // console.log("user: ", context.user)
-  // const authDetails = await AuthDynamoWrapper.isAuthorized(context.user)
-  // if( !authDetails.allowedToStartServer ) {
-  //     throw new BadRequestError({ message: "You are not allowed to start the server." })
-  // }
-  // await AuthDynamoWrapper.startedServer(authDetails)
+  //only do it for the new auth context, this is handled in the authorizor for the old auth context
+  if (context.displayName) {
+    console.log("displayName: ", context.displayName);
+    const authDetails = await AuthDynamoWrapper.isAuthorized(context.displayName);
+    if (!authDetails.allowedToStartServer) {
+      throw new BadRequestError({ message: "You are not allowed to start the server." });
+    }
+    await AuthDynamoWrapper.startedServer(authDetails);
+  }
   let ec2Wrapper = MinecraftEC2Wrapper.getInstance();
   let route53Wrapper = Route53Wrapper.getInstance();
   const result = await ec2Wrapper.startInstance();
@@ -48,14 +51,14 @@ export const StartServerOperation: Operation<{}, StartServerOutput, HandlerConte
 };
 
 export const StopServerOperation: Operation<{}, StopServerOutput, HandlerContext> = async (input, context) => {
-  //   console.log("user: ", context.user)
-  //   if(context.user){
-  //     const authDetails = await AuthDynamoWrapper.isAuthorized(context.user)
-  //     if( !authDetails.allowedToStartServer ) {
-  //         throw new BadRequestError({ message: "You are not allowed to start the server." })
-  //     }
-  //     await AuthDynamoWrapper.startedServer(authDetails)
-  // }
+  if (context.displayName) {
+    console.log("displayName: ", context.displayName);
+    const authDetails = await AuthDynamoWrapper.isAuthorized(context.displayName);
+    if (!authDetails.allowedToStartServer) {
+      throw new BadRequestError({ message: "You are not allowed to stop the server." });
+    }
+    await AuthDynamoWrapper.startedServer(authDetails);
+  }
   let ec2Wrapper = MinecraftEC2Wrapper.getInstance();
   let route53Wrapper = Route53Wrapper.getInstance();
   const result = await ec2Wrapper.stopInstance();
