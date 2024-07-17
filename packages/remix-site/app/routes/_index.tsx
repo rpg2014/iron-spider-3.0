@@ -16,6 +16,7 @@ type CacheUpdate = {
 export default function Index() {
   const [status, setStatus] = useState("");
   const [cacheUpdates, setCacheUpdates] = useState<CacheUpdate[]>([]);
+
   // set the notification permission state to the status of the permission based on if the site has the notification permissions
   const [notificationPermission, setNotificationPermission] = useState<string | undefined>();
   // set the status state to the status of the service worker
@@ -39,8 +40,11 @@ export default function Index() {
     }
   }, []);
 
+  /**
+   * Set up listener for cache-update events that i'm sending from the sw
+   */
   useEffect(() => {
-    const eventListener = event => {
+    const eventListener = (event: MessageEvent<any>) => {
       const cacheUpdate: CacheUpdate & { type: string } = event.data;
       console.log(`Got message, type: ${cacheUpdate.type}`);
       if (cacheUpdate.type === "cache-update") {
@@ -84,7 +88,6 @@ export default function Index() {
             ))}
           </tbody>
         </table>
-
         {/* <h3>Cache</h3>
         <p>Todo: add list of previous cached files</p> */}
       </main>

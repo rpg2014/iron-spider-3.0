@@ -41,7 +41,7 @@ export class RemixAppStack extends Stack {
     //Was attempting to support http streams, but AWS only supports them as lambda function URL's
     // which you cannot put behind a CDN or route 53, so it doesn't work currently. (you'll just need to fix the distribution)
     const isStreamingFunction = props.computeType !== "EdgeFunction";
-    if(isStreamingFunction) {
+    if (isStreamingFunction) {
       throw new Error("Streaming functions not supported yet");
     }
 

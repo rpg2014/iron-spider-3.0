@@ -34,6 +34,18 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   asChild?: boolean;
 }
 
+/**
+ * A reusable and customizable button component.
+ *
+ * @component
+ * @param {Object} props - The props for the component.
+ * @param {string} [props.className] - Additional CSS classes to apply to the button.
+ * @param {"default" | "destructive" | "outline" | "secondary" | "ghost" | "link"} [props.variant="default"] - The visual style of the button.
+ * @param {"default" | "sm" | "lg" | "icon"} [props.size="default"] - The size of the button.
+ * @param {boolean} [props.asChild=false] - Whether the button should be rendered as a child component.
+ * @param {React.HTMLAttributes<HTMLButtonElement>} [props.props] - Additional props to pass to the button element.
+ * @returns {React.ReactElement} The rendered button component.
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ className, variant, size, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "button";
   return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;

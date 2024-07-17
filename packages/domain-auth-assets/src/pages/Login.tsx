@@ -9,6 +9,7 @@ import {
 } from "@simplewebauthn/browser";
 import Alert from "../components/Alert.tsx";
 import { useLoaderData, useOutletContext } from "react-router-dom";
+import { OutletContext } from "./Layout.tsx";
 
 function getRedirectURL(): string | undefined {
   const urlParams = new URLSearchParams(window.location.search);
@@ -33,11 +34,12 @@ const generateAuthOptions = async () => {
 
   console.log(`Auto fill supported = ${autoFillSupported}`);
   if (userIdEncoded && autoFillSupported) {
+    // Prerender data is disabled for now, as I'm not sure if it ever triggered.
     //@ts-ignore
-    if(window.__PRERENDER_DATA__){
+    if (window.__PRERENDER_DATA__) {
       console.log(`Found pre-rendered data`);
       //@ts-ignore
-      return window.__PRERENDER_DATA__
+      return window.__PRERENDER_DATA__;
     }
     console.log(`Found user token: `, userIdEncoded);
     const userId = atob(userIdEncoded);
@@ -63,7 +65,7 @@ function Login() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState();
   const [email, setEmail] = useState("");
-  const { state, setState } = useOutletContext();
+  const { state, setState } = useOutletContext<OutletContext>();
   const [autocompleteSupported, setAutocompletedSupported] = useState<
     undefined | boolean
   >();
@@ -282,5 +284,3 @@ function Login() {
 }
 
 export default Login;
-
-

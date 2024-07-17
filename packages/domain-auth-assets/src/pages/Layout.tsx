@@ -2,11 +2,37 @@ import { NavLink, Outlet } from "react-router-dom";
 import styles from "./Layout.module.scss";
 import { useState, useEffect } from "react";
 import { fetcher } from "../util";
+import { AccountData } from "./AccountInfo";
+
+export interface OutletContext {
+  userData: AccountData | null;
+  state:
+    | "INIT"
+    | "AUTO_FETCH_OPTS"
+    | "GEN_OPTS"
+    | "AUTHING"
+    | "VERIFY"
+    | "ERROR"
+    | "DONE"
+    | "REDIRECTING";
+  setState: React.Dispatch<
+    React.SetStateAction<
+      | "INIT"
+      | "AUTO_FETCH_OPTS"
+      | "GEN_OPTS"
+      | "AUTHING"
+      | "VERIFY"
+      | "ERROR"
+      | "DONE"
+      | "REDIRECTING"
+    >
+  >;
+}
 
 export default function Layout() {
   const classNameFunc = ({ isActive }: { isActive: boolean }) =>
     `${styles.headerLink} ${isActive ? styles.active : ""}`;
-  const [userData, setUserData] = useState<{verified: boolean}| null>(null);
+  const [userData, setUserData] = useState<AccountData | null>(null);
   const [state, setState] = useState<
     | "INIT"
     | "AUTO_FETCH_OPTS"

@@ -96,11 +96,13 @@ input:where([type="search"]) {
   margin-left: auto;
 }
 
-/* ShadCN styles */
+/* ShadCN styles
+ // Dont think i need these as they are pulled in via the tailwind css? so remove this or that file
+ Tested, def need to keep these in here, so remove other file 
+ This sets up tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root[class~="dark"] {
     --background: 0 0% 100%;

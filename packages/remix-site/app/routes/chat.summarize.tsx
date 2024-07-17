@@ -1,6 +1,6 @@
 import { isRouteErrorResponse, useOutletContext, useRouteError } from "@remix-run/react";
 import * as EB from "~/components/ErrorBoundary";
-import Messages from "~/components/chat/Messages.client";
+import Messages from "~/components/chat/Messages/Messages.client";
 import ChatBox from "~/components/chat/chatbox";
 import { useEffect, useState } from "react";
 import { Alert } from "~/components/ui/Alert";
@@ -23,8 +23,10 @@ export default function Summary() {
   return (
     <div className="bg-slate-950 p-1 rounded">
       <div onClick={() => setUseStreaming(b => !b)} className="flex flex-row m-3 cursor-pointer ">
-        <Checkbox className="mx-2 my-1" checked={useStreaming} />
-        <Label className="cursor-pointer ">Stream Response</Label>
+        <Checkbox id="streaming" className="mx-2 my-1" checked={useStreaming} />
+        <label htmlFor="streaming" onClick={() => setUseStreaming(b => !b)} className="cursor-pointer ">
+          Stream Response
+        </label>
       </div>
       <p className="p-3">This Agent takes a input of a url. It is not a full chatbot.</p>
       {/* <div className="overflow"> TODO: figure out scrolling within the box?*/}

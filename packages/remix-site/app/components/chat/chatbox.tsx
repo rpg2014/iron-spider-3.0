@@ -11,9 +11,15 @@ type ChatBoxProps = {
   onCancel: () => void;
 };
 /**
- * This component will render a chat box using a form and <Textarea />.  It will have a full
- * width submit button below the text area. Use Tailwind css for the styling
+ * A React component that renders a chat input box with a textarea and submit/cancel buttons.
  *
+ * @param {Object} props - The component props.
+ * @param {string} props.text - The current text value of the textarea.
+ * @param {function} props.setText - A function to update the text value of the textarea.
+ * @param {boolean} props.loading - A flag indicating whether the component is in a loading state.
+ * @param {function} props.onSubmit - A function to be called when the form is submitted.
+ * @param {function} props.onCancel - A function to be called when the cancel button is clicked.
+ * @returns {JSX.Element} The rendered ChatBox component.
  */
 export default function ChatBox(props: ChatBoxProps) {
   const fetcher = useFetcher();

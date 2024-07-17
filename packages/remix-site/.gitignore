@@ -17,3 +17,4 @@ package-lock.json
 app/styles/demos/about.scss.css
 app/styles/demos/rust.css
 app/styles/demos/rust.module.css
+*storybook.log

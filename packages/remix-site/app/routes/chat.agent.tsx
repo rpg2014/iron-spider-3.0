@@ -1,7 +1,6 @@
 import { Form, isRouteErrorResponse, useOutletContext, useRouteError } from "@remix-run/react";
 import * as EB from "~/components/ErrorBoundary";
-import type { Message } from "~/components/chat/Messages.client";
-import Messages from "~/components/chat/Messages.client";
+import Messages from "~/components/chat/Messages/Messages.client";
 import ChatBox from "~/components/chat/chatbox";
 import { useEffect, useState } from "react";
 import { Alert } from "~/components/ui/Alert";

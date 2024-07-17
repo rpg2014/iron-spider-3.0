@@ -7,7 +7,7 @@ import type { AgentStep, Output, Step } from "~/genAi/spiderAssistant";
 import { assistant } from "~/genAi/spiderAssistant";
 import { EventSourceMessage } from "@microsoft/fetch-event-source";
 import { useOutletContext } from "@remix-run/react";
-import { createMessage, type Message } from "~/components/chat/Messages.client";
+import { createMessage, type Message } from "~/components/chat/Messages/Messages.client";
 
 // type ChatSettings
 /**
@@ -283,9 +283,7 @@ export const useAIChat = () => {
 
         setMessages(p => [...p, ...messagesToAdd]);
         setLoading(false);
-
       } else if (streamingResponse !== undefined) {
-
         const firstChunk = await streamingResponse.next();
         const messagesToAdd: Message[] = [];
         // add any steps
@@ -297,7 +295,7 @@ export const useAIChat = () => {
         //parse rest of stream.
         for await (let chunk of streamingResponse) {
           ac.signal.throwIfAborted();
-          // for now assuming no additional steps come in, works for now. 
+          // for now assuming no additional steps come in, works for now.
           // set the last message to the current response string
           setMessages(p => {
             const lastMessage = p[p.length - 1];
@@ -306,9 +304,9 @@ export const useAIChat = () => {
             }
             return [...p];
           });
-          if(chunk.finalPart) {
+          if (chunk.finalPart) {
             //break out of for loop
-            console.log("Got final part")
+            console.log("Got final part");
             break;
           }
         }

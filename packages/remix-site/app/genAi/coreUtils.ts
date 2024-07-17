@@ -1,11 +1,12 @@
 export type ReadableStream2<R = any> = ReadableStream & {
   [Symbol.asyncIterator](): AsyncIterableIterator<R>;
 };
-export async function* parseEventStream(eventStream: ReadableStream2<Uint8Array>) {
+export async function* parseEventStream(eventByteStream: ReadableStream2<Uint8Array>) {
   let buf: string | undefined = "";
   let ignoreNextLf = false;
 
-  for await (let chunk of eventStream.pipeThrough(new TextDecoderStream()) as ReadableStream2) {
+  let textStream = eventByteStream.pipeThrough(new TextDecoderStream()) as ReadableStream2;
+  for await (let chunk of textStream) {
     // A CRLF could be split between chunks, so if the last chunk ended in
     // CR and this chunk started with LF, trim the LF
     console.log(`RecivedChunk: ${JSON.stringify(chunk)}`);
@@ -31,6 +32,7 @@ export async function* parseEventStream(eventStream: ReadableStream2<Uint8Array>
           type = value ?? "";
           break;
         case "data":
+          // Appends the value to the data string, creating a new line if data already exists, otherwise assigns the value to data
           data = data === undefined ? value ?? "" : `${data}\n${value}`;
           break;
       }

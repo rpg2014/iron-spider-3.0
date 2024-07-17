@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import type { Message } from "~/components/chat/Messages.client";
-import Messages from "~/components/chat/Messages.client";
+
+import Messages from "~/components/chat/Messages/Messages.client";
+import { Message } from "~/components/chat/Messages/model";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/Alert";
 import { assistant } from "~/genAi/spiderAssistant";
 

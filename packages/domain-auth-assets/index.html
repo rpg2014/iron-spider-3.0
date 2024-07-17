@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <script>
+  <head>
+    <!-- <script>
+    Disabling for now, its not that much faster, and I think the react component usually checks for the field before this call returns.
     // prerender script, for prefetching auth options
     // if the location is on the login page, eg, the root index
     // make a fetch call to https://api.parkergiven.com/v1/authentication/options?userId=${userId}, grabbing the userid from the localstorage
@@ -31,16 +32,15 @@
         window.__PRERENDER_DATA__ = data;
       }
     }
-  </script>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parker's Auth</title>
-</head>
+  </script> -->
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parker's Auth</title>
+  </head>
 
-<body>
-  <div id="root"><!--prerender_content--></div>
-  <script type="module" src="/src/entry-client.tsx"></script>
-</body>
-
+  <body>
+    <div id="root"><!--prerender_content--></div>
+    <script type="module" src="/src/entry-client.tsx"></script>
+  </body>
 </html>

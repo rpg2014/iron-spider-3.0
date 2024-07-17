@@ -138,7 +138,7 @@ export default function Chat() {
       <div className="outlet-container ">
         <Outlet context={{ temperature, maxTokens, status, shareUrl }} />
       </div>
-              {/* Kinda want to move this settings modal to the status component? */}
+      {/* Kinda want to move this settings modal to the status component? */}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">

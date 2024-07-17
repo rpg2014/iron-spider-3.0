@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { Links, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
 import { useTheme } from "~/hooks/useTheme";
 
@@ -54,14 +54,38 @@ async function registerMcServerCheck() {
 export function Document({ children, title }: { children: React.ReactNode; title?: string }) {
   const { theme, setTheme } = useTheme();
 
-  React.useEffect(() => {
+  useEffect(() => {
     registerServiceWorker();
     registerMcServerCheck();
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!theme) {
       setTheme("dark");
+    }
+  }, []);
+
+  /**
+   * Async Iterators are not supported on readable streams in Samsung Browser yet, so we need to polyfill them.
+   */
+  useEffect(() => {
+    const supportsAsyncIterator = Symbol.asyncIterator in ReadableStream.prototype;
+    console.log(`supportsAsyncIterator: `, supportsAsyncIterator);
+    if (!supportsAsyncIterator) {
+      console.log("Polyfilling AsyncIterator support");
+      //@ts-ignore
+      ReadableStream.prototype[Symbol.asyncIterator] = async function* () {
+        const reader = this.getReader();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) return;
+            yield value;
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      };
     }
   }, []);
   return (
