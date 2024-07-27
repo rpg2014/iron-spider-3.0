@@ -1,9 +1,5 @@
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import type { AgentStep, Step } from "~/genAi/spiderAssistant";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/Accordion";
-import { useState, useRef, useEffect } from "react";
-import { Message, MessageProps } from "./Message.client";
+import { useState, useRef } from "react";
+import { Message } from "./Message.client";
 import type { MessageModel } from "./model";
 
 //Message creation factory function

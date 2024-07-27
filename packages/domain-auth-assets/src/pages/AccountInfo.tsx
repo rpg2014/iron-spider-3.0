@@ -63,7 +63,10 @@ const AccountInfo = () => {
         </p>
         {loading && <Spinner />}
         {error && <Alert variant="danger">{error.message}</Alert>}
-        {userData && <AccountData data={userData} />}
+        {userData && userData.verified && <AccountData data={userData} />}
+        {userData && !userData.verified && (
+          <Alert variant="danger">You need to log in</Alert>
+        )}
       </div>
     </>
   );

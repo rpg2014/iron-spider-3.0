@@ -16,9 +16,18 @@ export default defineConfig({
   build: {
     target: "esnext",
     minify: "esbuild",
+    commonjsOptions: {
+      include: [/client-rust-functions/, /node_modules/],
+    },
+    rollupOptions: {
+      // external: ['@aws-sdk/client-sts', "@aws-sdk/client-sso-oidc"]
+    }
   },
   base: "/",
   publicDir: "/static",
+  optimizeDeps: {
+    include: ["client-rust-functions"],
+  },
   plugins: [
     !isStorybook
       ? remix({
@@ -28,7 +37,8 @@ export default defineConfig({
           // publicPath: "/assets",
           serverBuildFile: "index.js",
           // I cant get lambda to fully support esm, i get dynamic import related errors.
-          serverModuleFormat: "cjs",
+          serverModuleFormat: "esm",
+          manifest: false,
         })
       : react(),
     tsconfigPaths(),

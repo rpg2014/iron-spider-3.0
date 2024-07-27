@@ -1,9 +1,9 @@
 /// <reference no-default-lib="true"/>
 /// <reference lib="WebWorker" />
 
-const sw = self as ServiceWorkerGlobalScope & typeof globalThis;
+const sw = self as unknown as ServiceWorkerGlobalScope & typeof globalThis;
 
-const VERSION = "v4";
+const VERSION = "v6";
 
 const addResourcesToCache = async (resources: Request[]) => {
   const cache = await caches.open(VERSION);
@@ -13,15 +13,15 @@ const addResourcesToCache = async (resources: Request[]) => {
 };
 // service worker install function.  Sends and event back
 // to the main app on successful install
-self.addEventListener("install", async event => {
+sw.addEventListener("install", async event => {
   console.log("Service worker installed");
   event.waitUntil(addResourcesToCache([]));
 });
 
 // Enable navigation preload
 const enableNavigationPreload = async () => {
-  if (self.registration.navigationPreload) {
-    await self.registration.navigationPreload.enable();
+  if (sw.registration.navigationPreload) {
+    await sw.registration.navigationPreload.enable();
   }
 };
 
@@ -35,13 +35,13 @@ const deleteOldCaches = async () => {
   const cachesToDelete = keyList.filter(key => !cacheKeepList.includes(key));
   await Promise.all(cachesToDelete.map(deleteCache));
 };
-self.addEventListener("activate", event => {
+sw.addEventListener("activate", event => {
   console.log("Service worker activated");
   event.waitUntil(enableNavigationPreload());
   //skip waiting
-  self.skipWaiting();
+  sw.skipWaiting();
   // grab all unclaimed pages
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(sw.clients.claim());
   //delete old caches
   event.waitUntil(deleteOldCaches());
 });
@@ -55,7 +55,7 @@ const getFromCache = async (request: Request) => {
   return cache.match(request);
 };
 
-self.addEventListener("fetch", event => {
+sw.addEventListener("fetch", event => {
   // attempt network fetch, then show 404 page on error.
   event.respondWith(
     (async () => {
@@ -68,7 +68,7 @@ self.addEventListener("fetch", event => {
 
         // emit message to client on whats being cached.
         if (event.clientId) {
-          const client = await self.clients.get(event.clientId);
+          const client = await sw.clients.get(event.clientId);
           client?.postMessage({
             type: "cache-update",
             url: event.request.url,
@@ -84,10 +84,11 @@ self.addEventListener("fetch", event => {
       } catch (e) {
         console.log("Error fetching page, showing offline page", e);
 
-        // if the request isn't for the remix.parkergiven.com domain, then we can just return the response
-        if (!event.request.url.includes("remix.parkergiven.com")) {
-          throw response;
-        }
+        // This code is wrong, and problably will never trigger dueto the block at line 63 above
+        // // if the request isn't for the remix.parkergiven.com domain, then we can just return the response
+        // if (!event.request.url.includes("remix.parkergiven.com")) {
+        //   throw response;
+        // }
 
         //try to use cache, if its not present, show 404
         const cachedResponse = await getFromCache(event.request);
@@ -107,7 +108,8 @@ self.addEventListener("fetch", event => {
 });
 
 // for the sync event, we want to the api and show a badge if the browser supports it
-self.addEventListener("periodicsync", event => {
+// tag doesn't exist on the Event type, but it does on the PeriodicSyncEventTYpe
+sw.addEventListener("periodicsync", async (event: Event & { tag?: string; waitUntil?: (a: Promise<any>) => void }) => {
   console.log("Service worker sync event");
   console.log(`Tag: ${event.tag}`);
   if (event.tag === "check-mc-server") {
@@ -126,23 +128,27 @@ self.addEventListener("periodicsync", event => {
           navigator.clearAppBadge();
         }
         // display notification
-        self.registration.showNotification(`Server Status: ${data.status}`, {
+        sw.registration.showNotification(`Server Status: ${data.status}`, {
           body: `Fetching server status, periodicSync was triggered.`,
         });
       } catch (e) {
+        console.log("Error fetching server status");
         console.error(e);
       }
     };
-
-    event.waitUntil(updateBadge());
+    if (event.waitUntil) {
+      event.waitUntil(updateBadge());
+    } else {
+      console.log("Wait until not found on periodic sync event");
+    }
   }
 });
 
 // listen for notification clicks, and close the notification if the action is "close"
-self.addEventListener("notificationclick", event => {
+sw.addEventListener("notificationclick", event => {
   if (event.action === "close") {
     event.notification.close();
   } else if (event.action === "open-settings") {
-    event.waitUntil(self.clients.openWindow("/settings"));
+    event.waitUntil(sw.clients.openWindow("/settings"));
   }
 });

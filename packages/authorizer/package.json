@@ -3,26 +3,30 @@
   "version": "0.1.0",
   "bin": "bin/authorizer.js",
   "scripts": {
-    "build": "esbuild src/Authorizer.ts --minify --tree-shaking=true --format=esm --tsconfig=./tsconfig.json --platform=node --target=node20 --bundle --outdir=build/",
+    "typecheck": "tsc --noEmit",
+    "build": "ts-node configuration/build_authorizer.ts",
+    "release": "yarn typecheck && yarn build",
+    "analyze": "yarn build -- --analyze",
     "test": "jest",
     "cdk": "cdk"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.10",
-    "@types/node": "^18.11.18",
+    "@types/node": "^20.14.12",
     "@types/prettier": "2.6.0",
     "aws-cdk-lib": "^2.144.0",
     "constructs": "^10.3.0",
-    "esbuild": "^0.19.8",
+    "esbuild": "0.22.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.159.0",
+    "@aws-sdk/client-dynamodb": "^3.458.0",
     "aws-jwt-verify": "^3.1.0",
+    "jwt-lib": "workspace:*",
     "source-map-support": "^0.5.21"
   }
 }

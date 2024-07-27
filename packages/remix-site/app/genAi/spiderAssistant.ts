@@ -3,6 +3,7 @@ import { fetcher } from "~/utils";
 import type { ReadableStream2 } from "./coreUtils";
 import { parseEventStream } from "./coreUtils";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import type { Message } from "~/components/chat/Messages/model";
 
 type InputOpts = Partial<{
   temperature: number;
@@ -123,11 +124,19 @@ async function /***/ streamAgentNewFetch(prompt: string, signal: any, onMessage:
   //   return yield* await parseEventStream(res.body);
 }
 
-const getMemory = async (): Promise<any> => {
+const getMemory = async (): Promise<{ messages?: Message[] }> => {
   const res = await fetcher(`${AGENT_URL}/memory`, {
     credentials: "include",
     mode: "cors",
   });
+  return res;
+};
+/**
+ *
+ * @returns the chatId of the new chat
+ */
+const newChat = async (): Promise<{ chatId: string }> => {
+  const res = await fetcher(`${AGENT_URL}/memory/newChat`, { credentials: "include", mode: "cors", method: "POST" });
   return res;
 };
 
@@ -189,5 +198,6 @@ export const assistant = {
   },
   memory: {
     get: getMemory,
+    newChat,
   },
 };

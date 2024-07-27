@@ -1,5 +1,5 @@
 import { Operation } from "@aws-smithy/server-common";
-import { ServerStatusOutput, InternalServerError, ServerDetailsOutput, StartServerOutput, StopServerOutput, BadRequestError } from "iron-spider-ssdk";
+import { ServerStatusOutput, Status as StatusStrings, InternalServerError, ServerDetailsOutput, StartServerOutput, StopServerOutput, BadRequestError } from "iron-spider-ssdk";
 import { HandlerContext } from "authorizer/src/model/models";
 import { MinecraftDBWrapper } from "../wrappers/MinecraftDynamoWrapper";
 import { MinecraftEC2Wrapper } from "../wrappers/MinecraftEC2Wrapper";
@@ -14,7 +14,7 @@ export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerCon
   let status: string = Status[code];
   console.log(`Instance status: ${status}`);
   return {
-    status,
+    status: status as StatusStrings,
   };
 };
 

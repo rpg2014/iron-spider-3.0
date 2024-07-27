@@ -9,6 +9,10 @@ interface JwtUserObject {
    apiAccess: string[];
    displayName: string;
 }
+
+/**
+ * An interface representing the options for generating a JWT token.
+ */
 export interface GenerateJWTOptions {
   userId: string, 
   displayName: string,
@@ -19,7 +23,18 @@ export interface GenerateJWTOptions {
    aud?: string | undefined
    scope?: string,
 }
+/**
+ * An object containing methods for verifying and generating JSON Web Tokens (JWT).
+ */
 export const JWTProcessor = {
+  /**
+   * Verifies a JWT token.
+   *
+   * @param {string} token - The JWT token to verify.
+   * @param {string | string[] | undefined} [issuer=`auth.${process.env.DOMAIN}`] - The issuer of the token.
+   * @param {string | RegExp | (string | RegExp)[] | undefined} [aud] - The audience of the token.
+   * @returns {Promise<JwtUserObject>} A promise that resolves with the decoded JWT payload as a JwtUserObject.
+   */
   async verifyToken(token: string, issuer: string | string[] | undefined = `auth.${process.env.DOMAIN}`, aud?: string | RegExp | (string | RegExp)[] | undefined): Promise<JwtUserObject> {
     if (!keyPair) {
       keyPair = await getSecretKeyAccessor().getKey();
@@ -32,6 +47,19 @@ export const JWTProcessor = {
     }) as JwtPayload;
     return decoded as JwtUserObject;
   },
+   /**
+   * Generates a JWT token for a user.
+   *
+   * @param {GenerateJWTOptions} options - The options for generating the JWT token.
+   * @param {string} options.userId - The user ID to include in the token.
+   * @param {string[]} [options.siteAccess=[]] - An array of site access permissions to include in the token.
+   * @param {string[]} [options.apiAccess=[]] - An array of API access permissions to include in the token.
+   * @param {string} [options.expiresIn='1h'] - The expiration time for the token.
+   * @param {string} [options.issuer=`auth.${process.env.DOMAIN}`] - The issuer of the token.
+   * @param {string} [options.aud='none'] - The audience of the token.
+   * @param {string} [options.displayName] - The display name to include in the token.
+   * @returns {Promise<string>} A promise that resolves with the generated JWT token.
+   */
   async generateTokenForUser(options: GenerateJWTOptions): Promise<string> {
     if (!keyPair) {
       console.log("Fetching KeyPair");

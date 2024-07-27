@@ -21,7 +21,7 @@ import {
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import type { FunctionUrl } from "aws-cdk-lib/aws-lambda";
-import { FunctionUrlAuthType, InvokeMode, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Code, FunctionUrlAuthType, InvokeMode, Runtime } from "aws-cdk-lib/aws-lambda";
 import path from "path";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { AaaaRecord, ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
@@ -71,38 +71,18 @@ export class RemixAppStack extends Stack {
     assetsBucket.grantRead(assetsBucketOriginAccessIdentity);
     serviceWorkerBucket.grantRead(assetsBucketOriginAccessIdentity);
 
+    
     const fn = new NodejsFunction(this, "RemixServerFn", {
       currentVersionOptions: {
         removalPolicy: RemovalPolicy.DESTROY,
       },
-      entry: path.join(__dirname, "../server/index.ts"),
-      handler: isStreamingFunction ? "streamingHandler" : "nonStreamingHandler",
+      code: Code.fromAsset(path.join(__dirname, "../dist/")),
+      handler: isStreamingFunction ? "streamingHandler" : "lambda_server.nonStreamingHandler",
       logRetention: RetentionDays.THREE_DAYS,
       memorySize: 256,
       timeout: Duration.seconds(10),
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
 
-      bundling: {
-        esbuildArgs: {
-          "--tree-shaking": true,
-        },
-        format: OutputFormat.CJS,
-        logLevel: LogLevel.INFO,
-        minify: true,
-        tsconfig: path.join(__dirname, "../tsconfig.json"),
-        commandHooks: {
-          afterBundling(inputDir, outputDir) {
-            return [
-              //moving dependencies from the input to the output
-              `cp ${path.join(__dirname, "../rust-functions/pkg/rust-functions_bg.wasm")} ${outputDir}`,
-              // `cp ${inputDir}/build/server/*.map ${outputDir}`,
-              // `cp ${inputDir}/build/server/*.json ${outputDir}`,
-            ];
-          },
-          beforeBundling: (inputDir: string, outputDir: string): string[] => [],
-          beforeInstall: (inputDir: string, outputDir: string): string[] => [],
-        },
-      },
     });
 
     // The only way to interact with http streams is lambda function urls, which you cannot put behind a CDN, and route 53,

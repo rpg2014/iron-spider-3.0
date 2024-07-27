@@ -71,6 +71,9 @@ export const doAuthRedirect = async (request: Request) => {
 };
 
 export const DEFAULT_AUTH_LOADER = async ({ request }: LoaderFunctionArgs) => {
+  //to add a delay in the response
+  // const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  // await sleep(1000);
   return doAuthRedirect(request);
 };
 

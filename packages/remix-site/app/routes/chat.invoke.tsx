@@ -3,11 +3,8 @@ import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/Button";
 import { Textarea } from "~/components/ui/TextArea";
-import { useAICompletions } from "~/hooks/useAICompletions";
 import * as EB from "~/components/ErrorBoundary";
-import type { Message } from "~/components/chat/Messages/Messages.client";
 import Messages from "~/components/chat/Messages/Messages.client";
-
 
 export default function Invoke() {
   // const settings = useAICompletions(0);
@@ -34,7 +31,7 @@ export default function Invoke() {
   return (
     <div>
       <h1>Invoke - Don't use this one currently, its broken and won't work</h1>
-{/*       
+      {/*       
       <Form className="flex flex-col">
         <br style={{ margin: "1rem" }} />
         <Messages messages={messages} />

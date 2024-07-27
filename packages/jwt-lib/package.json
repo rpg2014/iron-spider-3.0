@@ -1,18 +1,30 @@
 {
   "name": "jwt-lib",
   "description": "a lib for creating and verifying jwts to use across the infra",
-  "packageManager": "yarn@4.0.2",
+  "type": "module",
+  "packageManager": "yarn@4.3.1",
+  "module": "dist/index.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "clean": "rm -rf dist",
+    "build": "yarn clean && yarn run build:js && yarn run build:types",
+    "build:js": "yarn run tsc ",
+    "build:types": "yarn run tsc --emitDeclarationOnly --declaration",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
   },
   "dependencies": {
-    "jsonwebtoken": "^9.0.2",
-    "typescript": "^5.1.6"
+    "@aws-sdk/client-secrets-manager": "^3.458.0",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.5"
+    "@tsconfig/node20": "^20.1.4",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.14.12",
+    "tsc": "^2.0.4",
+    "typescript": "^5.1.6"
   }
 }

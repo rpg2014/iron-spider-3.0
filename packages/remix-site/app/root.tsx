@@ -4,7 +4,6 @@ import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 
 import globalStylesUrl from "~/styles/global.css?url";
 import themeUrl from "~/styles/themes.css?url";
-import tailwind from "./tailwind.css?url";
 import favicon from "~/images/favicon.ico";
 import * as EB from "~/components/ErrorBoundary";
 import { Layout, links as LayoutLinks } from "~/components/Layout";
@@ -20,7 +19,6 @@ export let links: LinksFunction = () => {
     { rel: "icon", href: favicon },
     { rel: "stylesheet", href: globalStylesUrl },
     { rel: "manifest", href: "/static/manifest.json" },
-    { rel: "stylesheet", href: tailwind },
     // {
     //   rel: "stylesheet",
     //   href: darkStylesUrl,

@@ -2,28 +2,31 @@ import { Duration } from "aws-cdk-lib";
 import { getMinecraftPolicies } from "./cdk-constants";
 import { IEntryPoints } from "./api-stack";
 
+
+// TODO: remove the handler/ from the handler file definitions
+
 const minecraftServerOperations: Partial<IEntryPoints> = {
   ServerStatus: {
-    handlerFile: "handlers/MCServerHandlers",
+    handlerFile: "MCServerHandlers",
     handlerFunction: "statusHandler",
     memorySize: 256,
     policies: getMinecraftPolicies(),
   },
   ServerDetails: {
-    handlerFile: "handlers/MCServerHandlers",
+    handlerFile: "MCServerHandlers",
     handlerFunction: "detailsHandler",
     memorySize: 256,
     policies: getMinecraftPolicies(),
   },
   StartServer: {
-    handlerFile: "handlers/MCServerHandlers",
+    handlerFile: "MCServerHandlers",
     handlerFunction: "startHandler",
     memorySize: 256,
     timeout: Duration.minutes(5),
     policies: getMinecraftPolicies(),
   },
   StopServer: {
-    handlerFile: "handlers/MCServerHandlers",
+    handlerFile: "MCServerHandlers",
     handlerFunction: "stopHandler",
     timeout: Duration.minutes(14),
     memorySize: 256,
@@ -33,37 +36,37 @@ const minecraftServerOperations: Partial<IEntryPoints> = {
 
 const AuthOperations: Partial<IEntryPoints> = {
   CreateUser: {
-    handlerFile: "handlers/AuthHandler",
+    handlerFile: "AuthHandler",
     handlerFunction: "getCreateUser",
     memorySize: 256,
   },
   GenerateRegistrationOptions: {
-    handlerFile: "handlers/AuthHandler",
+    handlerFile: "AuthHandler",
     handlerFunction: "getRegistrationOptions",
     memorySize: 256,
   },
   VerifyRegistration: {
-    handlerFile: "handlers/AuthHandler",
+    handlerFile: "AuthHandler",
     handlerFunction: "verifyRegistrationHandler",
     memorySize: 256,
   },
   GenerateAuthenticationOptions: {
-    handlerFile: "handlers/AuthHandler",
+    handlerFile: "AuthHandler",
     handlerFunction: "getAuthOptions",
     memorySize: 256,
   },
   VerifyAuthentication: {
-    handlerFile: "handlers/AuthHandler",
+    handlerFile: "AuthHandler",
     handlerFunction: "verifyAuthResponse",
     memorySize: 256,
   },
   UserInfo: {
-    handlerFile: "handlers/OtherAPIs",
+    handlerFile: "OtherAPIs",
     handlerFunction: "userInfo",
     memorySize: 256,
   },
   GetPublicKeys: {
-    handlerFile: "handlers/OtherAPIs",
+    handlerFile: "OtherAPIs",
     handlerFunction: "getPublicKeys",
     memorySize: 256,
   },
@@ -71,7 +74,7 @@ const AuthOperations: Partial<IEntryPoints> = {
 
 const OtherAPIs: Partial<IEntryPoints> = {
   Logout: {
-    handlerFile: "handlers/OtherAPIs",
+    handlerFile: "OtherAPIs",
     handlerFunction: "logout",
     memorySize: 256,
   },
@@ -81,3 +84,29 @@ export const operations = {
   apiOperationsList: [minecraftServerOperations, OtherAPIs],
   authOperations: AuthOperations,
 };
+
+export const getOperationsAsFlatObject = () => {
+  
+    const result = {};
+  
+    // Process apiOperationsList
+    if (operations.apiOperationsList) {
+      operations.apiOperationsList.forEach(operationGroup => {
+        Object.assign(result, operationGroup);
+      });
+    }
+  
+    // Process authOperations
+    if (operations.authOperations) {
+      Object.assign(result, operations.authOperations);
+    }
+  
+    return result;
+  }
+
+const getOperationsAsJson = () => {
+  
+  return JSON.stringify(operations, null, 2);
+};
+
+export { getOperationsAsJson };

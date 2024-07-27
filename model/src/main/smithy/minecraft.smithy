@@ -47,6 +47,7 @@ enum Status {
 }
 
 structure ServerStatusOutput  {
+    @required
     status: Status
 }
 structure ServerDetailsOutput {

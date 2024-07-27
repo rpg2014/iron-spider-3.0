@@ -1,1 +1,1 @@
-export { add } from "rust-functions";
+export { add } from "server-rust-functions";

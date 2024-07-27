@@ -20,7 +20,8 @@
     "generate-ssdk": "cd ../ && ./gradlew :server-codegen:build",
     "build:ssdk": "cd codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen && yarn install && yarn build",
     "regenerate:ssdk": "yarn generate-ssdk && yarn build:ssdk",
-    "build": "yarn regenerate:ssdk && tsc && yarn test",
+    "build": "yarn regenerate:ssdk && yarn test && yarn build:operations ",
+    "build:operations": "ts-node configuration/build_operations.ts",
     "prepare": "cd .. && husky install server/.husky"
   },
   "files": [
@@ -38,14 +39,15 @@
     "@simplewebauthn/server": "^8.3.5",
     "@types/aws-lambda": "^8.10.85",
     "@types/uuid": "^9.0.2",
-    "iron-spider-ssdk": "workspace:*",
+    "iron-spider-ssdk": "workspace:server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen",
     "jsonwebtoken": "^9.0.1",
     "jwt-lib": "workspace:^",
+    "re2-wasm": "1.0.2",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@simplewebauthn/typescript-types": "^8.3.4",
-    "@tsconfig/node20": "^20.1.2",
+    "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^26.0.24",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^18.11.18",
@@ -81,8 +83,5 @@
     "*.(md|json)": [
       "prettier --write"
     ]
-  },
-  "workspaces": [
-    "codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
-  ]
+  }
 }

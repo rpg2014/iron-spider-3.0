@@ -1,11 +1,18 @@
 import { Button } from "~/components/ui/Button";
 import styles from "../styles/settings.module.css";
 import { useEffect, useState } from "react";
-import { notificationSettingKey } from "~/constants";
+import { API_DOMAIN, API_DOMAIN_VERSION, notificationSettingKey } from "~/constants";
+import { fetcher } from "~/utils";
+import { DEFAULT_AUTH_LOADER } from "~/utils.server";
+import { useLoaderData, useRevalidator } from "@remix-run/react";
+import { IronSpiderAPI } from "~/service/IronSpiderClient";
+
+//TODO: remove this loader if this adds latency and shit
+export const loader = DEFAULT_AUTH_LOADER;
 
 export default function Settings() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>();
-
+  const { hasCookie } = useLoaderData<typeof loader>();
   // figure out notificaton permission on client side
   useEffect(() => {
     if ("Notification" in window) {
@@ -79,6 +86,45 @@ export default function Settings() {
           {notificationPermission === undefined ? "Loading" : notificationPermission === "granted" ? "Send Notification" : "Get Notification Permission"}
         </Button>
       </div>
+      <hr />
+      {hasCookie && (
+        <div className={styles.setting}>
+          <label className={styles.settingsLabel}>Sign out</label>
+          <LogoutButton />
+        </div>
+      )}
     </main>
   );
 }
+
+const LogoutButton = () => {
+  const [loading , setLoading] = useState(false)
+  let revalidator = useRevalidator();
+  const handleLogout = async () => {
+    try {
+      setLoading(true)
+      await IronSpiderAPI.logout();
+    } catch (e) {
+      console.error(e);
+      console.log("falling back to raw fetch");
+      await fetcher(
+        `${API_DOMAIN_VERSION}/logout`,
+        {
+          credentials: "include",
+          method: "POST",
+          mode: "cors",
+        },
+        false,
+      );
+    }finally {
+      setLoading(false)
+      revalidator.revalidate();
+    }
+  };
+  
+  return (
+    <Button disabled={loading} variant="destructive" onClick={handleLogout}>
+      {loading ? "Loading...": "Logout"}
+    </Button>
+  );
+};

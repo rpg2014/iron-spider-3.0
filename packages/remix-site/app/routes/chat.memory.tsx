@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import Messages from "~/components/chat/Messages/Messages.client";
-import { Message } from "~/components/chat/Messages/model";
+import type { Message } from "~/components/chat/Messages/model";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/Alert";
 import { assistant } from "~/genAi/spiderAssistant";
 
@@ -23,7 +23,7 @@ const Memory = () => {
           <Messages messages={memory?.messages} />
         </div>
       )}
-      <div>{JSON.stringify({ summary: memory?.summary, memory: memory?.memory }, null, 2)}</div>
+      <pre style={{ wordWrap: "break-word" }}>{JSON.stringify({ summary: memory?.summary, memory: memory?.memory }, null, 2)}</pre>
       {error && (
         <Alert className="mt-5" variant={"light_destructive"}>
           <AlertTitle>Error</AlertTitle>

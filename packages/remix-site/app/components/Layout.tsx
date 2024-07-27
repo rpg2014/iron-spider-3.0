@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link } from "@remix-run/react";
+import { Link, useNavigation } from "@remix-run/react";
 import layoutStyles from "~/styles/layout.css?url";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import {
@@ -22,9 +22,10 @@ export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
  * @constructor
  */
 export function Layout({ children }: React.PropsWithChildren<{}>) {
+  const { state } = useNavigation();
   return (
     <div className="remix-app dark">
-      <header className="remix-app__header">
+      <header className={"remix-app__header "}>
         <div className=" remix-app__header-content">
           <Suspense fallback={<p>loading...</p>}>
             {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
@@ -47,6 +48,12 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
                     <Link prefetch={"viewport"} to={"/intranetLinks"}>
                       <NavigationMenuLink className={navigationMenuTriggerStyle()}>Links</NavigationMenuLink>
                     </Link>
+                    <Link prefetch={"viewport"} to={"/wasm"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Wasm</NavigationMenuLink>
+                    </Link>
+                    <Link prefetch={"viewport"} to={"/mc-server"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>server</NavigationMenuLink>
+                    </Link>
                     <Link prefetch={"none"} to={"/404"}>
                       <NavigationMenuLink className={navigationMenuTriggerStyle()}>404 Page</NavigationMenuLink>
                     </Link>
@@ -66,15 +73,13 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
           </Suspense>
         </div>
       </header>
-      <div className="remix-app__main">
+      <div className={"remix-app__main " + (state !== "idle" ? "loading-indicator" : "")}>
         <div className="remix-app__main-content">
           <React.Suspense fallback={<div>Loading...</div>}>{children}</React.Suspense>
         </div>
       </div>
       <footer className="remix-app__footer">
-        <div className="container remix-app__footer-content">
-          <p>&copy; You!</p>
-        </div>
+        <div className="container remix-app__footer-content">{/* <p>&copy; You!</p> */}</div>
       </footer>
     </div>
   );

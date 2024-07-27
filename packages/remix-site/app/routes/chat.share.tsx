@@ -5,8 +5,8 @@ const ShareTarget = () => {
   return (
     <>
       <h1>Click a link to share with an agent</h1>
-      <ul>
-        <li>
+      <ul className="flex flex-col justify-center items-center">
+        <li className="pb-2">
           <Link to="/chat/summarize">
             <Button>Summarizer</Button>
           </Link>

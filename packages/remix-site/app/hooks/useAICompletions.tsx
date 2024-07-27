@@ -1,5 +1,5 @@
 // a react hook that contains a local state. the state includes fields for temperature, top_k, top_p n_predict, n_keep
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AIEndpointSettings, AISettings } from "../genAi/genAiUtils";
 import { completion, getTokenCount } from "../genAi/genAiUtils";
 import { useLocalStorage } from "./useLocalStorage.client";
@@ -177,6 +177,10 @@ export const useAICompletions = (model: number) => {
   } as const;
 };
 
+export type AIChatProps = {
+  fetchMessages: boolean;
+};
+
 /**
  * ground up re-write of the messages state in the agent class.  make it work with the new input and output
  * types, and it should be reusable everywhere.
@@ -185,13 +189,36 @@ export const useAICompletions = (model: number) => {
  *
  * maybe a  context state to store current messages? would need to fetch from bakcend?
  */
-export const useAIChat = () => {
+export const useAIChat = (props?: AIChatProps) => {
   const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const { temperature, maxTokens } = useOutletContext<{ temperature: number; maxTokens: number }>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>();
   const [abortController, setAbortController] = useState(new AbortController());
+
+  useEffect(() => {
+    const getMessages = async () => {
+      if (props?.fetchMessages) {
+        const memory = await assistant.memory.get();
+        if (memory.messages) {
+          setMessages(memory.messages);
+        }
+      }
+    };
+  });
+
+  const newChat = async () => {
+    await assistant.memory.newChat();
+    setMessages([]);
+    const memory = await assistant.memory.get();
+    console.log("memory", memory.messages);
+    if (memory.messages && memory.messages.length > 0) {
+      console.warn("newChat failed, messages were returned");
+      setError("newChat failed, messages were returned");
+      setMessages(memory.messages);
+    }
+  };
 
   /**
    * Parses an AgentStep or Step object and returns an array of Message objects.
@@ -326,6 +353,7 @@ export const useAIChat = () => {
   return {
     cancel,
     submit,
+    newChat,
     loading,
     error,
     messages,

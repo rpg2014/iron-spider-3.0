@@ -4,6 +4,7 @@ import { useLoaderData } from "@remix-run/react";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import { AUTH_DOMAIN } from "~/constants";
 import { Button } from "~/components/ui/Button";
+import { useEffect, useState } from "react";
 // import { Alert, Button, Spinner } from 'react-bootstrap';
 // import { HTTPMethod } from '../../../epics/common';
 // import { DYNAMIC_DNS_URL } from '../../../store/paths';
@@ -35,9 +36,9 @@ export const loader = DEFAULT_AUTH_LOADER;
 export default function IntranetLinks() {
   // useAuthData(props.authData);
   // const authToken = props.authData?.getSignInUserSession()?.getAccessToken().getJwtToken();
-  const [ipAddress, setIpAddress] = React.useState<string | null>(null);
-  const [highlightIndex, setHighlightIndex] = React.useState<number | null>(null);
-  const [isHighlightingComplete, setIsHighlightingComplete] = React.useState(false);
+  const [ipAddress, setIpAddress] = useState<string | null>(null);
+  const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
+  const [isHighlightingComplete, setIsHighlightingComplete] = useState(false);
   const { hasCookie } = useLoaderData<typeof loader>();
   // if (authToken) {
   //   headers = getHeaders(authToken);
@@ -62,7 +63,7 @@ export default function IntranetLinks() {
   //   }
   // }, [authToken]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // if (data) {
     //   setIpAddress(data.IP);
     let intervalId = setInterval(() => {
