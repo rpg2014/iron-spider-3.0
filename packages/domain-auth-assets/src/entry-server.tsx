@@ -17,9 +17,6 @@ export async function render(url: string) {
 
   let router = createStaticRouter(dataRoutes, context as any);
   return renderToString(
-    <StaticRouterProvider
-      router={router}
-      context={context as any}
-    ></StaticRouterProvider>,
+    <StaticRouterProvider router={router} context={context as any} />,
   );
 }

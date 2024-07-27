@@ -2,7 +2,7 @@
   "name": "iron-spider-build",
   "version": "0.0.1",
   "description": "A yarn project for the iron spider monorepo",
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.3.1",
   "author": "",
   "license": "Apache-2.0",
   "private": true,
@@ -12,16 +12,18 @@
     "build:authorizer": "cd packages/authorizer && yarn build",
     "build:server": "cd server && yarn build",
     "build:domain-auth": "cd packages/domain-auth-assets && yarn build",
-    "build": "yarn generate && yarn build:client && yarn build:domain-auth && yarn build:server"
+    "build": "yarn generate  && yarn build:domain-auth && yarn build:server && yarn build:client"
   },
   "devDependencies": {
     "@aws-sdk/protocol-http": "^3.374.0",
-    "esbuild": "^0.14.27",
+    "esbuild": "0.22.0",
     "rimraf": "^3.0.0"
   },
   "workspaces": [
     "typescript-client",
     "packages/*",
-    "server"
+    "server",
+    "typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen",
+    "server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
   ]
 }

@@ -1,0 +1,16 @@
+{
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "incremental": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "module": "ESNext",
+    // "baseUrl": ".",
+    "outDir": "./dist",
+    "lib": ["es2020",]
+  },
+  "exclude": ["node_modules/", "**/*.spec.ts"],
+  // "include": ["bin/"]
+}

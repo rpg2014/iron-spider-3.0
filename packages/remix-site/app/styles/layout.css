@@ -15,13 +15,53 @@
 .remix-app__header {
   padding-top: 1rem;
   padding-bottom: 1rem;
+  /* margin-bottom: 1rem; */
   border-bottom: 1px solid var(--color-border);
+  overflow: visible;
+}
+.loading-indicator {
+  position: relative;
+  overflow: hidden;
+  /* z-index: 100; */
 }
 
+.loading-indicator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* used to be 100% */
+  width: 5%;
+  height: 2px;
+  background: linear-gradient(to right, #333333, #808080, #cccccc, #e6e6e6);
+  /* z-index: 100; */
+  /* old rainbow gradient */
+  /* background: linear-gradient(to right, #4285f4, #fbd605, #ea4335); */
+
+  box-shadow: 
+    /* Left shadow (solid) */
+    10px 3px 8px rgba(234, 68, 53, 0.747),
+    /* Fading shadow from left to right */ 0px 2px 4px rgba(251, 214, 5, 0.5),
+    -10px 1px 2px rgba(66, 134, 244, 0.945),
+    /* -4px 5px 4px rgba(0, 0, 0, 0.2),
+    -2px 5px 2px rgba(0, 0, 0, 0.1), */ /* Right shadow (transparent) */ 0 0px 0 transparent;
+  animation: loading 1s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    /* used to be 100% */
+    transform: translateX(110vw);
+  }
+}
 .remix-app__header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 0.5rem;
 }
 
 .remix-app__header-home-link {
@@ -30,13 +70,13 @@
   color: var(--color-foreground);
 }
 
-.remix-app__header-nav ul {
+/* .remix-app__header-nav ul {
   list-style: none;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 1.5em;
-}
+} */
 
 .remix-app__header-nav li {
   font-weight: bold;
@@ -48,6 +88,7 @@
   /* flex-basis: 100%;; */
 }
 .remix-app__main-content {
+  padding: 0;
 }
 
 .remix-app__footer {
@@ -78,6 +119,9 @@
     grid-auto-rows: unset;
     grid-template-columns: repeat(2, 1fr);
     /* grid-auto-columns: 100%; */
+  }
+  .remix-app__main-content {
+    padding: 1rem;
   }
 }
 

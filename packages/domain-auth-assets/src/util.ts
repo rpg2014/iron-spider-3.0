@@ -12,8 +12,8 @@ export const fetcher = async (
   }
 
   const res = await fetch(input, {
-    ...init,
     mode: "cors",
+    ...init,
     headers,
   });
   const data = await res.json();

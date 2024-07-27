@@ -1,3 +1,7 @@
+# About 
+This repository contains all (most) of my AWS infrastructure.  It's mainly a Lambda api generated from a Smithy model, a static authorization site, and a SSR remix site. 
+
+
 ## Design
 
 * This server + client will replicate iron-spider-2.0.  Some changes will need to be made to fit the serverless platform better like probably removing the task runner

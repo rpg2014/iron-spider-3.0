@@ -2,28 +2,22 @@
   "name": "iron-spider-service-client-build",
   "version": "0.0.1",
   "description": "A yarn project for the IronSpider service TypeScript client build process",
-  "packageManager": "yarn@3.1.1",
+  "packageManager": "yarn@4.3.1",
   "author": "",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
     "generate": "cd ../ && ./gradlew :typescript-client-codegen:build",
     "build:client": "cd codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen && yarn install && yarn build",
-    "build": "yarn generate  && tsc"
+    "build": "yarn generate && yarn run build:client  && tsc"
   },
   "bin": {
     "str-length": "./dist/length.js"
-  },
-  "dependencies": {
-    "iron-spider-client": "workspace:typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
   },
   "devDependencies": {
     "@tsconfig/node18": "18.2.0",
     "@types/node": "^18.11.18",
     "rimraf": "^3.0.0",
     "typescript": "^5.1.6"
-  },
-  "workspaces": [
-    "codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
-  ]
+  }
 }

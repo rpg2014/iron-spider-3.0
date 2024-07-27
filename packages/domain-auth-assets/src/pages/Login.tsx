@@ -8,8 +8,22 @@ import {
   browserSupportsWebAuthnAutofill,
 } from "@simplewebauthn/browser";
 import Alert from "../components/Alert.tsx";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useOutletContext } from "react-router-dom";
+import { OutletContext } from "./Layout.tsx";
 
+function getRedirectURL(): string | undefined {
+  const urlParams = new URLSearchParams(window.location.search);
+  const return_url = urlParams.get("return_url");
+  if (return_url) {
+    console.log(`Got return url: ${return_url}`);
+    console.log(`decoded url = ${decodeURIComponent(return_url)}`);
+    const url = new URL(return_url);
+    // if the url is from parkergiven.com or any subdomain, set state
+    if (url.hostname.endsWith("parkergiven.com")) {
+      return return_url;
+    }
+  }
+}
 const generateAuthOptions = async () => {
   if (isSSR) {
     return null;
@@ -20,6 +34,13 @@ const generateAuthOptions = async () => {
 
   console.log(`Auto fill supported = ${autoFillSupported}`);
   if (userIdEncoded && autoFillSupported) {
+    // Prerender data is disabled for now, as I'm not sure if it ever triggered.
+    //@ts-ignore
+    if (window.__PRERENDER_DATA__) {
+      console.log(`Found pre-rendered data`);
+      //@ts-ignore
+      return window.__PRERENDER_DATA__;
+    }
     console.log(`Found user token: `, userIdEncoded);
     const userId = atob(userIdEncoded);
     console.log(`Got User Id: ${userId}`);
@@ -44,15 +65,7 @@ function Login() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState();
   const [email, setEmail] = useState("");
-  const [state, setState] = useState<
-    | "INIT"
-    | "AUTO_FETCH_OPTS"
-    | "GEN_OPTS"
-    | "AUTHING"
-    | "VERIFY"
-    | "ERROR"
-    | "DONE"
-  >("INIT");
+  const { state, setState } = useOutletContext<OutletContext>();
   const [autocompleteSupported, setAutocompletedSupported] = useState<
     undefined | boolean
   >();
@@ -60,6 +73,17 @@ function Login() {
     undefined | { displayName: string; userId: string; siteAccess: string[] }
   >();
   const data: any = useLoaderData() as any;
+
+  const [redirectUrl, setRedirctUrl] = useState<string | null>();
+
+  //useEffect hook gets return_url query parameter from the URL on load, and validates it
+  // to be from parkergiven.com, and sets it in the state.
+  useEffect(() => {
+    const func = async () => {
+      setRedirctUrl(getRedirectURL());
+    };
+    func();
+  }, []);
 
   //print state on state change
   useEffect(() => {
@@ -93,6 +117,11 @@ function Login() {
     func();
   }, []);
 
+  /**
+   *
+   * @param generateResults
+   * @param autocomplete
+   */
   const doAuthFlow = async (
     generateResults: any,
     autocomplete: boolean = false,
@@ -129,6 +158,18 @@ function Login() {
           ...verifyResults.userData,
           userId: verifyResults.userId,
         });
+        const urlFromQueryParams = getRedirectURL();
+        if (urlFromQueryParams) {
+          // redirect to redirectUrl in 1 seconds
+          setState("REDIRECTING");
+          console.log("Creating Redirect timeout");
+          setTimeout(() => {
+            //url decode redirectUrl
+            const decodedUrl = decodeURIComponent(urlFromQueryParams);
+            console.log(`Redirecting to ${decodedUrl}`);
+            window.location.replace(decodedUrl);
+          }, 50);
+        }
       }
     } catch (e: any) {
       //TODO: dedupe error handling here
@@ -170,7 +211,10 @@ function Login() {
         {!success && (
           <>
             <h2 className={styles.title}>Login</h2>
-            <p>Provide your email to sign in.</p>
+            <p>
+              Provide your email to sign in.{" "}
+              {redirectUrl && "Login is required to access that page"}
+            </p>
             {/* TODO: switch this div to a form to get free submit on enter*/}
             <form
               onSubmit={() => generateOptions()}
@@ -207,7 +251,10 @@ function Login() {
           </>
         )}
         {success && (
-          <Alert variant="success">{`Welcome back ${user?.displayName}`}</Alert>
+          <>
+            <Alert variant="success">{`Welcome back ${user?.displayName}`}</Alert>
+            <div>{`State: ${state}`}</div>
+          </>
         )}
         {error && <Alert variant="danger">{error}</Alert>}
         {/* <Alert variant="grey">{`loader data: ${JSON.stringify(data)}`}</Alert> */}

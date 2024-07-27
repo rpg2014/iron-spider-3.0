@@ -1,12 +1,14 @@
 {
-  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx", "server/index.ts", "bin/cdk-remix-app.ts"],
-  "exclude": ["node_modules", "cdk.out"],
+  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "server/index.ts", "bin/cdk-remix-app.ts", "configuration/build_remix_app.ts"],
+  "exclude": ["node_modules", "cdk.out", "service-worker"],
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2019"],
+    "lib": ["dom", "DOM.Iterable", "ESNext"],
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "moduleResolution": "node",
-    "module": "CommonJS",
+    //migrating to vite
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "target": "ES2019",
     "strict": true,

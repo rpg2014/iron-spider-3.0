@@ -16,3 +16,8 @@ This is a lambda authorizor that verifies the header against the cognito user po
 Add passthrough for auth and registration api's
 Add jwt validation that supports the new auth tokens (different / new headers?)
 Move dynamo wrapper into api layer, not auth layer
+
+
+### Old build scripts
+"build-old": "esbuild src/Authorizer.ts --minify --tree-shaking=true --format=cjs --tsconfig=./tsconfig.json --platform=node --target=node20 --bundle  --outdir=build/",
+    "build-test": "esbuild build/src/Authorizer.js --minify --tree-shaking=true --format=cjs --tsconfig=./tsconfig.json --platform=node --target=node20 --bundle  --outdir=dist/",

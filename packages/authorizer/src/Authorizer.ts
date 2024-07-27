@@ -2,7 +2,7 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { event } from "./model/models";
 import { generateAllow, generateDeny } from "./utils";
 import * as AuthDynamoWrapper from './AuthDynamoWrapper';
-import {JWTProcessor as jwtlib} from 'jwt-lib/src/index';
+import {JWTProcessor as jwtlib} from 'jwt-lib';
 
 export const USER_TOKEN_COOKIE_NAME: string = "x-pg-id";
 const bypass_auth_for_paths = ['/v1/registration', "/v1/authentication", "/server/status", "/v1/userInfo"]

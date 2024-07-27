@@ -5,6 +5,8 @@ import "source-map-support/register";
 import { ApiStack } from "../lib/api-stack";
 import { PasskeyInfraStack } from "../lib/passkey-stack";
 import { DomainAuthAssetsStack } from "domain-auth-assets/lib/auth-assets-stack";
+import { RemixAppStack } from "remix-site/lib/remix-app-stack";
+import { HomelabStack } from 'homelab-aws-infra/lib/homelab-stack';
 import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "../lib/cdk-constants";
 import { SES_ARNS } from "../.secrets";
 
@@ -12,7 +14,7 @@ const app = new App();
 
 const certificateArn = "arn:aws:acm:us-east-1:593242635608:certificate/e4ad77f4-1e1b-49e4-9afb-ac94e35bc378";
 const domainName = "parkergiven.com";
-const subDomains = ["auth", "pwa", "remix"];
+const subDomains = ["auth", "pwa", "remix", "ai"];
 const env = {
   account: process.env.CDK_DEPLOY_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION,
@@ -68,10 +70,19 @@ const AuthAssetsStack = new DomainAuthAssetsStack(app, "DomainAuth", {
 });
 
 // // Main Website stack
-// const remixStack = new RemixAppStack(this, "RemixApp", {
-//   env,
-//   certificateArn,
-//   domainName,
-//   subDomain: "remix",
-//   computeType: "EdgeFunction", //useStreams ? "HTTPStreaming" : "EdgeFunction",
-// })
+const remixStack = new RemixAppStack(app, "RemixApp", {
+  env,
+  certificateArn,
+  domainName,
+  subDomain: "remix",
+  computeType: "EdgeFunction", //useStreams ? "HTTPStreaming" : "EdgeFunction",
+});
+
+// Homelab aws stack.  used for like dynamic dns and stuff
+const homelabStack = new HomelabStack(app, "HomelabStack", {
+  env,
+  // TODO input domain and stuff to template the hosted zone
+})
+
+
+

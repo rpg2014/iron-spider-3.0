@@ -1,5 +1,6 @@
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, CacheControl, Source } from "aws-cdk-lib/aws-s3-deployment";
+import type { Construct } from "constructs";
 import type { StackProps } from "aws-cdk-lib";
 import { Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import { LogLevel, NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -20,13 +21,13 @@ import {
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import type { FunctionUrl } from "aws-cdk-lib/aws-lambda";
-import { FunctionUrlAuthType, InvokeMode, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Code, FunctionUrlAuthType, InvokeMode, Runtime } from "aws-cdk-lib/aws-lambda";
 import path from "path";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { AaaaRecord, ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
-export type RemixAppStackProps = {
+type RemixAppStackProps = {
   env?: any;
   computeType?: "EdgeFunction"; //| "HTTPStreaming",
   certificateArn: string;
@@ -34,15 +35,25 @@ export type RemixAppStackProps = {
   subDomain: string;
 };
 export class RemixAppStack extends Stack {
-  constructor(scope: any, id: string, props: StackProps & RemixAppStackProps) {
+  constructor(scope: Construct, id: string, props: StackProps & RemixAppStackProps) {
     super(scope, id, props);
 
     //Was attempting to support http streams, but AWS only supports them as lambda function URL's
     // which you cannot put behind a CDN or route 53, so it doesn't work currently. (you'll just need to fix the distribution)
     const isStreamingFunction = props.computeType !== "EdgeFunction";
+    if (isStreamingFunction) {
+      throw new Error("Streaming functions not supported yet");
+    }
 
     //
     const assetsBucket = new Bucket(this, "AssetsBucket", {
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    //service worker bucket, needed for separate cache control
+    const serviceWorkerBucket = new Bucket(this, "ServiceWorkerBucket", {
       autoDeleteObjects: true,
       publicReadAccess: false,
       removalPolicy: RemovalPolicy.DESTROY,
@@ -53,40 +64,25 @@ export class RemixAppStack extends Stack {
     const assetsBucketS3Origin = new S3Origin(assetsBucket, {
       originAccessIdentity: assetsBucketOriginAccessIdentity,
     });
+    const serviceWorkerBucketS3Origin = new S3Origin(serviceWorkerBucket, {
+      originAccessIdentity: assetsBucketOriginAccessIdentity,
+    });
 
     assetsBucket.grantRead(assetsBucketOriginAccessIdentity);
+    serviceWorkerBucket.grantRead(assetsBucketOriginAccessIdentity);
 
+    
     const fn = new NodejsFunction(this, "RemixServerFn", {
       currentVersionOptions: {
         removalPolicy: RemovalPolicy.DESTROY,
       },
-      entry: path.join(__dirname, "../server/index.ts"),
-      handler: isStreamingFunction ? "streamingHandler" : "nonStreamingHandler",
+      code: Code.fromAsset(path.join(__dirname, "../dist/")),
+      handler: isStreamingFunction ? "streamingHandler" : "lambda_server.nonStreamingHandler",
       logRetention: RetentionDays.THREE_DAYS,
       memorySize: 256,
       timeout: Duration.seconds(10),
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
 
-      bundling: {
-        esbuildArgs: {
-          "--tree-shaking": true,
-        },
-        format: OutputFormat.CJS,
-        logLevel: LogLevel.INFO,
-        minify: true,
-        tsconfig: path.join(__dirname, "../tsconfig.json"),
-        commandHooks: {
-          afterBundling(inputDir, outputDir) {
-            return [
-              `cp ${path.join(__dirname, "../rust-functions/pkg/rust-functions_bg.wasm")} ${outputDir}`,
-              // `cp ${path.join(__dirname, "../build/server/*.map")} ${outputDir}`,
-              `cp ${path.join(__dirname, "../build/server/*.json")} ${outputDir}`,
-            ];
-          },
-          beforeBundling: (inputDir: string, outputDir: string): string[] => [],
-          beforeInstall: (inputDir: string, outputDir: string): string[] => [],
-        },
-      },
     });
 
     // The only way to interact with http streams is lambda function urls, which you cannot put behind a CDN, and route 53,
@@ -142,6 +138,20 @@ export class RemixAppStack extends Stack {
           origin: assetsBucketS3Origin,
           viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
+        "/sw.js": {
+          allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: CachePolicy.CACHING_DISABLED, // might change
+          compress: true,
+          origin: serviceWorkerBucketS3Origin,
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
+        "static/*": {
+          allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+          compress: true,
+          origin: serviceWorkerBucketS3Origin,
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
       },
     });
 
@@ -150,11 +160,23 @@ export class RemixAppStack extends Stack {
       destinationBucket: assetsBucket,
       distribution,
       prune: true,
-      sources: [Source.asset(path.join(__dirname ,"../build/public"))],
+      sources: [Source.asset(path.join(__dirname, "../build/client"))],
       cacheControl: [CacheControl.maxAge(Duration.days(365)), CacheControl.sMaxAge(Duration.days(365))],
     });
 
-    const hostedZone = HostedZone.fromLookup(this, 'DomainHostedZone', { domainName: props.domainName });
+    // deploy SW to S3, with no cache
+    new BucketDeployment(this, id + "SWDeployment", {
+      destinationBucket: serviceWorkerBucket,
+      distribution,
+      prune: true,
+      sources: [Source.asset(path.join(__dirname, "../build/client/otherAssets"))],
+      cacheControl: [CacheControl.noCache(), CacheControl.noStore()],
+      distributionPaths: ["/sw.js", "/static"],
+    });
+
+    const hostedZone = HostedZone.fromLookup(this, "DomainHostedZone", {
+      domainName: props.domainName,
+    });
 
     new ARecord(this, id + "ARecord", {
       zone: hostedZone,

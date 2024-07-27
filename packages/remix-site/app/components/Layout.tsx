@@ -1,48 +1,85 @@
 import * as React from "react";
-import { Link } from "@remix-run/react";
-import layoutStyles from "~/styles/layout.css";
+import { Link, useNavigation } from "@remix-run/react";
+import layoutStyles from "~/styles/layout.css?url";
+import { DEFAULT_AUTH_LOADER } from "~/utils.server";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "./ui/NavigationMenu";
+import { Suspense } from "react";
 
 export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
 
 /**
  * Header and footer that will be present on every route, think of it as the shell app.
+ * TODO: rewrite the nav to be what i want
  * @param children
  * @constructor
  */
 export function Layout({ children }: React.PropsWithChildren<{}>) {
+  const { state } = useNavigation();
   return (
-    <div className="remix-app">
-      <header className="remix-app__header">
-        <div className="container remix-app__header-content">
-          <Link prefetch={"intent"} to="/" title="Remix" className="remix-app__header-home-link">
-            <RemixLogo />
-          </Link>
-          <nav aria-label="Main navigation" className="remix-app__header-nav">
-            <ul>
-              <li>
-                <Link prefetch={"intent"} to="/">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link prefetch={"intent"} to={"/demo"}>
-                  Demo Page
-                </Link>
-              </li>
-              <li>
+    <div className="remix-app dark">
+      <header className={"remix-app__header "}>
+        <div className=" remix-app__header-content">
+          <Suspense fallback={<p>loading...</p>}>
+            {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
+            <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
+              <RemixLogo />
+            </Link>
+            <NavigationMenu /*className="remix-app__header-nav"*/>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <Link prefetch={"intent"} to="/">
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Pages</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <Link prefetch={"viewport"} to={"/chat"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Chat</NavigationMenuLink>
+                    </Link>
+                    <Link prefetch={"viewport"} to={"/intranetLinks"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Links</NavigationMenuLink>
+                    </Link>
+                    <Link prefetch={"viewport"} to={"/wasm"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Wasm</NavigationMenuLink>
+                    </Link>
+                    <Link prefetch={"viewport"} to={"/mc-server"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>server</NavigationMenuLink>
+                    </Link>
+                    <Link prefetch={"none"} to={"/404"}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>404 Page</NavigationMenuLink>
+                    </Link>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link prefetch={"viewport"} to={"/settings"}>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Settings</NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+
+                {/* <li>
                 <a href="https://github.com/rpg2014/remix-aws-cdk-template/">GitHub</a>
-              </li>
-            </ul>
-          </nav>
+              </li> */}
+              </NavigationMenuList>
+            </NavigationMenu>
+          </Suspense>
         </div>
       </header>
-      <div className="remix-app__main">
-        <div className="container remix-app__main-content">{children}</div>
+      <div className={"remix-app__main " + (state !== "idle" ? "loading-indicator" : "")}>
+        <div className="remix-app__main-content">
+          <React.Suspense fallback={<div>Loading...</div>}>{children}</React.Suspense>
+        </div>
       </div>
       <footer className="remix-app__footer">
-        <div className="container remix-app__footer-content">
-          <p>&copy; You!</p>
-        </div>
+        <div className="container remix-app__footer-content">{/* <p>&copy; You!</p> */}</div>
       </footer>
     </div>
   );

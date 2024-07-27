@@ -9,8 +9,11 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "outDir": "./dist",
-    "lib": ["dom", "es2022"]
+    "lib": ["dom", "es2022"],
+    // cdk handles generated the built files for deployment. 
+    "noEmit": true
   },
   "exclude": ["node_modules/", "**/*.spec.ts"],
-  "include": ["src/", "lib/", "bin/"]
+  "include": ["src/", "lib/", "bin/"],
+  
 }

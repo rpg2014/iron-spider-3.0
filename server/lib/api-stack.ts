@@ -15,7 +15,7 @@ import {
 } from "aws-cdk-lib/aws-apigateway";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { LogLevel, NodejsFunction, NodejsFunctionProps, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
-import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { Code, Runtime } from "aws-cdk-lib/aws-lambda";
 import {
   PolicyDocument,
   PolicyStatement,
@@ -37,6 +37,9 @@ import { DELIMITER } from "../src/constants/common";
 
 type EntryMetadata = {
   timeout?: Duration;
+  /**
+   * The filename of the handler, relative to the handler folder by default. 
+   */
   handlerFile: string;
   handlerFunction?: string;
   policies?: IManagedPolicy[];
@@ -72,8 +75,8 @@ export class ApiStack extends Stack {
     } as IEntryPoints;
     //define Cors helper function
     this.corsFunction = new NodejsFunction(this, "CorsFunction", {
-      entry: path.join(__dirname, "../src/cors/cors_handler.ts"),
-      handler: "corsHandler",
+      code: Code.fromAsset(path.join(__dirname,  `../dist/cors`)),
+      handler: "cors.corsHandler",
       runtime: Runtime.NODEJS_20_X,
       memorySize: 128,
       timeout: Duration.seconds(5),
@@ -81,53 +84,38 @@ export class ApiStack extends Stack {
       environment: {
         DOMAIN: props.domainName,
         SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
-      },
-      bundling: {
-        esbuildArgs: {
-          "--tree-shaking": "true",
-        },
-        metafile: false,
-        format: OutputFormat.CJS,
-        minify: true,
-        tsconfig: path.join(__dirname, "../tsconfig.json"),
-      },
+      }
     });
 
+    const loadOperationFunction = (op: EntryMetadata, operationName: string, props:any) => {
+      console.log(`loading operation: ${JSON.stringify(operationName)}`)
+      // const handlerFile = operationData[op].handlerFile;
+      const handlerFunction = !!op.handlerFunction ? op.handlerFunction : "lambdaHandler";
+      const memorySize = !!op.memorySize ? op.memorySize : undefined;
+      const timeout = !!op.timeout ? op.timeout : undefined;
+      const env = {
+        AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
+        EC2_INSTANCE_TYPE: "m6i.xlarge",
+        DOMAIN: props.domainName,
+        SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
+      };
+    
+      const handlerPath = path.join(__dirname, `../dist/${op.handlerFile}`);
+    
+      return new NodejsFunction(this, `${operationName}Function`, {
+        handler: `${op.handlerFile}.${handlerFunction}`,
+        code: Code.fromAsset(handlerPath) ,
+        runtime: Runtime.NODEJS_20_X,
+        memorySize,
+        timeout,
+        logRetention: RetentionDays.SIX_MONTHS,
+        environment: env,
+      });
+    }
     // Define all the lambda functions, 1 per operation above
     this.operations = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce((acc, operation) => {
       const op = operationData[operation];
-      const fn = new NodejsFunction(this, operation + "Function", {
-        entry: path.join(__dirname, `../src/${operationData[operation].handlerFile}.ts`),
-        handler: !!op.handlerFunction ? op.handlerFunction : "lambdaHandler",
-        runtime: Runtime.NODEJS_20_X,
-        memorySize: !!op.memorySize ? op.memorySize : undefined,
-        timeout: !!op.timeout ? op.timeout : undefined,
-        logRetention: RetentionDays.SIX_MONTHS,
-        environment: {
-          AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
-          EC2_INSTANCE_TYPE: "m6i.xlarge",
-          DOMAIN: props.domainName,
-          SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
-        },
-        bundling: {
-          esbuildArgs: {
-            "--tree-shaking": "true",
-          },
-          //Change to true to analyse bundle size
-          metafile: false,
-          format: OutputFormat.CJS,
-          logLevel: LogLevel.INFO,
-          minify: true,
-          tsconfig: path.join(__dirname, "../tsconfig.json"),
-          // re2-wasm is used by the SSDK common library to do pattern validation, and uses
-          // a WASM module, so it's excluded from the bundle
-          nodeModules: ["re2-wasm"],
-
-          // Enable these for easier debugging, though they will increase your artifact size
-          // sourceMap: true,
-          // sourceMapMode: SourceMapMode.INLINE
-        },
-      } as NodejsFunctionProps);
+      const fn = loadOperationFunction(op, operation, props);
       if (operationData[operation].policies) {
         operationData[operation].policies?.forEach(policy => fn.role?.addManagedPolicy(policy));
       }
@@ -249,12 +237,6 @@ export class ApiStack extends Stack {
           );
         }
         integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
-
-        // no more cors within apig
-        // //Add extra origin headers to cors allowed origin header in the api gateway integration
-        // if(integration.responses) {
-        //   integration.responses.default.responseParameters["method.response.header.Access-Control-Allow-Origin"] = `'${this.allowedOrigins}'`;
-        // }
 
         // Tried to make the stop function async but it jsut times out instead? or throws a 502.
         if (path === "/server/stop") {

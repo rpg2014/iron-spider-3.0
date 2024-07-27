@@ -4,7 +4,7 @@ node_modules
 /build
 /public/build
 /server/build
-/rust-functions
+/rust-wasm
 
 .cdk.staging
 cdk.out

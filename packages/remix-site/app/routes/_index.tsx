@@ -1,67 +1,96 @@
-import type { V2_MetaFunction, LinksFunction } from "@remix-run/node";
-import stylesUrl from "~/styles/index.css";
-import { CodeBlock } from "~/components/CodeBlock";
+import type { MetaFunction } from "@remix-run/node";
+import styles from "~/styles/index.module.css";
+import { useEffect, useState } from "react";
 
-export const meta: V2_MetaFunction = () => {
+export const meta: MetaFunction = () => {
   return [{ title: "Remix App" }, { name: "description", content: "Welcome to Remix!" }];
 };
 
-export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: stylesUrl }];
+// export const links: LinksFunction = () => {
+//   return [{ rel: "stylesheet", href: styles }];
+// };
+type CacheUpdate = {
+  url: string;
+  status: number;
 };
-
 export default function Index() {
+  const [status, setStatus] = useState("");
+  const [cacheUpdates, setCacheUpdates] = useState<CacheUpdate[]>([]);
+
+  // set the notification permission state to the status of the permission based on if the site has the notification permissions
+  const [notificationPermission, setNotificationPermission] = useState<string | undefined>();
+  // set the status state to the status of the service worker
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      setStatus("not-ready");
+      navigator.serviceWorker.ready.then((registration: ServiceWorkerRegistration) => {
+        if (registration.installing) {
+          console.log("Service worker installing");
+          setStatus("installing");
+        } else if (registration.waiting) {
+          console.log("Service worker installed");
+          setStatus("installed");
+        } else if (registration.active) {
+          console.log("Service worker active");
+          setStatus("active");
+        }
+      });
+    } else {
+      setStatus("Service workers not supported");
+    }
+  }, []);
+
+  /**
+   * Set up listener for cache-update events that i'm sending from the sw
+   */
+  useEffect(() => {
+    const eventListener = (event: MessageEvent<any>) => {
+      const cacheUpdate: CacheUpdate & { type: string } = event.data;
+      console.log(`Got message, type: ${cacheUpdate.type}`);
+      if (cacheUpdate.type === "cache-update") {
+        console.log(`Got cache update for ${cacheUpdate.url}`);
+        // add cache update to list of cache updates and set it in react state
+        const urlToShow = cacheUpdate.url.replace(window.location.origin, "");
+        setCacheUpdates(list => list.concat({ ...cacheUpdate, url: urlToShow }));
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", e => eventListener(e));
+    return () => navigator.serviceWorker.removeEventListener("message", e => eventListener(e));
+  }, []);
+
+  useEffect(() => {
+    console.log(`cacheUpdates: `, cacheUpdates);
+  }, [cacheUpdates]);
+
   return (
-    <div className={"indexContainer"} style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <main className={"indexMain"}>
-        <h1>Remix CDK template</h1>
-        <div className="description">
-          <p>
-            Turbocharge your web app with the CDK Remix Project Template. Experience lightning-fast server-side rendering using{" "}
-            <a href={"https://aws.amazon.com/lambda/edge/"}>Lambda@Edge</a>, with the developer experience of <a href={"https://remix.run"}>Remix</a>
-          </p>
-          <ul>
-            <li>🚀 Instant Rendering: Say goodbye to slow loading times and hello to lightning-fast edge rendering.</li>
-            <li>🛠️ Pure CDK Flexibility: Customize and scale your infrastructure entirely with the AWS CDK—no third-party libraries required.</li>
-            <li>📈 Scalable and Cost-Efficient: Embrace the power of serverless computing for unmatched scalability and cost efficiency.</li>
-            <li>🌐 Easy Deployment: Simplify deployment to AWS for a hassle-free experience.</li>
-          </ul>
-        </div>
-        <h2>Template usage:</h2>
-        <ol>
-          <li>
-            Use this template by running
-            <CodeBlock>yarn create remix --template rpg2014/remix-aws-cdk-template</CodeBlock>
-          </li>
-          <li>
-            Set up a "personal" profile in the <a href={"https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html"}>AWS CLI config</a>
-            <CodeBlock>aws configure --profile personal</CodeBlock>
-          </li>
-          <li>
-            Run <CodeBlock inline>yarn deploy</CodeBlock>
-          </li>
-        </ol>
+    <div className={styles.indexContainer} style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
+      <main className={styles.indexMain}>
+        <h1>Remix Site</h1>
+        <div className={styles.description}>This site will be used as a service worker playground for a bit</div>
+
+        <hr />
+        <div>Service Worker Status = {status}</div>
+
+        <h3>Cache Updates</h3>
+        <table className={styles.cacheUpdateTable}>
+          <thead>
+            <tr className={styles.cacheUpdate}>
+              <th>URL</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cacheUpdates.map(update => (
+              <tr className={styles.cacheUpdate} key={update.url}>
+                <td>{update.url}</td>
+                <td>{update.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {/* <h3>Cache</h3>
+        <p>Todo: add list of previous cached files</p> */}
       </main>
-      {/* <aside style={{ height: "auto" }}>
-       <h1>Welcome to Remix</h1>
-       <ul>
-         <li>
-           <Link prefetch={"intent"} to="/demo">
-             Remix Demos
-           </Link>
-         </li>
-         <li>
-           <a target="_blank" href="https://github.com/rpg2014" rel="noreferrer">
-             My Github
-           </a>
-         </li>
-         <li>
-           <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-             Remix Docs
-           </a>
-         </li>
-       </ul>
-      </aside> */}
     </div>
   );
 }

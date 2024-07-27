@@ -1,0 +1,27 @@
+.settingsContainer {
+  margin: auto;
+  width: 50%;
+  justify-content: center;
+}
+
+.setting {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 0;
+}
+
+.settingsLabel {
+  font-size: larger;
+}
+
+@media screen and (max-width: 1024px) {
+  .settingsContainer {
+    width: 100%;
+    margin: 1rem 0;
+  }
+  .setting {
+    width: 100%;
+  }
+}

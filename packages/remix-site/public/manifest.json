@@ -1,0 +1,68 @@
+{
+  "name": "Iron Spider Remix Site",
+  "short_name": "Remix Site",
+  "start_url": "/",
+  "display": "standalone",
+  "description": "One of parker's websites. Install to get badges when the mc server turns on, and other things that require a service worker",
+  "orientation": "portrait-primary",
+  "background_color": "#1b1f2a",
+  "theme_color": "#1b1f2a",
+  "icons": [
+    {
+      "src": "remix-icon.512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "remix-icon.hollow.512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "remix-icon-mono.512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "remix-icon.512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "Parker's remix site",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "remix-icon.hollow.512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "Parker's remix site",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Summary tool",
+      "url": "/chat/summarize",
+      "description": "Summarizes a URL"
+    },
+    {
+      "name": "Agent chat",
+      "url": "/chat/agent",
+      "description": "Chat with an ai agent"
+    }
+  ],
+  "share_target": {
+    "action": "/chat/share/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

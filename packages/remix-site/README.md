@@ -93,6 +93,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## TODO:
 
+#### Remove Link css sections / update to vite
+
+vite doesn't need the link function to return css, so I need to migrate to css modules and then do css side effect imports.
+
+Actually need to re-write most of the css, as previous versions of remix suggested overwriting the :root css selector, which is used extensivly throughout this code. It doesn't work with vite because its a bad idea
+
+#### Imple
+
 #### Add generic JWT auth using remix auth.
 
 Will look for a cookie on main domain on intial load,
