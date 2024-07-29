@@ -8,11 +8,10 @@
   "private": true,
   "scripts": {
     "generate": "./gradlew clean build",
-    "build:client": "cd typescript-client && yarn build",
     "build:authorizer": "cd packages/authorizer && yarn build",
     "build:server": "cd server && yarn build",
     "build:domain-auth": "cd packages/domain-auth-assets && yarn build",
-    "build": "yarn generate  && yarn build:domain-auth && yarn build:server && yarn build:client"
+    "build": "yarn generate  && yarn build:server"
   },
   "devDependencies": {
     "@aws-sdk/protocol-http": "^3.374.0",
@@ -20,10 +19,9 @@
     "rimraf": "^3.0.0"
   },
   "workspaces": [
-    "typescript-client",
     "packages/*",
     "server",
-    "typescript-client/codegen/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen",
-    "server/codegen/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
+    "server/codegen/client-sdk/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen",
+    "server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
   ]
 }

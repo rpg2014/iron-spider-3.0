@@ -1,4 +1,4 @@
-import * as React from "react";
+import { MetaFunction } from "@remix-run/react";
 
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 
@@ -28,6 +28,12 @@ export let links: LinksFunction = () => {
     ...LayoutLinks(),
   ];
 };
+
+
+export const meta: MetaFunction = () => [
+  // your meta here
+  {title: "Parker's Remix site"}
+];
 
 /**
  * The root module's default export is a component that renders the current

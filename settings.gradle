@@ -6,10 +6,10 @@ pluginManagement {
 
 rootProject.name = 'iron-spider'
 
-includeBuild('./model')
+includeBuild('./server/model')
 
 include 'server-codegen'
-project(':server-codegen').projectDir = file('server/codegen')
+project(':server-codegen').projectDir = file('server/codegen/server-sdk')
 
 include 'typescript-client-codegen'
-project(':typescript-client-codegen').projectDir = file('typescript-client/codegen')
+project(':typescript-client-codegen').projectDir = file('server/codegen/client-sdk') //file('typescript-client/codegen')

@@ -6,7 +6,7 @@
 /.yarn/install-state.gz
 /.yarn/cache
 /server/.aws-sam/
-/model/bin/
+/server/model/bin/
 
 .secrets.ts
 .keypair.json

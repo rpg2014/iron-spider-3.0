@@ -6,7 +6,7 @@
       "plugins": {
         "typescript-codegen": {
           "package" : "iron-spider-client",
-          "packageVersion": "0.0.1"
+          "packageVersion": "0.0.2"
         }
       }
     }

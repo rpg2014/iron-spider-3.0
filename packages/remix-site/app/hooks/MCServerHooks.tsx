@@ -41,46 +41,65 @@ export const ServerProvider = ({ children }: { children: React.ReactNode }) => {
   const [actionLoading, setActionLoading] = useState<IServerState["actionLoading"]>(minecraftInitalState.actionLoading);
   const [getLoading, setGetLoading] = useState<IServerState["getLoading"]>(minecraftInitalState.getLoading);
   const [domainName, setDomainName] = useState<string>();
+  const [error, setError] = useState<{message: string}>();
 
   //update status on mount
   useEffect(() => {
     actions.status();
   }, []);
 
+  const call = async <T,>(fn: () => T, setStateFn: (e:T) => void, setLoadingFunction: (b: boolean)=> void) => {
+    setLoadingFunction(true);
+      const status:T  = await fn();
+      setStateFn(status);
+      setRunning(status !== "Terminated");
+      setLoadingFunction(false);
+  }
+
+  const wrapWithErrorLogic = (fn: () => Promise<void> ) => {
+    return async () => {
+      try {
+        await fn();
+      } catch (e) {
+        setError(e as {message:string});
+      }
+    }
+  }
+
   //create actions
   const actions = {
     // don't need to pass auth cookie through here as these will come from the UI.
     // todo: add error handling
-    status: async () => {
+    status: wrapWithErrorLogic(async () => {
       setGetLoading(true);
       const status = await MCServerApi.getStatus();
       setStatus(status);
       setRunning(status !== "Terminated");
       setGetLoading(false);
-    },
-    details: async () => {
+    }),
+    details: wrapWithErrorLogic(async () => {
       console.log("details");
       setGetLoading(true);
       const domainName = await MCServerApi.getDetails();
       setDomainName(domainName);
       setGetLoading(false);
-    },
-    start: async () => {
+    }),
+    start: wrapWithErrorLogic(async () => {
       console.log("start");
       setActionLoading(true);
       const serverStarted = await MCServerApi.startServer();
       setActionLoading(false);
       setRunning(serverStarted);
       setTimeout(actions.status, 1000);
-    },
-    stop: async () => {
+    }),
+    stop: wrapWithErrorLogic(async () => {
       console.log("stop");
       setActionLoading(true);
       const serverStopping = await MCServerApi.stopServer();
       setActionLoading(false);
       setRunning(!serverStopping);
       setTimeout(actions.status, 1000);
-    },
+    }),
   };
   return (
     <ServerContext.Provider
@@ -90,6 +109,7 @@ export const ServerProvider = ({ children }: { children: React.ReactNode }) => {
             loading: getLoading,
             get: actions.status,
           },
+          error,
           status,
           running,
           actionLoading,

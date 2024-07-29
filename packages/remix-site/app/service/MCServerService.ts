@@ -1,3 +1,4 @@
+import { InternalServerError } from "iron-spider-client";
 import { SERVER_PATH } from "~/constants";
 import { fetcher } from "~/utils";
 
@@ -11,12 +12,18 @@ export enum ServerStatus {
   Stopped = "Stopped",
   InitialStatus = "LoadingStatus",
 }
+
+interface IError {
+  message: string;
+  code?: number
+}
 export interface IServerState {
   serverStatus: {
     loading: boolean;
     get: () => Promise<void>;
   };
   status: ServerStatus; //"Pending" | "Running" | "ShuttingDown" | "Terminated" | "Stopping" | "Stopped" | "LoadingStatus";
+  error?: {message: string}
   running: boolean;
   actionLoading: boolean;
   getLoading: boolean;
@@ -34,17 +41,17 @@ export const MCServerApi = {
   },
 
   getDetails: async () => {
-    const response: { domainName: string } = await fetcher(`${SERVER_PATH}/details`, { mode: "cors" });
+    const response: { domainName: string } = await fetcher(`${SERVER_PATH}/details`, { mode: "cors", credentials: "include" });
     return response.domainName;
   },
 
   startServer: async () => {
-    const response: { serverStarted: boolean } = await fetcher(`${SERVER_PATH}/start`, { mode: "cors" });
+    const response: { serverStarted: boolean } = await fetcher(`${SERVER_PATH}/start`, { mode: "cors", credentials: "include" });
     return response.serverStarted;
   },
 
   stopServer: async () => {
-    const response: { serverStopping: boolean } = await fetcher(`${SERVER_PATH}/stop`, { mode: "cors" });
+    const response: { serverStopping: boolean } = await fetcher(`${SERVER_PATH}/stop`, { mode: "cors", credentials: "include" });
     return response.serverStopping;
   },
 };

@@ -22,10 +22,14 @@ buildscript {
     }
     dependencies {
         classpath 'com.rpg2014.cloud:iron-spider-model:1.0-SNAPSHOT'
+        //TODO: update these to the latest (0.17.1) which depend on java 17
         classpath 'software.amazon.smithy.typescript:smithy-typescript-codegen:0.17.1'
         classpath 'software.amazon.smithy.typescript:smithy-aws-typescript-codegen:0.17.1'
-        classpath "software.amazon.smithy:smithy-model:1.33.0"
-        classpath "software.amazon.smithy:smithy-cli:1.33.0"
+        classpath "software.amazon.smithy:smithy-model:1.36.0"
+        classpath "software.amazon.smithy:smithy-openapi:1.36.0"
+        classpath "software.amazon.smithy:smithy-aws-traits:1.36.0"
+        classpath "software.amazon.smithy:smithy-aws-apigateway-openapi:1.36.0"
+        classpath "software.amazon.smithy:smithy-cli:1.36.0"
     }
 }
 
@@ -34,6 +38,8 @@ plugins {
 }
 
 dependencies {
+    implementation "software.amazon.smithy:smithy-aws-traits:1.36.0"
+    implementation "software.amazon.smithy:smithy-aws-apigateway-openapi:1.36.0"
     implementation 'com.rpg2014.cloud:iron-spider-model:1.0-SNAPSHOT'
 }
 
@@ -45,6 +51,6 @@ repositories {
 jar.enabled = false
 smithyBuildJar.enabled = false
 
-task generate(type: SmithyBuild) {}
+task generateServer(type: SmithyBuild) {}
 
-build.dependsOn generate
+build.dependsOn generateServer
