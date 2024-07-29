@@ -22,7 +22,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.rpg2014.cloud:iron-spider-model:1.0-SNAPSHOT'
-        //TODO: update these to the latest (0.17.1) which depend on java 17
         classpath 'software.amazon.smithy.typescript:smithy-typescript-codegen:0.17.1'
         classpath 'software.amazon.smithy.typescript:smithy-aws-typescript-codegen:0.17.1'
         classpath "software.amazon.smithy:smithy-model:1.36.0"

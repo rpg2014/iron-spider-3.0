@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "echo 'no build script'",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"

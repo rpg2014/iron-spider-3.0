@@ -7,10 +7,10 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "generate": "./gradlew clean build",
     "build:authorizer": "cd packages/authorizer && yarn build",
     "build:server": "cd server && yarn build",
     "build:domain-auth": "cd packages/domain-auth-assets && yarn build",
+    "build:all": "yarn workspaces foreach -ptA run build",
     "build": "yarn generate  && yarn build:server"
   },
   "devDependencies": {

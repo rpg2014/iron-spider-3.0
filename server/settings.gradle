@@ -1,0 +1,15 @@
+pluginManagement {
+    plugins {
+        id 'software.amazon.smithy' version '0.7.0'
+    }
+}
+
+rootProject.name = 'iron-spider'
+
+includeBuild('./model')
+
+include 'server-codegen'
+project(':server-codegen').projectDir = file('codegen/server-sdk')
+
+include 'typescript-client-codegen'
+project(':typescript-client-codegen').projectDir = file('codegen/client-sdk') //file('typescript-client/codegen')
