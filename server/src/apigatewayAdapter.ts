@@ -27,6 +27,7 @@ const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<s
 export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): APIGatewayProxyHandler {
   return async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // Extract anything from the APIGateway requestContext that you'd need in your operation handler
+    const startTime = Date.now();
 
     // basic check cors headers
     const origin = event.headers["origin"];
@@ -61,6 +62,38 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
       httpResponse.headers = { ...httpResponse.headers, ...addCORSHeaders(allowed) };
       // convert from smithy generated handler response to apig response\
       const apiResponse = convertVersion1Response(httpResponse);
+
+      // only emit timing metrics if logged in
+      if (apiResponse.multiValueHeaders && authContext && authContext.userId) {
+        let responseTime = Date.now() - startTime;
+        const timingMetric = `${responseTime}`;
+        
+
+        const addToHeader = (headerName: string, value: string) => {
+          if(apiResponse.multiValueHeaders === undefined) {
+            apiResponse.multiValueHeaders = {}
+          }
+
+          if (apiResponse.multiValueHeaders[headerName]) {
+            console.log("appending header: " + headerName + " value: " + value)
+            apiResponse.multiValueHeaders[headerName].push(value);
+          } else {
+            console.log("adding header: " + headerName + " value: " + value)
+            apiResponse.multiValueHeaders[headerName] = [value];
+          }
+        };
+      
+        addToHeader('x-pg-response-time', timingMetric);
+        addToHeader('Server-Timing', `api;dur=${responseTime}`)
+        //@ts-ignore: We know this is present from logs
+        if(authContext.integrationLatency) {
+          //@ts-ignore: We know this is present from logs
+          addToHeader('Server-Timing', `auth;dur=${authContext.integrationLatency}`)
+          //@ts-ignore: We know this is present from logs
+          responseTime = responseTime + authContext.integrationLatency;
+        }
+        addToHeader('Server-Timing', `total;dur=${responseTime}`);
+      }
       console.debug("apiResponse: ", apiResponse);
       return apiResponse;
     } catch (e: any) {

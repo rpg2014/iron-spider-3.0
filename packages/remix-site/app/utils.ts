@@ -18,13 +18,13 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, incl
   };
   if (includeContentType) {
     headers["content-type"] = "application/json";
-  } 
-  
+  }
+
   if ((init?.body || init?.method === "POST") && !input.toString().includes("server") && includeContentType !== undefined) {
-    console.log(`Adding content-type header for input ${input.toString()}`)
+    console.log(`Adding content-type header for input ${input.toString()}`);
     headers["Content-Type"] = "application/json";
   }
-  if(includeContentType === false) {
+  if (includeContentType === false) {
     delete headers["Content-Type"];
   }
 

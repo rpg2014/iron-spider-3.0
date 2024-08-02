@@ -1,5 +1,4 @@
 import { CheckCircle2, Circle, CircleX } from "lucide-react";
-import { useState } from "react";
 import type { StatusResponse } from "~/genAi/spiderAssistant";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTrigger } from "../ui/Dialog";
 import { Alert, AlertTitle, AlertDescription } from "../ui/Alert";

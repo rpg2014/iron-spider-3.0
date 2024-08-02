@@ -1,4 +1,5 @@
-import { MetaFunction } from "@remix-run/react";
+import { Outlet } from "@remix-run/react";
+import type { MetaFunction, useLoaderData } from "@remix-run/react";
 
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 
@@ -9,7 +10,6 @@ import * as EB from "~/components/ErrorBoundary";
 import { Layout, links as LayoutLinks } from "~/components/Layout";
 import { Document } from "~/components/Document";
 import { cssBundleHref } from "@remix-run/css-bundle";
-import { Outlet, useLoaderData } from "@remix-run/react";
 import { ThemeProvider } from "./hooks/useTheme";
 import { ServerProvider } from "./hooks/MCServerHooks";
 
@@ -29,10 +29,9 @@ export let links: LinksFunction = () => {
   ];
 };
 
-
 export const meta: MetaFunction = () => [
   // your meta here
-  {title: "Parker's Remix site"}
+  { title: "Parker's Remix site" },
 ];
 
 /**

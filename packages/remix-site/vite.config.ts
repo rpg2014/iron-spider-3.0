@@ -21,7 +21,7 @@ export default defineConfig({
     },
     rollupOptions: {
       // external: ['@aws-sdk/client-sts', "@aws-sdk/client-sso-oidc"]
-    }
+    },
   },
   base: "/",
   publicDir: "/static",

@@ -5,6 +5,13 @@ node_modules
 /public/build
 /server/build
 rust-functions/
+rust-wasm/
+dist/
+gradle/
+.gradle/
+model/
+gradlew
+gradlew.bat
 packages/*
 codegen/
 .husky/

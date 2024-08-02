@@ -1,7 +1,7 @@
 import { Operation } from "@aws-smithy/server-common";
 import { HandlerContext } from "authorizer/src/model/models";
-import { UserInfoOutput } from "iron-spider-ssdk";
-import { getUserAccessor } from "src/accessors/AccessorFactory";
+import { GetPublicKeysOutput, UserInfoOutput } from "iron-spider-ssdk";
+import { getSecretKeyAccessor, getUserAccessor } from "src/accessors/AccessorFactory";
 
 export const UserInfo: Operation<{}, UserInfoOutput, HandlerContext> = async (input, context) => {
   console.log("Got context", context);
@@ -23,4 +23,10 @@ export const UserInfo: Operation<{}, UserInfoOutput, HandlerContext> = async (in
       verified: false,
     };
   }
+};
+
+export const GetPublicKeys: Operation<{}, GetPublicKeysOutput, HandlerContext> = async (input, context) => {
+  return {
+    keys: [(await getSecretKeyAccessor().getKey()).publicKey],
+  };
 };

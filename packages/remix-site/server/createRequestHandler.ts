@@ -32,15 +32,26 @@ export function createRequestHandler({
   // ones the env (Lambda@edge) expects, to what Remix expects.  Currently just supports These CloudfrontRequests,
   //TODO: add streaming support
   return (async (event, context) => {
+    // start timings
+    const startTime = Date.now();
+
     let request = createRemixRequest(event);
 
     let loadContext = typeof getLoadContext === "function" ? getLoadContext(event) : undefined;
 
     let response = (await handleRequest(request as unknown as Request, loadContext)) as unknown as Response;
 
+    let cloudfrontHeaders = createCloudFrontHeaders(response.headers);
+    // add server timing header to headers
+    cloudfrontHeaders["server-timing"] = [
+      {
+        key: "server-timing",
+        value: `total;dur=${Date.now() - startTime}`,
+      },
+    ];
     return {
       status: String(response.status),
-      headers: createCloudFrontHeaders(response.headers),
+      headers: cloudfrontHeaders,
       bodyEncoding: "text",
       body: await response.text(),
     };

@@ -23,7 +23,7 @@ const Memory = () => {
           <Messages messages={memory?.messages} />
         </div>
       )}
-      <pre style={{ wordWrap: "break-word" }}>{JSON.stringify({ summary: memory?.summary, memory: memory?.memory }, null, 2)}</pre>
+      <pre style={{ wordWrap: "break-word" }}>{JSON.stringify(memory?.memory, null, 2)}</pre>
       {error && (
         <Alert className="mt-5" variant={"light_destructive"}>
           <AlertTitle>Error</AlertTitle>

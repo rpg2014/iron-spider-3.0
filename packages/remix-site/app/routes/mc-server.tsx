@@ -8,6 +8,7 @@ import type { ServerStatus } from "~/service/MCServerService";
 import { MCServerApi } from "~/service/MCServerService";
 import { StartStopButton } from "~/components/server/StartStopButton";
 import { RefreshCcw, RefreshCcwIcon } from "lucide-react";
+import { Alert } from "~/components/ui/Alert";
 
 //TODO: add the auth loader to this, and return the hasCookie value
 // then in the component add an message on the button for this.
@@ -23,7 +24,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function Server() {
   const initalStatus = useLoaderData<typeof loader>();
   const {
-    minecraftServer: { status, getLoading, actionLoading, actions, domainName, serverStatus },
+    minecraftServer: { status, getLoading, actionLoading, actions, domainName, error },
   } = useServers();
   //Quick refresh button
   const RefreshButton = () => (
@@ -42,7 +43,7 @@ export default function Server() {
           Server is {status === "LoadingStatus" ? initalStatus : !getLoading ? status : "..."} <RefreshButton />{" "}
         </>
       </div>
-      <div className="h-25 pt-5 pb-3 align-middle  mx-auto start-button">
+      <div className="h-25 pt-5 pb-3 align-middle flex flex-col items-center mx-auto start-button">
         <StartStopButton
           loading={actionLoading}
           serverStatus={status as ServerStatus}
@@ -50,6 +51,16 @@ export default function Server() {
           stopServer={async () => actions.stop()}
           startServer={async () => actions.start()}
         />
+        {error && (
+          <Alert variant="light_destructive" title="Error" className="mt-2">
+            {error.message}
+          </Alert>
+        )}
+        {error && (
+          <Alert variant="light_destructive" title="Error" className="mt-2">
+            <pre>{JSON.stringify(error, null, 2)}</pre>
+          </Alert>
+        )}
       </div>
       {/* <div className="mb-4"> */}
       {/* <Button

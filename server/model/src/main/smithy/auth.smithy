@@ -3,6 +3,8 @@ $version: "2"
 namespace com.rpg2014.cloud
 
 use smithy.framework#ValidationException
+use com.rpg2014.cloud.common#ValidatedOperation
+use com.rpg2014.cloud.common#CommonHeaders
 
 @http(code:200, method: "POST", uri: "/v1/registration/create")
 operation CreateUser {
@@ -62,7 +64,7 @@ structure CreateUserInput {
     email: String, //username
 }
 
-structure CreateUserOutput {
+structure CreateUserOutput  with [CommonHeaders] {
     @required
     success: Boolean,
     verificationCode: String,
@@ -74,7 +76,7 @@ structure GenerateRegistrationOptionsInput {
     @required
     challenge: String,
 }
-structure GenerateRegistrationOptionsOutput {
+structure GenerateRegistrationOptionsOutput with [CommonHeaders] {
     @httpPayload
     results: String
 }
@@ -94,7 +96,7 @@ list TransportsList {
     member: String
 }
 
-structure VerifyRegistrationOutput {
+structure VerifyRegistrationOutput with [CommonHeaders] {
     @required
     verified: Boolean,
     @httpHeader("Set-Cookie")
@@ -110,7 +112,7 @@ structure GenerateAuthenticationOptionsInput {
      email: String
 }
 
-structure GenerateAuthenticationOptionsOutput {
+structure GenerateAuthenticationOptionsOutput with [CommonHeaders] {
     @required
     authenticationResponseJSON: String,
     @required
@@ -136,7 +138,7 @@ structure UserData {
     @required
     numberOfCreds: Integer
 }
-structure VerifyAuthenticationOutput {
+structure VerifyAuthenticationOutput with [CommonHeaders] {
     @required
     verified: Boolean,
     @httpHeader("Set-Cookie")
@@ -144,7 +146,7 @@ structure VerifyAuthenticationOutput {
     userId: String,
     userData: UserData
 }
-structure UserInfoOutput {
+structure UserInfoOutput with [CommonHeaders] {
     @required
     verified: Boolean,
     userId: String,
@@ -155,13 +157,13 @@ structure UserInfoOutput {
     tokenExpiry: Timestamp,
 }
 
-structure LogoutOutput {
+structure LogoutOutput with [CommonHeaders] {
     @httpHeader("Set-Cookie")
     userCookie: String,
 }
 
 
-structure GetPublicKeysOutput {
+structure GetPublicKeysOutput with [CommonHeaders] {
     @required
     keys: KeyList
 }

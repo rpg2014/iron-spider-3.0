@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Link, useNavigation } from "@remix-run/react";
 import layoutStyles from "~/styles/layout.css?url";
-import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import {
   NavigationMenu,
   NavigationMenuContent,

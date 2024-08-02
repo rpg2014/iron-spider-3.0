@@ -19,3 +19,4 @@ export const verifyRegistrationHandler: APIGatewayProxyHandler = getApiGatewayHa
 export const getAuthOptions: APIGatewayProxyHandler = getApiGatewayHandler(getGenerateAuthenticationOptionsHandler(GetAuthOptionsOperation));
 
 export const verifyAuthResponse: APIGatewayProxyHandler = getApiGatewayHandler(getVerifyAuthenticationHandler(VerifyAuthOperation));
+

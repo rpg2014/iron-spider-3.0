@@ -56,14 +56,16 @@ const getFromCache = async (request: Request) => {
 };
 
 sw.addEventListener("fetch", event => {
+  const startTime = Date.now();
   // attempt network fetch, then show 404 page on error.
   event.respondWith(
     (async () => {
       // if the request isn't for the remix.parkergiven.com domain, then we can just return the response
       if (!event.request.url.includes("remix.parkergiven.com")) {
-        return await fetch(event.request);
+        return handle3pCall(event.request,event);
       }
       try {
+        // console.log("Fetching page", event.request.url.replace("https://remix.parkergiven.com", ""));
         const response = await fetch(event.request);
 
         // emit message to client on whats being cached.
@@ -80,7 +82,15 @@ sw.addEventListener("fetch", event => {
           putInCache(event.request, response.clone());
         }
 
-        return response;
+        // put the time in the header, so we can measure the time it takes to fetch the page
+        const headers = new Headers(response.headers);
+        headers.set("x-pg-sw-response-time", `${Date.now() - startTime}ms`);
+        const modifiedResponse = new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+        return modifiedResponse;
       } catch (e) {
         console.log("Error fetching page, showing offline page", e);
 
@@ -96,10 +106,19 @@ sw.addEventListener("fetch", event => {
         if (cachedResponse) {
           return cachedResponse;
         }
+        const contentType = event.request.headers.get("Content-Type");
+        if (contentType === "application/json") {
+          return new Response(JSON.stringify({ message: "Page not found, you might be offline" }), {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        }
         return new Response("Page not found, you might be offline", {
           status: 404,
           headers: {
-            "Content-Type": "text/html",
+            "Content-Type": "text/plain",
           },
         });
       }
@@ -117,7 +136,7 @@ sw.addEventListener("periodicsync", async (event: Event & { tag?: string; waitUn
       try {
         const resp = await fetch("https://api.parkergiven.com/server/status", {
           headers: {
-            "spider-access-token": "none",
+            "spider-access-token": "no-token",
           },
         });
         const data = await resp.json();
@@ -152,3 +171,51 @@ sw.addEventListener("notificationclick", event => {
     event.waitUntil(sw.clients.openWindow("/settings"));
   }
 });
+
+/**
+ * Fetches data from an external URL and handles the response.
+ *
+ * @param {Request} request - The Request object representing the external URL to fetch.
+ * @returns {Promise<Response>} A Promise that resolves with the Response object from the external URL, or a custom error Response if an error occurs.
+ */
+async function handle3pCall(request: Request, event: FetchEvent ) {
+  console.log("Fetching external data", request.url);
+  console.log(`Headers of interest: spider-token:${request.headers.get("spider-access-token")}`)
+  try {
+    const res = await fetch(request)//, {
+    // have to make sure the spider-access-token is passed through
+      // headers: {
+      //   ...request.headers,
+      //   "spider-access-token":"no-token"
+      // },
+      // mode: "cors",
+    // });
+    console.log("Got response from network", res.status);
+    // the below breaks streaming, I assume b/c we're trying to read the body
+    //  event.waitUntil(async () => {
+    //   const data = await res.clone().json();
+    //   console.log("Got data from network", data);
+    //  })
+    
+    return res;
+  } catch (e) {
+    console.warn("Error fetching external data", e);
+    if (request.url.includes("/server/stop")) {
+      return Response.json(
+        {
+          message: "Error in service worker" + e.message + "\n\nThis is probably due to stop taking a long time, try refreshing, it might have succeeded.",
+          error: JSON.stringify(e),
+          cause: e.cause,
+          stack: e.stack,
+        },
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    } else {
+      console.log("Returning error");
+      return Response.json(
+        { message: "Error in service worker: " + e.message, error: JSON.stringify(e), cause: e.cause, stack: e.stack },
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+  }
+}

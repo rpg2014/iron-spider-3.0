@@ -27,18 +27,23 @@ use smithy.framework#ValidationException
 service IronSpider {
     version: "2018-05-10",
     operations: [
+        // MC server
         ServerStatus,
         ServerDetails,
         StartServer,
         StopServer,
+        //Auth
         CreateUser,
         GenerateRegistrationOptions,
         VerifyRegistration,
         GenerateAuthenticationOptions,
         VerifyAuthentication,
+        // auth related 
         UserInfo,
-        Logout,
         GetPublicKeys,
+
+        // Unrelated other web api's
+        Logout,
         ],
 }
 
@@ -58,6 +63,8 @@ structure BadRequestError {
 structure NeedDomainAccessError {
     message: String
 }
+
+
 // @http(code: 200, method: "POST", "/journal/new")
 // operation JournalCreate  {
 //     input: JournalCreateInput,

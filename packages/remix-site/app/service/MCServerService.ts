@@ -15,7 +15,7 @@ export enum ServerStatus {
 
 interface IError {
   message: string;
-  code?: number
+  code?: number;
 }
 export interface IServerState {
   serverStatus: {
@@ -23,7 +23,7 @@ export interface IServerState {
     get: () => Promise<void>;
   };
   status: ServerStatus; //"Pending" | "Running" | "ShuttingDown" | "Terminated" | "Stopping" | "Stopped" | "LoadingStatus";
-  error?: {message: string}
+  error?: { message: string };
   running: boolean;
   actionLoading: boolean;
   getLoading: boolean;
@@ -36,7 +36,7 @@ export interface IServerState {
  */
 export const MCServerApi = {
   getStatus: async (headers?: any) => {
-    const response: { status: IServerState["status"] } = await fetcher(`${SERVER_PATH}/status`, { mode: "cors", headers: headers });
+    const response: { status: IServerState["status"] } = await fetcher(`${SERVER_PATH}/status`, { mode: "cors", headers: headers, credentials: "include" });
     return response.status;
   },
 
@@ -46,12 +46,12 @@ export const MCServerApi = {
   },
 
   startServer: async () => {
-    const response: { serverStarted: boolean } = await fetcher(`${SERVER_PATH}/start`, { mode: "cors", credentials: "include" });
+    const response: { serverStarted: boolean } = await fetcher(`${SERVER_PATH}/start`, { mode: "cors", credentials: "include", method: "POST" });
     return response.serverStarted;
   },
 
   stopServer: async () => {
-    const response: { serverStopping: boolean } = await fetcher(`${SERVER_PATH}/stop`, { mode: "cors", credentials: "include" });
+    const response: { serverStopping: boolean } = await fetcher(`${SERVER_PATH}/stop`, { mode: "cors", credentials: "include", method: "POST" });
     return response.serverStopping;
   },
 };

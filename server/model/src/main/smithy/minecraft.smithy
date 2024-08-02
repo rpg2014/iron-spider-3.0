@@ -2,15 +2,18 @@ $version: "2"
 
 namespace com.rpg2014.cloud
 
+use com.rpg2014.cloud.common#ValidatedOperation
+use com.rpg2014.cloud.common#CommonHeaders
 use com.rpg2014.cloud#InternalServerError
+use com.rpg2014.cloud#BadRequestError
 use smithy.framework#ValidationException
 
 
 @readonly
 @http(code: 200, method: "GET", uri: "/server/status")
-operation ServerStatus {
-    output: ServerStatusOutput,
-    errors: [ValidationException, InternalServerError],
+operation ServerStatus with [ValidatedOperation] {
+    output: ServerStatusOutput ,
+    errors: [InternalServerError],
 }
 
 @readonly
@@ -24,7 +27,7 @@ operation ServerDetails {
 @http(code: 200, method: "POST", uri: "/server/start")
 operation StartServer {
     output: StartServerOutput,
-    errors: [ValidationException, InternalServerError],
+    errors: [ValidationException, InternalServerError, BadRequestError],
 }
 
 
@@ -46,18 +49,18 @@ enum Status {
     STOPPED = "Stopped"
 }
 
-structure ServerStatusOutput  {
+structure ServerStatusOutput with [CommonHeaders]  {
     @required
     status: Status
 }
-structure ServerDetailsOutput {
+structure ServerDetailsOutput with [CommonHeaders] {
     domainName: String,
 }
 
-structure StartServerOutput {
+structure StartServerOutput with [CommonHeaders] {
     serverStarted: Boolean,
 }
 
-structure StopServerOutput {
+structure StopServerOutput with [CommonHeaders] {
     serverStopping: Boolean,
 }

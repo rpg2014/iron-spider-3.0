@@ -18,6 +18,7 @@ const operationsDir = path.join(__dirname, "../src/handlers");
 const outputDir = path.join(__dirname, "../dist");
 
 type BuildOperationHandlerProps = {
+  opName: string
   outFile: string;
   outputDir: string;
   entryPoint: string;
@@ -26,34 +27,30 @@ type BuildOperationHandlerProps = {
 async function buildOperationHandler(props: BuildOperationHandlerProps) {
   // const inputPath = path.join(operationsDir, `${handlerFile}.ts`);
   const outputPath = path.join(props.outputDir, props.outFile);
-
+  
   // if we've already built the output file, skip it
-  if (fs.existsSync(outputPath)) return;
-  console.log(`Building ${props.outFile}...`);
+  if (fs.existsSync(outputPath)) {
+    console.log(`${props.opName} -> ${props.outFile}`);
+    return;
+  }
+  console.log(`Building ${props.outFile} for ${props.opName}`);
   await buildUtils.bundleForLambda({
     entryPoint: props.entryPoint,
     outfile: props.outFile,
     outDir: props.outputDir,
     absWorkingDir: __dirname,
     external: ["re2-wasm"],
+    format: 'cjs',
   })
-  
-  //old build command
-  // esbuild.buildSync({
-  //   entryPoints: [inputPath],
-  //   bundle: true,
-  //   outfile: outputPath,
-  //   minify: true,
-  //   platform: "node",
-  //   format: "cjs",
-  //   treeShaking: true,
-  //   external: ["re2-wasm"],
-  //   loader: {
-  //     ".node": "copy",
-  //   },
-  // });
 
-  console.log(`Built ${props.outFile} to ${outputPath}`);
+  console.log(`Built ${props.outFile} to ${path.relative(__dirname, outputPath)}`);
+    // copy over re2-wasm file to the build directory if the op depends on aws stuff
+    if(props.opName !== 'LightweightAPIs'){
+      console.log(`Copying over re2-wasm file for ${props.outFile}`);
+    const wasm_source = path.join(__dirname, "../node_modules/re2-wasm/build/wasm/re2.wasm");
+    const wasm_dest = path.join(props.outputDir, "re2.wasm");
+    fs.copyFileSync(wasm_source, wasm_dest);
+  }
 }
 
 const build = async () => {
@@ -73,21 +70,21 @@ fs.mkdirSync(outputDir, { recursive: true });
 //   }
 // })
 for (const op in operationData) {
-  console.log(op)
+  
   const opData = operationData[op];
   const newOutputDir = path.join(outputDir, opData.handlerFile)
   await buildOperationHandler({
+    opName: op,
     outFile: `${opData.handlerFile}.js`,
     outputDir: newOutputDir,
     entryPoint: path.join(operationsDir, `${opData.handlerFile}.ts`),
   }) 
-  // copy over re2-wasm file to the build directory
-  const wasm_source = path.join(__dirname, "../node_modules/re2-wasm/build/wasm/re2.wasm");
-  const wasm_dest = path.join(newOutputDir, "re2.wasm");
-  fs.copyFileSync(wasm_source, wasm_dest);
+
+  
 }
 //build cors handler @workspace
 await buildOperationHandler({
+  opName: "cors",
   outFile: "cors.js",
   outputDir: path.join(outputDir, "cors"),
   entryPoint: path.join(__dirname, "../src/cors/cors_handler.ts"),

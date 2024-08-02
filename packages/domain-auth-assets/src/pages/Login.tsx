@@ -48,7 +48,6 @@ const generateAuthOptions = async () => {
     const results = await fetcher(
       `https://api.parkergiven.com/v1/authentication/options?userId=${userId}`,
     );
-    console.log(results);
     return results;
   } else {
     console.log("No user token found, or autocomplete not supported");

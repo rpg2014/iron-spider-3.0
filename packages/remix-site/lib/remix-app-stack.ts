@@ -71,7 +71,6 @@ export class RemixAppStack extends Stack {
     assetsBucket.grantRead(assetsBucketOriginAccessIdentity);
     serviceWorkerBucket.grantRead(assetsBucketOriginAccessIdentity);
 
-    
     const fn = new NodejsFunction(this, "RemixServerFn", {
       currentVersionOptions: {
         removalPolicy: RemovalPolicy.DESTROY,
@@ -82,7 +81,6 @@ export class RemixAppStack extends Stack {
       memorySize: 256,
       timeout: Duration.seconds(10),
       runtime: Runtime.NODEJS_20_X,
-
     });
 
     // The only way to interact with http streams is lambda function urls, which you cannot put behind a CDN, and route 53,

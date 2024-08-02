@@ -58,7 +58,7 @@ export const authHandler = async (event: event, context) => {
     if(bypass_auth_for_paths.findIndex((bypassedPath) => event.path.startsWith(bypassedPath)) > -1) {
         console.log("Bypassing auth")
         // return cookie data if present and valid
-        return generateAllow("unknown", event.methodArn, verifiedToken ? {
+        return generateAllow(verifiedToken?.userId ? verifiedToken.userId : "unknown", event.methodArn, verifiedToken ? {
             userId: verifiedToken.userId, 
             displayName: verifiedToken.displayName,
             siteAccess: verifiedToken.siteAccess.join(","),
@@ -111,6 +111,7 @@ export const authHandler = async (event: event, context) => {
         }
     } catch (e) {
         console.error(e)
+        console.log(e.message)
         console.log(`Unable to verify user, rejecting`)
         return generateDeny('user', event.methodArn, { message: "Unable to verify jwt" })
     }

@@ -24,6 +24,7 @@ const minecraftServerOperations: Partial<IEntryPoints> = {
     memorySize: 256,
     timeout: Duration.minutes(5),
     policies: getMinecraftPolicies(),
+    maxConcurrentExecutions: 1,
   },
   StopServer: {
     handlerFile: "MCServerHandlers",
@@ -31,6 +32,7 @@ const minecraftServerOperations: Partial<IEntryPoints> = {
     timeout: Duration.minutes(14),
     memorySize: 256,
     policies: getMinecraftPolicies(),
+    maxConcurrentExecutions: 1,
   },
 };
 
@@ -61,27 +63,27 @@ const AuthOperations: Partial<IEntryPoints> = {
     memorySize: 256,
   },
   UserInfo: {
-    handlerFile: "OtherAPIs",
+    handlerFile: "WebsiteAPIs",
     handlerFunction: "userInfo",
     memorySize: 256,
   },
   GetPublicKeys: {
-    handlerFile: "OtherAPIs",
+    handlerFile: "WebsiteAPIs",
     handlerFunction: "getPublicKeys",
     memorySize: 256,
   },
 };
 
-const OtherAPIs: Partial<IEntryPoints> = {
+const LightweightAPIs: Partial<IEntryPoints> = {
   Logout: {
-    handlerFile: "OtherAPIs",
+    handlerFile: "LightweightAPIs",
     handlerFunction: "logout",
     memorySize: 256,
   },
 };
 
 export const operations = {
-  apiOperationsList: [minecraftServerOperations, OtherAPIs],
+  apiOperationsList: [minecraftServerOperations, LightweightAPIs],
   authOperations: AuthOperations,
 };
 

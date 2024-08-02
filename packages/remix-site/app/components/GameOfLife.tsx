@@ -31,14 +31,6 @@ export const GameOfLife = (props: GameOfLifeProps) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (ctx) {
-      //initial draw
-      drawGrid();
-      drawCells();
-    }
-  }, [ctx, universe]);
-
   // the render loop
   const renderLoop = () => {
     universe.tick();
@@ -107,6 +99,14 @@ export const GameOfLife = (props: GameOfLifeProps) => {
     setIsRunning(true);
     requestAnimationFrame(renderLoop);
   };
+
+  useEffect(() => {
+    if (ctx) {
+      //initial draw
+      drawGrid();
+      drawCells();
+    }
+  }, [ctx, universe, drawCells, drawGrid]);
 
   return (
     <div className="flex flex-col items-center justify-center  p-2">

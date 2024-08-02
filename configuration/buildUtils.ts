@@ -51,6 +51,7 @@ interface EsbuildBuildProps {
   outDir: string;
   absWorkingDir: string;
   external?: string[];
+  format?: "cjs" | "esm";
 }
 
 const esbuildBuild = async (props: EsbuildBuildProps) => {
@@ -67,7 +68,7 @@ const esbuildBuild = async (props: EsbuildBuildProps) => {
     target: "node20",
     minify: true,
     platform: "node",
-    format: "cjs", // TODO: eventually change this to esm?
+    format: props.format || "cjs",
     // analyze: "verbose",
     treeShaking: true,
     // absWorkingDir: props.absWorkingDir,

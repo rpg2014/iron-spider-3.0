@@ -23,18 +23,22 @@ export const StartStopButton: React.FC<StartStopButtonProps> = ({ serverStatus, 
       }, 5000);
     }
     return () => clearTimeout(timer);
-  }, [clicked]);
+  }, [clicked, updateStatus]);
 
   const handleClick = () => {
     if (serverStatus) {
       switch (serverStatus) {
         case ServerStatus.Running:
           setClicked(true);
-          stopServer().then(() => setClicked(false));
+          stopServer()
+            .then(() => setClicked(false))
+            .catch(e => setClicked(false));
           break;
         case ServerStatus.Terminated:
           setClicked(true);
-          startServer().then(() => setClicked(false));
+          startServer()
+            .then(() => setClicked(false))
+            .catch(e => setClicked(false));
           break;
         default:
           break;
@@ -51,6 +55,7 @@ export const StartStopButton: React.FC<StartStopButtonProps> = ({ serverStatus, 
     );
   }
 
+  // do i need this? have an error box on in the parent component
   if (error) {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-md my-5" role="alert">

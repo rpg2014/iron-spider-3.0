@@ -42,7 +42,7 @@ export default function Messages({ messages, autoScroll }: { messages: MessageMo
         if (message.subSteps) {
           //return an expander around the substeps?
         }
-        return <Message ref={i === messages.length - 1 ? lastMessageRef : undefined} message={message} />;
+        return <Message ref={i === messages.length - 1 ? lastMessageRef : undefined} key={message.id} message={message} />;
       })}
     </div>
   );

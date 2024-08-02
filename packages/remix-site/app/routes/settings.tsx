@@ -98,11 +98,11 @@ export default function Settings() {
 }
 
 const LogoutButton = () => {
-  const [loading , setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   let revalidator = useRevalidator();
   const handleLogout = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       await IronSpiderAPI.logout();
     } catch (e) {
       console.error(e);
@@ -116,15 +116,15 @@ const LogoutButton = () => {
         },
         false,
       );
-    }finally {
-      setLoading(false)
+    } finally {
+      setLoading(false);
       revalidator.revalidate();
     }
   };
-  
+
   return (
     <Button disabled={loading} variant="destructive" onClick={handleLogout}>
-      {loading ? "Loading...": "Logout"}
+      {loading ? "Loading..." : "Logout"}
     </Button>
   );
 };

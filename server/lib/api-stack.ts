@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import * as path from "path";
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
@@ -44,6 +44,7 @@ type EntryMetadata = {
   handlerFunction?: string;
   policies?: IManagedPolicy[];
   memorySize?: number;
+  maxConcurrentExecutions?: number
 };
 export type IEntryPoints = {
   [operation in IronSpiderServiceOperations]: EntryMetadata;
@@ -110,6 +111,8 @@ export class ApiStack extends Stack {
         timeout,
         logRetention: RetentionDays.SIX_MONTHS,
         environment: env,
+        // if present in op or undefined
+        reservedConcurrentExecutions: op.maxConcurrentExecutions,
       });
     }
     // Define all the lambda functions, 1 per operation above
@@ -196,7 +199,7 @@ export class ApiStack extends Stack {
    */
   private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction }, authorizerInfo: { fnArn: string; roleArn: string }) {
     const openapi = JSON.parse(
-      readFileSync(path.join(__dirname, "../codegen/build/smithyprojections/server-codegen/apigateway/openapi/IronSpider.openapi.json"), "utf8")
+      readFileSync(path.join(__dirname, "../codegen/server-sdk/build/smithyprojections/server-codegen/apigateway/openapi/IronSpider.openapi.json"), "utf8")
     );
 
     //Add CDK generated function arns to the open api definition
@@ -233,7 +236,7 @@ export class ApiStack extends Stack {
           //   },
           // };
           throw new Error(
-            `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/model/apigateway.smithy`
+            `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/server-sdk/model/apigateway.smithy`
           );
         }
         integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
@@ -323,6 +326,9 @@ export class ApiStack extends Stack {
     let openapiString = JSON.stringify(openapi)
       .replace("{{AUTH_FUNCTION_ARN}}", `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${authorizerInfo.fnArn}/invocations`)
       .replace("{{AUTH_ROLE_ARN}}", authorizerInfo.roleArn);
+    
+    //write to temp file to inspect
+    writeFileSync(path.join(__dirname,"../openAPISpec.json"), JSON.stringify(JSON.parse(openapiString), null, 2))
     return JSON.parse(openapiString);
     // or in a different way
     // openapi['components']['securitySchemes']['iron-auth']['x-amazon-apigateway-authorizer'].authorizerUri = authorizerInfo.fnArn
