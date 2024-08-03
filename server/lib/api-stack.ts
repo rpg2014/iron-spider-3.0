@@ -14,7 +14,7 @@ import {
   SpecRestApi,
 } from "aws-cdk-lib/aws-apigateway";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
-import { LogLevel, NodejsFunction, NodejsFunctionProps, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
+import { NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
 import { Code, Runtime } from "aws-cdk-lib/aws-lambda";
 import {
   PolicyDocument,
@@ -22,17 +22,12 @@ import {
   Effect,
   AnyPrincipal,
   ServicePrincipal,
-  Role,
-  Policy,
-  ManagedPolicy,
-  IPolicy,
   IManagedPolicy,
 } from "aws-cdk-lib/aws-iam";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { operations } from "./operationsConfig";
-import { ALLOWED_ORIGINS } from "./cdk-constants";
 import { DELIMITER } from "../src/constants/common";
 
 type EntryMetadata = {

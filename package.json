@@ -6,17 +6,34 @@
   "author": "",
   "license": "Apache-2.0",
   "private": true,
+  "bin": {
+    "cdk": "bin/cdk.ts"
+  },
   "scripts": {
     "build:authorizer": "cd packages/authorizer && yarn build",
     "build:server": "cd server && yarn build",
     "build:domain-auth": "cd packages/domain-auth-assets && yarn build",
     "build:all": "yarn workspaces foreach -ptA run build",
-    "build": "yarn generate  && yarn build:server"
+    "build": "yarn generate  && yarn build:server",
+    "diff": "cdk diff --profile personal",
+    "deploy": "cdk deploy --profile personal --all"
   },
   "devDependencies": {
     "@aws-sdk/protocol-http": "^3.374.0",
+    "@tsconfig/node20": "^20.1.4",
+    "@types/node": "^22.1.0",
+    "authorizer": "workspace:^",
+    "aws-cdk": "^2.151.0",
+    "aws-cdk-lib": "^2.151.0",
+    "constructs": "^10.3.0",
+    "domain-auth-assets": "workspace:^",
     "esbuild": "0.22.0",
-    "rimraf": "^3.0.0"
+    "homelab-aws-infra": "workspace:^",
+    "iron-spider": "workspace:^",
+    "remix-site": "workspace:^",
+    "rimraf": "^3.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   },
   "workspaces": [
     "packages/*",

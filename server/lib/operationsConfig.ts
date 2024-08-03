@@ -1,5 +1,6 @@
 import { Duration } from "aws-cdk-lib";
-import { getMinecraftPolicies } from "./cdk-constants";
+//TODO: change this to something else
+import { getMinecraftPolicies } from "../../bin/cdk-constants";
 import { IEntryPoints } from "./api-stack";
 
 

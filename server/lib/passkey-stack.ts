@@ -5,7 +5,6 @@ import { Construct } from "constructs";
 import { generateKeyPairSync } from "crypto";
 import { SecretValue } from "aws-cdk-lib";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
-import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import fs from "node:fs";
 import path from "node:path";

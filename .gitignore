@@ -2,6 +2,7 @@
 **/build/
 **/dist/
 **/.gradle/
+**/cdk.out/
 /server/cdk.out/
 /.yarn/install-state.gz
 /.yarn/cache

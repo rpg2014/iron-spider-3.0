@@ -7642,6 +7642,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^22.1.0":
+  version: 22.1.0
+  resolution: "@types/node@npm:22.1.0"
+  dependencies:
+    undici-types: "npm:~6.13.0"
+  checksum: 10/c2ac1340509646b6c673b27fae2a46e501a97e540e7221be4dd2e0be7a0f61efefb5bf3be8bedf2dbce245fa49cfc49bba77bce73fa3c4296d0d19521ced3222
+  languageName: node
+  linkType: hard
+
 "@types/prettier@npm:2.6.0":
   version: 2.6.0
   resolution: "@types/prettier@npm:2.6.0"
@@ -8600,7 +8609,7 @@ __metadata:
     "@types/jest": "npm:^29.5.10"
     "@types/node": "npm:^20.14.12"
     "@types/prettier": "npm:2.6.0"
-    aws-cdk-lib: "npm:^2.144.0"
+    aws-cdk-lib: "npm:^2.151.0"
     aws-jwt-verify: "npm:^3.1.0"
     constructs: "npm:^10.3.0"
     esbuild: "npm:0.22.0"
@@ -8624,9 +8633,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-cdk-lib@npm:^2.144.0":
-  version: 2.150.0
-  resolution: "aws-cdk-lib@npm:2.150.0"
+"aws-cdk-lib@npm:^2.151.0":
+  version: 2.151.0
+  resolution: "aws-cdk-lib@npm:2.151.0"
   dependencies:
     "@aws-cdk/asset-awscli-v1": "npm:^2.2.202"
     "@aws-cdk/asset-kubectl-v20": "npm:^2.1.2"
@@ -8644,13 +8653,13 @@ __metadata:
     yaml: "npm:1.10.2"
   peerDependencies:
     constructs: ^10.0.0
-  checksum: 10/c7877492a81d4b74f6e1d69bf5c1a65b6fdd5cfc8cf46ed6b54b83b38bdcea6da1bc5ed4634b82bea5a17b2bed66e1de4d42ffb43e3c6736c0702bfc33a8af03
+  checksum: 10/979ebc51ea50f01bd9e308745851755da13242074216e126b5e867ea7e818bd9fc5ae0389939118fc498f5790bba8878bdaa4f70dbbf531f7ff17d64e40a926e
   languageName: node
   linkType: hard
 
-"aws-cdk@npm:^2.144.0":
-  version: 2.150.0
-  resolution: "aws-cdk@npm:2.150.0"
+"aws-cdk@npm:^2.151.0":
+  version: 2.151.0
+  resolution: "aws-cdk@npm:2.151.0"
   dependencies:
     fsevents: "npm:2.3.2"
   dependenciesMeta:
@@ -8658,7 +8667,7 @@ __metadata:
       optional: true
   bin:
     cdk: bin/cdk
-  checksum: 10/56406086d557ec154598c71bfee0ae77e339918c66b711d9739c563624fe2effd1b287dfa01c5b52a3a309d6212a06119b348b348daaf6cc41d963f419d4c517
+  checksum: 10/eb65e5087e921e38fa02c5a022c3fe3c9987dffe24550a6dd32a0abe8326274ddfa1983a316776a2ae2aa282e862f37099581846b5be3c301d4b3d732e880588
   languageName: node
   linkType: hard
 
@@ -9591,7 +9600,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"constructs@npm:^10.2.70, constructs@npm:^10.3.0":
+"constructs@npm:^10.3.0":
   version: 10.3.0
   resolution: "constructs@npm:10.3.0"
   checksum: 10/f42a40653ee6972f452c9962d1e75008afb605e96b276919b31294553335a2b306218fd23a7dede2c98401f614380be14afdfdfc6c1f2506d64506c9a5d05d73
@@ -10102,9 +10111,9 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.0.0"
     "@typescript-eslint/parser": "npm:^6.0.0"
     "@vitejs/plugin-react": "npm:^4.3.0"
-    aws-cdk-lib: "npm:^2.144.0"
+    aws-cdk-lib: "npm:^2.151.0"
     compression: "npm:^1.7.4"
-    constructs: "npm:^10.2.70"
+    constructs: "npm:^10.3.0"
     eslint: "npm:^8.45.0"
     eslint-plugin-react: "npm:^7.33.2"
     eslint-plugin-react-hooks: "npm:^4.6.0"
@@ -12407,8 +12416,8 @@ __metadata:
   dependencies:
     "@types/jest": "npm:^29.5.12"
     "@types/node": "npm:20.12.7"
-    aws-cdk: "npm:^2.144.0"
-    aws-cdk-lib: "npm:^2.144.0"
+    aws-cdk: "npm:^2.151.0"
+    aws-cdk-lib: "npm:^2.151.0"
     constructs: "npm:^10.3.0"
     jest: "npm:^29.7.0"
     source-map-support: "npm:^0.5.21"
@@ -12689,8 +12698,22 @@ __metadata:
   resolution: "iron-spider-build@workspace:."
   dependencies:
     "@aws-sdk/protocol-http": "npm:^3.374.0"
+    "@tsconfig/node20": "npm:^20.1.4"
+    "@types/node": "npm:^22.1.0"
+    authorizer: "workspace:^"
+    aws-cdk: "npm:^2.151.0"
+    aws-cdk-lib: "npm:^2.151.0"
+    constructs: "npm:^10.3.0"
+    domain-auth-assets: "workspace:^"
     esbuild: "npm:0.22.0"
+    homelab-aws-infra: "workspace:^"
+    iron-spider: "workspace:^"
+    remix-site: "workspace:^"
     rimraf: "npm:^3.0.0"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:^5.5.4"
+  bin:
+    cdk: bin/cdk.ts
   languageName: unknown
   linkType: soft
 
@@ -12786,7 +12809,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"iron-spider@workspace:server":
+"iron-spider@workspace:^, iron-spider@workspace:server":
   version: 0.0.0-use.local
   resolution: "iron-spider@workspace:server"
   dependencies:
@@ -12811,17 +12834,14 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.6.0"
     "@typescript-eslint/parser": "npm:^5.6.0"
     authorizer: "workspace:^"
-    aws-cdk: "npm:^2.144.0"
-    aws-cdk-lib: "npm:^2.144.0"
+    aws-cdk-lib: "npm:^2.151.0"
     constructs: "npm:^10.3.0"
-    domain-auth-assets: "workspace:^"
     esbuild: "npm:^0.19.6"
     eslint: "npm:^8.48.0"
     eslint-config-prettier: "npm:8.3.0"
     eslint-plugin-prettier: "npm:3.4.1"
     eslint-plugin-simple-import-sort: "npm:7.0.0"
     eslint-plugin-sort-export-all: "npm:1.4.1"
-    homelab-aws-infra: "workspace:^"
     husky: "npm:^7.0.4"
     iron-spider-ssdk: "workspace:*"
     jest: "npm:^29.6.2"
@@ -12830,14 +12850,11 @@ __metadata:
     lint-staged: "npm:^12.1.2"
     prettier: "npm:2.3.0"
     re2-wasm: "npm:1.0.2"
-    remix-site: "workspace:^"
     rimraf: "npm:^3.0.0"
     ts-jest: "npm:^29.1.1"
     ts-node: "npm:^10.9.1"
     typescript: "npm:^5.1.6"
     uuid: "npm:^9.0.0"
-  bin:
-    cdk: dist/bin/cdk.js
   languageName: unknown
   linkType: soft
 
@@ -17844,8 +17861,8 @@ __metadata:
     "@types/react-dom": "npm:^18.2.7"
     "@types/source-map-support": "npm:^0.5.7"
     "@vitejs/plugin-react": "npm:^4.3.1"
-    aws-cdk: "npm:^2.144.0"
-    aws-cdk-lib: "npm:^2.144.0"
+    aws-cdk: "npm:^2.151.0"
+    aws-cdk-lib: "npm:^2.151.0"
     class-variance-authority: "npm:^0.7.0"
     client-rust-functions: ./rust-wasm/client-code/pkg
     clsx: "npm:^2.1.0"
@@ -19641,7 +19658,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.1.6, typescript@npm:^5.2.2, typescript@npm:^5.3.2":
+"typescript@npm:^5.1.6, typescript@npm:^5.2.2, typescript@npm:^5.3.2, typescript@npm:^5.5.4":
   version: 5.5.4
   resolution: "typescript@npm:5.5.4"
   bin:
@@ -19691,7 +19708,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.1.6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.1.6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.5.4#optional!builtin<compat/typescript>":
   version: 5.5.4
   resolution: "typescript@patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"
   bin:
@@ -19771,6 +19788,13 @@ __metadata:
   version: 5.26.5
   resolution: "undici-types@npm:5.26.5"
   checksum: 10/0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.13.0":
+  version: 6.13.0
+  resolution: "undici-types@npm:6.13.0"
+  checksum: 10/da52e37cbc6da3a75da86fa08dd795ca8924430deb91005eb884b840e46e19013ccd4c1c289f70018e8cf0c338add24a500e7c3acfcd49b1ffb27ff9f91e38b9
   languageName: node
   linkType: hard
 

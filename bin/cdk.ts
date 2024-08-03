@@ -2,12 +2,12 @@
 import { App } from "aws-cdk-lib";
 import { AuthorizerStack } from "authorizer/lib/authorizer-stack";
 import "source-map-support/register";
-import { ApiStack } from "../lib/api-stack";
-import { PasskeyInfraStack } from "../lib/passkey-stack";
+import { ApiStack } from "iron-spider/lib/api-stack";
+import { PasskeyInfraStack } from "iron-spider/lib/passkey-stack";
 import { DomainAuthAssetsStack } from "domain-auth-assets/lib/auth-assets-stack";
 import { RemixAppStack } from "remix-site/lib/remix-app-stack";
 import { HomelabStack } from 'homelab-aws-infra/lib/homelab-stack';
-import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "../lib/cdk-constants";
+import { CREDENTIAL_TABLE_NAME, USER_TABLE_NAME } from "./cdk-constants"
 import { SES_ARNS } from "../.secrets";
 
 const app = new App();
