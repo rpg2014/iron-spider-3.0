@@ -12717,9 +12717,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"iron-spider-client@workspace:*, iron-spider-client@workspace:^, iron-spider-client@workspace:server/codegen/client-sdk/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen":
+"iron-spider-client@workspace:*, iron-spider-client@workspace:^, iron-spider-client@workspace:packages/server/codegen/client-sdk/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen":
   version: 0.0.0-use.local
-  resolution: "iron-spider-client@workspace:server/codegen/client-sdk/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
+  resolution: "iron-spider-client@workspace:packages/server/codegen/client-sdk/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen"
   dependencies:
     "@aws-crypto/sha256-browser": "npm:3.0.0"
     "@aws-crypto/sha256-js": "npm:3.0.0"
@@ -12768,9 +12768,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"iron-spider-ssdk@workspace:*, iron-spider-ssdk@workspace:server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen":
+"iron-spider-ssdk@workspace:*, iron-spider-ssdk@workspace:packages/server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen":
   version: 0.0.0-use.local
-  resolution: "iron-spider-ssdk@workspace:server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
+  resolution: "iron-spider-ssdk@workspace:packages/server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
   dependencies:
     "@aws-crypto/sha256-browser": "npm:3.0.0"
     "@aws-crypto/sha256-js": "npm:3.0.0"
@@ -12809,9 +12809,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"iron-spider@workspace:^, iron-spider@workspace:server":
+"iron-spider@workspace:^, iron-spider@workspace:packages/server":
   version: 0.0.0-use.local
-  resolution: "iron-spider@workspace:server"
+  resolution: "iron-spider@workspace:packages/server"
   dependencies:
     "@aws-sdk/client-dynamodb": "npm:^3.458.0"
     "@aws-sdk/client-ec2": "npm:^3.458.0"

@@ -11,10 +11,9 @@
   },
   "scripts": {
     "build:authorizer": "cd packages/authorizer && yarn build",
-    "build:server": "cd server && yarn build",
+    "build:server": "cd packages/server && yarn build",
     "build:domain-auth": "cd packages/domain-auth-assets && yarn build",
     "build:all": "yarn workspaces foreach -ptA run build",
-    "build": "yarn generate  && yarn build:server",
     "diff": "cdk diff --profile personal",
     "deploy": "cdk deploy --profile personal --all"
   },
@@ -37,8 +36,7 @@
   },
   "workspaces": [
     "packages/*",
-    "server",
-    "server/codegen/client-sdk/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen",
-    "server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
+    "packages/server/codegen/client-sdk/build/smithyprojections/typescript-client-codegen/ts-client/typescript-codegen",
+    "packages/server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
   ]
 }
