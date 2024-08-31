@@ -12768,7 +12768,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"iron-spider-ssdk@workspace:*, iron-spider-ssdk@workspace:packages/server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen":
+"iron-spider-ssdk@workspace:^, iron-spider-ssdk@workspace:packages/server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen":
   version: 0.0.0-use.local
   resolution: "iron-spider-ssdk@workspace:packages/server/codegen/server-sdk/build/smithyprojections/server-codegen/ts-server/typescript-ssdk-codegen"
   dependencies:
@@ -12843,7 +12843,7 @@ __metadata:
     eslint-plugin-simple-import-sort: "npm:7.0.0"
     eslint-plugin-sort-export-all: "npm:1.4.1"
     husky: "npm:^7.0.4"
-    iron-spider-ssdk: "workspace:*"
+    iron-spider-ssdk: "workspace:^"
     jest: "npm:^29.6.2"
     jsonwebtoken: "npm:^9.0.1"
     jwt-lib: "workspace:^"
@@ -19720,11 +19720,11 @@ __metadata:
 
 "typescript@patch:typescript@npm%3Anext#optional!builtin<compat/typescript>":
   version: 5.6.0-dev.20240725
-  resolution: "typescript@patch:typescript@npm%3A5.6.0-dev.20240725#optional!builtin<compat/typescript>::version=5.6.0-dev.20240725&hash=379a07"
+  resolution: "typescript@patch:typescript@npm%3A5.6.0-dev.20240725#optional!builtin<compat/typescript>::version=5.6.0-dev.20240725&hash=74658d"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/873858678ec13b939a5443c311e9a8e4790ebfea4015b24014ecf516013f13c06e63987daa688e47ab4a7074e13236e42f6ee73f2e2bb2556172e46c0486c77f
+  checksum: 10/da0e674e4090e61d142eb53c4b22a1bae30c1dd9cf6a60bd93db6f9e2b3aee80aa40c6d8cdcc559e78555719115cdd15971cd5fc660e844403b81f002623da1a
   languageName: node
   linkType: hard
 

@@ -109,9 +109,9 @@ export const authHandler = async (event: event, context) => {
             // Other methods
             return generateAllow("cognito_user", event.methodArn, { user: payload.username, displayName: payload.username })
         }
-    } catch (e) {
+    } catch (e: any) {
         console.error(e)
-        console.log(e.message)
+        console.log(e?.message)
         console.log(`Unable to verify user, rejecting`)
         return generateDeny('user', event.methodArn, { message: "Unable to verify jwt" })
     }

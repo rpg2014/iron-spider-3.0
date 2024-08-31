@@ -27,7 +27,7 @@ use com.rpg2014.cloud.date_tracker#DateOuting
 // need to remove the ui's content type header for inputs with no body, so all of them.  
 service IronSpider {
     version: "2018-05-10",
-    // resources: [DateOuting],
+    resources: [DateOuting],
     operations: [
         // MC server
         ServerStatus,

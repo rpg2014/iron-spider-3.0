@@ -20,8 +20,9 @@ import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
-import { operations } from "./operationsConfig";
+import { operations, singletonServiceOpList } from "./operationsConfig";
 import { DELIMITER } from "../src/constants/common";
+import { getMinecraftPolicies } from "../../../bin/cdk-constants";
 
 type EntryMetadata = {
   timeout?: Duration;
@@ -35,7 +36,7 @@ type EntryMetadata = {
   maxConcurrentExecutions?: number;
 };
 export type IEntryPoints = {
-  [operation in IronSpiderServiceOperations]: EntryMetadata;
+  [operation in IronSpiderServiceOperations]: EntryMetadata | null;
 };
 type OtherProps = {
   authorizerInfo: {
@@ -49,16 +50,17 @@ type OtherProps = {
 };
 
 export class ApiStack extends Stack {
-  operations;
+  operations: { [op in IronSpiderServiceOperations]?: NodejsFunction };
   readonly authOperations;
   corsFunction;
-  // serviceFn?: NodejsFunction;
+  serviceFn: NodejsFunction;
+  singletonFn: NodejsFunction
   constructor(scope: Construct, id: string, props: StackProps & OtherProps) {
     super(scope, id, props);
     //set the allowed origins, for use for cors
     const logGroup = new LogGroup(this, "ApiLogs");
 
-    // build the list of operations from the config.
+    // build the map of operations and their metadata from the config.
     const operationData: IEntryPoints = {
       ...operations.apiOperationsList.reduce((merged, obj) => ({ ...merged, ...obj })),
       ...operations.authOperations,
@@ -76,64 +78,55 @@ export class ApiStack extends Stack {
         SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
       },
     });
-    // Will want to keep mc server function separate?
-    // this.serviceFn = new NodejsFunction(this, "IronSpiderServiceFn", {
-    //   // code: Code.fromAsset(path.join(__dirname, `../dist/service`)),
-    //   handler: "ironSpiderHandler",
-    //   runtime: Runtime.NODEJS_20_X,
-    //   memorySize: 256,
-    //   timeout: Duration.seconds(15),
-    //   logRetention: RetentionDays.SIX_MONTHS,
-    //   environment: {
-    //     AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
-    //     EC2_INSTANCE_TYPE: "m6i.xlarge",
-    //     DOMAIN: props.domainName,
-    //     SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
-    //   },
-    //   reservedConcurrentExecutions: ,
-    // })
-
-    // TODO: instead of creating a new nodeJS functio for each operation, instead create a single 1 for the service handler
-    // cache it, and reuse it for each APIG operation.  That way we still have the APIg schema, but it all goes to the same Lambda
-    const loadOperationFunction = (op: EntryMetadata, operationName: string, props: any) => {
-      console.log(`loading operation: ${JSON.stringify(operationName)}`);
-      // const handlerFile = operationData[op].handlerFile;
-      const handlerFunction = !!op.handlerFunction ? op.handlerFunction : "lambdaHandler";
-      const memorySize = !!op.memorySize ? op.memorySize : undefined;
-      const timeout = !!op.timeout ? op.timeout : undefined;
-      const env = {
+    // Create main service functions
+    this.serviceFn = new NodejsFunction(this, "IronSpiderServiceFn", {
+      code: Code.fromAsset(path.join(__dirname, `../dist/IronSpiderHandler`)),
+      handler: "ironSpiderHandler",
+      runtime: Runtime.NODEJS_20_X,
+      memorySize: 256,
+      timeout: Duration.seconds(15),
+      logRetention: RetentionDays.SIX_MONTHS,
+      environment: {
         AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
         EC2_INSTANCE_TYPE: "m6i.xlarge",
         DOMAIN: props.domainName,
         SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
-      };
+      },
+    })
+    
+    this.singletonFn = new NodejsFunction(this, "SingletonFn", {
+      code: Code.fromAsset(path.join(__dirname, `../dist/SingletonHandler`)),
+      handler: "singleInstanceHandler",
+      runtime: Runtime.NODEJS_20_X,
+      memorySize: 256,
+      timeout: Duration.minutes(15),
+      logRetention: RetentionDays.SIX_MONTHS,
+      environment: {
+        AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
+        EC2_INSTANCE_TYPE: "m6i.xlarge",
+        DOMAIN: props.domainName,
+        SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
+      },
+      reservedConcurrentExecutions: 1,
+    })
 
-      const handlerPath = path.join(__dirname, `../dist/${op.handlerFile}`);
+    getMinecraftPolicies().forEach(policy => {
+      this.singletonFn.role?.addManagedPolicy(policy)
+      this.serviceFn.role?.addManagedPolicy(policy)
+    })
 
-      return new NodejsFunction(this, `${operationName}Function`, {
-        handler: `${op.handlerFile}.${handlerFunction}`,
-        code: Code.fromAsset(handlerPath),
-        runtime: Runtime.NODEJS_20_X,
-        memorySize,
-        timeout,
-        logRetention: RetentionDays.SIX_MONTHS,
-        environment: env,
-        // if present in op or undefined
-        reservedConcurrentExecutions: op.maxConcurrentExecutions,
-      });
-    };
-    // Define all the lambda functions, 1 per operation above
+    
+    
+    // Define all the lambda functions, 1 per operation above.  Associate either, one of the main functions above
+    // with the operation, or create a new lambda for it, depending on the config metadata. 
     this.operations = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce((acc, operation) => {
-      const op = operationData[operation];
-      const fn = loadOperationFunction(op, operation, props);
-      if (operationData[operation].policies) {
-        operationData[operation].policies?.forEach(policy => fn.role?.addManagedPolicy(policy));
-      }
+      const entryMetadata = operationData[operation];
+      const fn = this.loadOperationFunction(entryMetadata, operation, props);
       return {
         ...acc,
         [operation]: fn,
       };
-    }, {}) as { [op in IronSpiderServiceOperations]: NodejsFunction };
+    }, {});
 
     // get a list of the authOperations to give permissions to the ddb tables.
     this.authOperations = (Object.keys(operations.authOperations) as IronSpiderServiceOperations[]).map(operationName => this.operations[operationName]);
@@ -192,6 +185,53 @@ export class ApiStack extends Stack {
     });
   }
 
+  /**
+ * Loads an AWS Lambda function for a given operation. If null, will reuse the main service lambdas, else 
+ * will create a unique lambda for the operation.
+ *
+ * @param {EntryMetadata | null} entryMetadata - The operation metadata, or null if not provided.
+ * @param {IronSpiderServiceOperations} operationName - The name of the operation.
+ * @param {any} props - Additional properties required for function creation.
+ * @returns {NodejsFunction} The created AWS Lambda function.
+ */
+  private loadOperationFunction = (entryMetadata: EntryMetadata | null, operationName: IronSpiderServiceOperations, props: any): NodejsFunction => {
+    console.log(`loading operation: ${JSON.stringify(operationName)}`);
+    // if in singleton list, use singleton fn, else use service fn.
+    // opt in to this behavior, EntryMetadata must be null
+    if(entryMetadata == null) {
+      if(singletonServiceOpList.includes(operationName)) {
+        return this.singletonFn;
+      }else {
+        return this.serviceFn;
+      }
+    }
+
+    // else fall back to 1 lambda per operation
+    const handlerFunction = !!entryMetadata.handlerFunction ? entryMetadata.handlerFunction : "lambdaHandler";
+    const memorySize = !!entryMetadata.memorySize ? entryMetadata.memorySize : undefined;
+    const timeout = !!entryMetadata.timeout ? entryMetadata.timeout : undefined;
+    const env = {
+      AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
+      EC2_INSTANCE_TYPE: "m6i.xlarge",
+      DOMAIN: props.domainName,
+      SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
+    };
+    const handlerPath = path.join(__dirname, `../dist/${entryMetadata.handlerFile}`);
+    const fn = new NodejsFunction(this, `${operationName}Function`, {
+      handler: `${entryMetadata.handlerFile}.${handlerFunction}`,
+      code: Code.fromAsset(handlerPath),
+      runtime: Runtime.NODEJS_20_X,
+      memorySize,
+      timeout,
+      logRetention: RetentionDays.SIX_MONTHS,
+      environment: env,
+      // if present in op or undefined
+      reservedConcurrentExecutions: entryMetadata.maxConcurrentExecutions,
+    });
+    // add policies if needed
+    entryMetadata.policies?.forEach(policy => fn.role?.addManagedPolicy(policy));
+    return fn;
+  };
   /**
    * Generates the APIG open API definition based on the smithy generated openAPI.json file.
    * The CDK generated function arns are added dynamicly after loading the json,

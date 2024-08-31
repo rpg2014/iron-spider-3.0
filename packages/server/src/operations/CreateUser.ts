@@ -11,7 +11,10 @@ export const CreateUserOperation: Operation<CreateUserInput, CreateUserOutput, H
   }
   console.log(`Got Create User Request with email: ${input.email}, displayName: ${input.displayName}`);
   try {
-    return await processor.createUser(input.email, input.displayName);
+    const result = await processor.createUser(input.email, input.displayName);
+    return {
+      success: result.success,
+    }
   } catch (e: any) {
     throw new InternalServerError({ message: e.message });
   }

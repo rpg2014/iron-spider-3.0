@@ -40,7 +40,7 @@
     "@simplewebauthn/server": "^8.3.5",
     "@types/aws-lambda": "^8.10.85",
     "@types/uuid": "^9.0.2",
-    "iron-spider-ssdk": "workspace:*",
+    "iron-spider-ssdk": "workspace:^",
     "jsonwebtoken": "^9.0.1",
     "jwt-lib": "workspace:^",
     "re2-wasm": "1.0.2",

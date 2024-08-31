@@ -5,6 +5,11 @@ use aws.apigateway#integration
 use aws.apigateway#authorizer
 use aws.apigateway#authorizers
 use aws.apigateway#apiKeySource
+use com.rpg2014.cloud.date_tracker#GetDate
+use com.rpg2014.cloud.date_tracker#ListDates
+use com.rpg2014.cloud.date_tracker#UpdateDate
+use com.rpg2014.cloud.date_tracker#DeleteDate
+use com.rpg2014.cloud.date_tracker#CreateDate
 
 // All of the http methods MUST be POST, b/c thats how APIG has to call lambda as part of that integration.
 apply ServerStatus @aws.apigateway#integration(
@@ -75,6 +80,32 @@ apply GetPublicKeys @aws.apigateway#integration(
     uri: ""
 )
 
+//date APis
+apply CreateDate @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+apply GetDate @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+apply UpdateDate @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+apply DeleteDate @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+apply ListDates @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
 //Auth stuff
 apply IronSpider @authorizers(
     "iron-auth": {

@@ -8,12 +8,12 @@ import {
   StopServerOutput,
   BadRequestError,
 } from "iron-spider-ssdk";
-import { HandlerContext } from "authorizer/src/model/models";
 import { MinecraftDBWrapper } from "../wrappers/MinecraftDynamoWrapper";
 import { MinecraftEC2Wrapper } from "../wrappers/MinecraftEC2Wrapper";
 import { Route53Wrapper } from "../wrappers/Route53Wrapper";
 import { Status } from "../model/Status";
 import * as AuthDynamoWrapper from "../wrappers/AuthDynamoWrapper";
+import { HandlerContext } from "src/model/common";
 
 // This is the implementation of business logic of the ServerStatusOperation
 export const ServerStatusOperation: Operation<{}, ServerStatusOutput, HandlerContext> = async (input, context) => {

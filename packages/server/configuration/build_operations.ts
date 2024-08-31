@@ -10,9 +10,9 @@ import buildUtils from "../../../configuration/buildUtils";
 
 // fs.writeFileSync('operations.json', operationsJson, 'utf8');
 // console.log('Operations JSON written to operations.json');
-
-const operationData = require(path.join(__dirname, "../lib/operationsConfig.ts")).getOperationsAsFlatObject();
-const operationsDir = path.join(__dirname, "../src/handlers");
+const operationsConfig = require(path.join(__dirname, "../lib/operationsConfig.ts"));
+const operationData = operationsConfig.getOperationsAsFlatObject();
+const handlersDir = path.join(__dirname, "../src/handlers");
 const outputDir = path.join(__dirname, "../dist");
 
 type BuildOperationHandlerProps = {
@@ -50,27 +50,51 @@ async function buildOperationHandler(props: BuildOperationHandlerProps) {
   }
 }
 
+
+const buildServiceHandlers = async() => {
+//first build the main handler
+  await buildOperationHandler({
+    opName: "IronSpiderHandler",
+    outFile: "IronSpiderHandler.js",
+    outputDir: path.join(outputDir, "IronSpiderHandler"),
+    entryPoint: path.join(handlersDir, "IronSpiderHandler.ts"),
+  })
+  //build singleton handler
+  await buildOperationHandler({
+    opName: "MCServerHandlers",
+    outFile: "SingletonHandler.js",
+    outputDir: path.join(outputDir, "SingletonHandler"),
+    entryPoint: path.join(handlersDir, "MCServerHandlers.ts"),
+  })
+  //build cors handler @workspace
+  await buildOperationHandler({
+    opName: "cors",
+    outFile: "cors.js",
+    outputDir: path.join(outputDir, "cors"),
+    entryPoint: path.join(__dirname, "../src/cors/cors_handler.ts"),
+  });
+}
+
+// old build script
 const build = async () => {
   // Clean output directory
   fs.rmSync(outputDir, { recursive: true, force: true });
   fs.mkdirSync(outputDir, { recursive: true });
+  await buildServiceHandlers()
 
   // Build operation handlers
-  //TODO: fix this logic to only generate 1 handler file per handler file.
-  // let opData2 = (Object.keys(operationData)).reduce((acc, operation) => {
-  //   return {
-  //     ...acc,
-  //     [operation]: operation,
-  //   }
-  // })
   for (const op in operationData) {
     const opData = operationData[op];
+    if(opData === null) {
+      console.log(`No opData found for ${op}, skipping, they'll be handled by the main service lambda`)
+      continue;
+    }
     const newOutputDir = path.join(outputDir, opData.handlerFile);
     await buildOperationHandler({
       opName: op,
       outFile: `${opData.handlerFile}.js`,
       outputDir: newOutputDir,
-      entryPoint: path.join(operationsDir, `${opData.handlerFile}.ts`),
+      entryPoint: path.join(handlersDir, `${opData.handlerFile}.ts`),
     });
   }
   //build cors handler @workspace
@@ -82,4 +106,6 @@ const build = async () => {
   });
 };
 
+
 build();
+

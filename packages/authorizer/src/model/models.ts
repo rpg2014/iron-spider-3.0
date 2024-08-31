@@ -35,6 +35,9 @@ export interface event {
   */
  export interface HandlerContext {
    //legacy
+   /**
+    * @deprecated
+    */
    user?: string;
  
    //new

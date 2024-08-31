@@ -1,4 +1,3 @@
-import { HandlerContext } from "authorizer/src/model/models";
 import { APIGatewayProxyHandler } from "aws-lambda";
 import {
   getIronSpiderServiceHandler,
@@ -13,7 +12,9 @@ import { ServerDetailsOperation, ServerStatusOperation, StartServerOperation, St
 import { GetPublicKeys, UserInfo } from "src/operations/UserInfoOperation";
 import { VerifyAuthOperation } from "src/operations/VerifyAuthResponseOperation";
 import { VerifyRegistrationOperation } from "src/operations/VerifyRegistrationOperation";
+import { CreateDate, GetDate, UpdateDate, DeleteDate, ListDates } from "../operations/DateOperations";
 import { getNoOpFunctions } from "./handlerUtils";
+import { HandlerContext } from "src/model/common";
 
 //TODO: Finish this. will need to update apig integration
 const service: IronSpiderService<HandlerContext> = {
@@ -30,6 +31,13 @@ const service: IronSpiderService<HandlerContext> = {
   UserInfo: UserInfo,
   GetPublicKeys: GetPublicKeys,
   Logout: Logout,
+
+  //dates
+  CreateDate,
+  GetDate,
+  UpdateDate,
+  DeleteDate,
+  ListDates,
 };
 
 export const ironSpiderHandler: APIGatewayProxyHandler = getApiGatewayHandler(getIronSpiderServiceHandler(service));

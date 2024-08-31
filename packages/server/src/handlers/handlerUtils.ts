@@ -1,15 +1,23 @@
 import { HandlerContext } from "authorizer/src/model/models";
 import {
+  CreateDateInput,
+  CreateDateOutput,
   CreateUserServerInput,
   CreateUserServerOutput,
+  DeleteDateInput,
+  DeleteDateOutput,
   GenerateAuthenticationOptionsServerInput,
   GenerateAuthenticationOptionsServerOutput,
   GenerateRegistrationOptionsServerInput,
   GenerateRegistrationOptionsServerOutput,
+  GetDateInput,
+  GetDateOutput,
   GetPublicKeysServerInput,
   GetPublicKeysServerOutput,
   InternalServerError,
   IronSpiderService,
+  ListDatesInput,
+  ListDatesOutput,
   LogoutServerInput,
   LogoutServerOutput,
   ServerDetailsServerInput,
@@ -20,6 +28,8 @@ import {
   StartServerServerOutput,
   StopServerServerInput,
   StopServerServerOutput,
+  UpdateDateInput,
+  UpdateDateOutput,
   UserInfoServerInput,
   UserInfoServerOutput,
   VerifyAuthenticationServerInput,
@@ -70,6 +80,22 @@ export const getNoOpFunctions = (): IronSpiderService<HandlerContext> => {
       throw new InternalServerError({ message: "Function not implemented." });
     },
     VerifyRegistration: function (input: VerifyRegistrationServerInput, context: HandlerContext): Promise<VerifyRegistrationServerOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    // dates
+    CreateDate: function (input: CreateDateInput, context: HandlerContext): Promise<CreateDateOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    GetDate: function (input: GetDateInput, context: HandlerContext): Promise<GetDateOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    UpdateDate: function (input: UpdateDateInput, context: HandlerContext): Promise<UpdateDateOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    DeleteDate: function (input: DeleteDateInput, context: HandlerContext): Promise<DeleteDateOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    ListDates: function (input: ListDatesInput, context: HandlerContext): Promise<ListDatesOutput> {
       throw new InternalServerError({ message: "Function not implemented." });
     },
   };

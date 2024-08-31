@@ -1,169 +1,168 @@
-// $version: "2"
-// namespace com.rpg2014.cloud.date_tracker
-// use com.rpg2014.cloud.common#ValidatedOperation
-// use com.rpg2014.cloud.common#CommonHeaders
+$version: "2"
+namespace com.rpg2014.cloud.date_tracker
+use com.rpg2014.cloud.common#ValidatedOperation
+use com.rpg2014.cloud.common#CommonHeaders
 
-// // @noReplace
-// resource DateOuting {
-//     identifiers: { id: String },
+// @noReplace
+resource DateOuting {
+    identifiers: { id: String },
 
-//     //TODO: Decide if i should be putting the properties in here, or just specifying them in the API's via the Data object?
-//     // pros of Data: easy to add values,
-//     // cons : don't get smithy validations? idk if thats trues
-//     // properties: {
+    //TODO: Decide if i should be putting the properties in here, or just specifying them in the API's via the Data object?
+    // pros of Data: easy to add values,
+    // cons : don't get smithy validations? idk if thats trues
+    // properties: {
         
 
-//     // location: String,
+    // location: String,
 
-//     // pictures: PictureList,
+    // pictures: PictureList,
 
-//     // note: String,
-//     // success: Boolean,
-//     //     // outing: DateOutingData
-//     // },
-//     read: GetDateOuting,
-//     create: CreateDateOuting,
+    // note: String,
+    // success: Boolean,
+    //     // outing: DateData
+    // },
+    read: GetDate,
+    create: CreateDate,
     
-//     update: UpdateDateOuting,
-//     delete: DeleteDateOuting,
-//     list: ListDateOutings,
-// }
+    update: UpdateDate,
+    delete: DeleteDate,
+    list: ListDates,
+}
 
-// structure DateOutingData {
-//     /// Unique identifier for the object
-//     @required
-//     /// Represents an object with various data fields
-//     @resourceIdentifier("id")
-//     id: String,
+structure DateInfo {
+    /// Unique identifier for the date
+    @required
+    /// Represents an date with various data fields
+    @resourceIdentifier("id")
+    id: String,
 
-//     /// Location of the object
-//     @required
-//     location: String,
+    /// Location of the date
+    @required
+    location: String,
 
-//     /// List of picture URLs associated with the object
-//     @required
-//     pictures: PictureList,
+    /// List of picture URLs associated with the date
+    @required
+    pictures: PictureList,
 
-//     /// Additional notes about the object
-//     note: String,
-// }
+    @required
+    ownerId: String
 
-// /// A list of picture URLs
-// list PictureList {
-//     member: String
-// }
+    /// Additional notes about the date
+    note: String,
+}
 
-// // CRUD Operations
-// @readonly
-// @http(method: "GET", uri: "/date/{id}")
-// operation GetDateOuting with [ValidatedOperation] {
-//     input: GetDateOutingInput,
-//     output: GetDateOutingOutput,
-// }
+/// A list of picture URLs
+list PictureList {
+    member: String
+}
 
-// @input
-// structure GetDateOutingInput {
-//     @required
-//     @httpLabel
-//     id: String
-// }
+// CRUD Operations
+@readonly
+@http(method: "GET", uri: "/dates/{id}")
+operation GetDate with [ValidatedOperation] {
+    input: GetDateInput,
+    output: GetDateOutput,
+}
 
-// @output
-// structure GetDateOutingOutput for DateOuting {
-//     // @required
-//     // @httpPayload
-//     // outing: DateOutingData,
+@input
+structure GetDateInput {
+    @required
+    @httpLabel
+    id: String
+}
 
-//     $location,
-//     $note,
+@output
+structure GetDateOutput for DateOuting {
+    @required
+    @httpPayload
+    outing: DateInfo,
+}
+
+@idempotent
+@http(method: "POST", uri: "/dates")
+operation CreateDate with [ValidatedOperation] {
+    input: CreateDateInput,
+    output: CreateDateOutput,
     
-// }
+}
 
-// @idempotent
-// @http(method: "POST", uri: "/objects")
-// operation CreateDateOuting with [ValidatedOperation] {
-//     input: CreateDateOutingInput,
-//     output: CreateDateOutingOutput,
+structure CreateDateInput {
+    @required
+    location: String,
+    @required
+    pictures: PictureList,
+    note: String,
+}
+
+structure CreateDateOutput {
+    @required
+    @httpPayload
+    outing: DateInfo,
+}
+
+@idempotent
+@http(method: "PUT", uri: "/dates/{id}")
+operation UpdateDate with [ValidatedOperation] {
+    input: UpdateDateInput,
+    output: UpdateDateOutput,
     
-// }
+}
 
-// structure CreateDateOutingInput {
-//     @required
-//     location: String,
-//     @required
-//     pictures: PictureList,
-//     note: String,
-// }
+structure UpdateDateInput {
+    @required
+    @httpLabel
+    id: String,
+    location: String,
+    pictures: PictureList,
+    note: String,
+}
 
-// structure CreateDateOutingOutput {
-//     @required
-//     @httpPayload
-//     outing: DateOutingData,
-// }
+structure UpdateDateOutput {
+    @required
+    @httpPayload
+    outing: DateInfo,
+}
 
-// @idempotent
-// @http(method: "PUT", uri: "/objects/{id}")
-// operation UpdateDateOuting with [ValidatedOperation] {
-//     input: UpdateDateOutingInput,
-//     output: UpdateDateOutingOutput,
-    
-// }
+@idempotent
+@http(method: "DELETE", uri: "/dates/{id}")
+operation DeleteDate with [ValidatedOperation]{
+    input: DeleteDateInput,
+    output: DeleteDateOutput,
 
-// structure UpdateDateOutingInput {
-//     @required
-//     @httpLabel
-//     id: String,
-//     location: String,
-//     pictures: PictureList,
-//     note: String,
-// }
+}
 
-// structure UpdateDateOutingOutput {
-//     @required
-//     @httpPayload
-//     outing: DateOutingData,
-// }
+structure DeleteDateInput {
+    @required
+    @httpLabel
+    id: String,
+}
 
-// @idempotent
-// @http(method: "DELETE", uri: "/objects/{id}")
-// operation DeleteDateOuting with [ValidatedOperation]{
-//     input: DeleteDateOutingInput,
-//     output: DeleteDateOutingOutput,
+structure DeleteDateOutput {
+    @required
+    success: Boolean,
+}
 
-// }
+@readonly
+@paginated(inputToken: "nextToken", outputToken: "nextToken", pageSize: "pageSize")
+@http(method: "GET", uri: "/dates")
+operation ListDates with [ValidatedOperation] {
+    input: ListDatesInput,
+    output: ListDatesOutput,
+}
+@input
+structure ListDatesInput {
+    @httpQuery("nextToken")
+    nextToken: String,
+    @httpQuery("pageSize")
+    pageSize: Integer,
+}
+@output
+structure ListDatesOutput {
+    @required
+    items: DateList,
+    nextToken: String,
+}
 
-// structure DeleteDateOutingInput {
-//     @required
-//     @httpLabel
-//     id: String,
-// }
-
-// structure DeleteDateOutingOutput {
-//     @required
-//     success: Boolean,
-// }
-
-// @readonly
-// @paginated(inputToken: "nextToken", outputToken: "nextToken", pageSize: "pageSize")
-// @http(method: "GET", uri: "/dates")
-// operation ListDateOutings with [ValidatedOperation] {
-//     input: ListDateOutingsInput,
-//     output: ListDateOutingsOutput,
-// }
-// @input
-// structure ListDateOutingsInput {
-//     @httpQuery("nextToken")
-//     nextToken: String,
-//     @httpQuery("pageSize")
-//     pageSize: Integer,
-// }
-// @output
-// structure ListDateOutingsOutput {
-//     @required
-//     items: DateOutingList,
-//     nextToken: String,
-// }
-
-// list DateOutingList {
-//     member: DateOutingData
-// }
+list DateList {
+    member: DateInfo
+}

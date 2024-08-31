@@ -4,9 +4,10 @@ import { getMinecraftPolicies } from "../../../bin/cdk-constants";
 import { IEntryPoints } from "./api-stack";
 import { IronSpiderServiceOperations } from "iron-spider-ssdk";
 
-// TODO: have the server start and stop in one object, and the rest in the other (or assume by default?), and point them to different
-// instances of the IronSpiderServiceHandler
-const singletonServiceOpList: IronSpiderServiceOperations[] = ["StartServer", "StopServer"];
+// if the operation is in this list it goes into a singleton lambda
+export const singletonServiceOpList: IronSpiderServiceOperations[] = ["StartServer", "StopServer"];
+
+// make the data null to add the operation to the main service lambda
 const minecraftServerOperations: Partial<IEntryPoints> = {
   ServerStatus: {
     handlerFile: "MCServerHandlers",
@@ -84,8 +85,16 @@ const LightweightAPIs: Partial<IEntryPoints> = {
   },
 };
 
+const DateAPIs: Partial<IEntryPoints> = {
+  GetDate: null,
+  UpdateDate: null,
+  DeleteDate: null,
+  ListDates: null,
+  CreateDate: null,
+};
+
 export const operations = {
-  apiOperationsList: [minecraftServerOperations, LightweightAPIs],
+  apiOperationsList: [minecraftServerOperations, LightweightAPIs, DateAPIs],
   authOperations: AuthOperations,
 };
 
