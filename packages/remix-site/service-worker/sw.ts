@@ -62,7 +62,7 @@ sw.addEventListener("fetch", event => {
     (async () => {
       // if the request isn't for the remix.parkergiven.com domain, then we can just return the response
       if (!event.request.url.includes("remix.parkergiven.com")) {
-        return handle3pCall(event.request,event);
+        return handle3pCall(event.request, event);
       }
       try {
         // console.log("Fetching page", event.request.url.replace("https://remix.parkergiven.com", ""));
@@ -178,17 +178,17 @@ sw.addEventListener("notificationclick", event => {
  * @param {Request} request - The Request object representing the external URL to fetch.
  * @returns {Promise<Response>} A Promise that resolves with the Response object from the external URL, or a custom error Response if an error occurs.
  */
-async function handle3pCall(request: Request, event: FetchEvent ) {
+async function handle3pCall(request: Request, event: FetchEvent) {
   console.log("Fetching external data", request.url);
-  console.log(`Headers of interest: spider-token:${request.headers.get("spider-access-token")}`)
+  console.log(`Headers of interest: spider-token:${request.headers.get("spider-access-token")}`);
   try {
-    const res = await fetch(request)//, {
+    const res = await fetch(request); //, {
     // have to make sure the spider-access-token is passed through
-      // headers: {
-      //   ...request.headers,
-      //   "spider-access-token":"no-token"
-      // },
-      // mode: "cors",
+    // headers: {
+    //   ...request.headers,
+    //   "spider-access-token":"no-token"
+    // },
+    // mode: "cors",
     // });
     console.log("Got response from network", res.status);
     // the below breaks streaming, I assume b/c we're trying to read the body
@@ -196,7 +196,7 @@ async function handle3pCall(request: Request, event: FetchEvent ) {
     //   const data = await res.clone().json();
     //   console.log("Got data from network", data);
     //  })
-    
+
     return res;
   } catch (e) {
     console.warn("Error fetching external data", e);

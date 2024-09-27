@@ -1,8 +1,5 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import {
-  getIronSpiderServiceHandler,
-  IronSpiderService
-} from "iron-spider-ssdk";
+import { getIronSpiderServiceHandler, IronSpiderService } from "iron-spider-ssdk";
 import { getApiGatewayHandler } from "src/apigatewayAdapter";
 import { CreateUserOperation } from "src/operations/CreateUser";
 import { GenerateRegistrationOptionsOperation } from "src/operations/GenerateRegistrationOptionsOperation";
@@ -12,7 +9,7 @@ import { ServerDetailsOperation, ServerStatusOperation, StartServerOperation, St
 import { GetPublicKeys, UserInfo } from "src/operations/UserInfoOperation";
 import { VerifyAuthOperation } from "src/operations/VerifyAuthResponseOperation";
 import { VerifyRegistrationOperation } from "src/operations/VerifyRegistrationOperation";
-import { CreateDate, GetDate, UpdateDate, DeleteDate, ListDates } from "../operations/DateOperations";
+import { CreateDate, GetDate, UpdateDate, DeleteDate, ListDates, GetLocationByPlaceId, SearchForLocation } from "../operations/DateOperations";
 import { getNoOpFunctions } from "./handlerUtils";
 import { HandlerContext } from "src/model/common";
 
@@ -38,6 +35,8 @@ const service: IronSpiderService<HandlerContext> = {
   UpdateDate,
   DeleteDate,
   ListDates,
+  SearchForLocation,
+  GetLocationByPlaceId
 };
 
 export const ironSpiderHandler: APIGatewayProxyHandler = getApiGatewayHandler(getIronSpiderServiceHandler(service));

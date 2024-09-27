@@ -1,4 +1,6 @@
+import { Coordinates, DateInfo, Place, SearchResult } from "iron-spider-ssdk";
 import { CredentialModel, UserModel } from "../model/Auth/authModels";
+import { GetPlaceCommand, LocationClient, SearchPlaceIndexForSuggestionsCommand } from "@aws-sdk/client-location";
 
 //TODO: figure out dependency injection here.
 export abstract class CredentialsAccessor {
@@ -39,4 +41,17 @@ export abstract class UserAccessor {
   abstract saveChallenge(userId: string, challenge: string): Promise<void>;
   abstract addCredentialToUser(user: UserModel, credential: CredentialModel): Promise<void>;
   abstract appendCredentialToUser(user: UserModel, credential: CredentialModel): Promise<void>;
+}
+
+export abstract class DateAccessor {
+  abstract listDates(userId: string): Promise<DateInfo[]>;
+  abstract createDate(date: DateInfo): Promise<DateInfo>;
+  abstract getDate(id: string): Promise<DateInfo | undefined>;
+  abstract updateDate(date: DateInfo): Promise<DateInfo>;
+  abstract deleteDate(id: string): Promise<void>;
+}
+
+export abstract class LocationAccessor {
+  abstract searchForPlace(text: string, biasPosition?: Coordinates): Promise<SearchResult[]>;
+  abstract getPlaceDetails(placeId: string): Promise<Place | undefined>;
 }

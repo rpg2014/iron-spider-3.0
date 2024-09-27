@@ -4,7 +4,7 @@ import {
   getStartServerHandler,
   getStopServerHandler,
   getIronSpiderServiceHandler,
-  IronSpiderService
+  IronSpiderService,
 } from "iron-spider-ssdk";
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { ServerDetailsOperation, ServerStatusOperation, StartServerOperation, StopServerOperation } from "../operations/MCServerOperations";

@@ -10,6 +10,11 @@ use com.rpg2014.cloud.date_tracker#ListDates
 use com.rpg2014.cloud.date_tracker#UpdateDate
 use com.rpg2014.cloud.date_tracker#DeleteDate
 use com.rpg2014.cloud.date_tracker#CreateDate
+use com.rpg2014.cloud.date_tracker#GetPicture
+use com.rpg2014.cloud.date_tracker#CreatePicture
+use com.rpg2014.cloud.date_tracker#DeletePicture
+use com.rpg2014.cloud.date_tracker#SearchForLocation
+use com.rpg2014.cloud.date_tracker#GetLocationByPlaceId
 
 // All of the http methods MUST be POST, b/c thats how APIG has to call lambda as part of that integration.
 apply ServerStatus @aws.apigateway#integration(
@@ -106,6 +111,34 @@ apply ListDates @aws.apigateway#integration(
     httpMethod: "POST",
     uri: ""
 )
+
+apply SearchForLocation @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+apply GetLocationByPlaceId @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+apply GetPicture @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
+apply CreatePicture @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+apply DeletePicture @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
 //Auth stuff
 apply IronSpider @authorizers(
     "iron-auth": {

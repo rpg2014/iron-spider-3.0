@@ -57,7 +57,7 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
                       <NavigationMenuLink className={navigationMenuTriggerStyle()}>404 Page</NavigationMenuLink>
                     </Link>
                     <Link prefetch={"viewport"} to={"/dates"}>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Dates</NavigationMenuLink>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Date Tracker</NavigationMenuLink>
                     </Link>
                   </NavigationMenuContent>
                 </NavigationMenuItem>

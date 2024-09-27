@@ -36,11 +36,11 @@ export function createRequestHandler({
     const startTime = Date.now();
 
     let request = createRemixRequest(event);
-
+    console.log(`Got Request for path: ${request.url}`);
     let loadContext = typeof getLoadContext === "function" ? getLoadContext(event) : undefined;
 
     let response = (await handleRequest(request as unknown as Request, loadContext)) as unknown as Response;
-
+    console.log(`Returning Response for path: ${request.url} with status: ${response.status}`);
     let cloudfrontHeaders = createCloudFrontHeaders(response.headers);
     // add server timing header to headers
     cloudfrontHeaders["server-timing"] = [

@@ -29,8 +29,10 @@ export async function* parseEventStream(eventByteStream: ReadableStream2<Uint8Ar
       const { name, value } = /^(?<name>.*?)(?:: ?(?<value>.*))?$/s.exec(line)?.groups;
       switch (name) {
         case "event":
+          // this case is for dispatching events, or just grabs out the type data
           type = value ?? "";
           break;
+        // should mainly be data b/c we are using dispatchMessage on the eventtarget
         case "data":
           // Appends the value to the data string, creating a new line if data already exists, otherwise assigns the value to data
           data = data === undefined ? value ?? "" : `${data}\n${value}`;
@@ -41,6 +43,10 @@ export async function* parseEventStream(eventByteStream: ReadableStream2<Uint8Ar
         const json = JSON.parse(data); // THis is the data we're getting from the backend.
         // Both Chrome and Firefox suck at debugging
         // text/event-stream, so make it easier by logging events
+        if (json.type === "error") {
+          console.error(`got error message from stream ${JSON.stringify(json, null, 2)}`);
+          throw new Error(json.message);
+        }
         console.log("event", json);
         yield json;
         type = undefined;

@@ -2,11 +2,12 @@ $version: "2"
 namespace com.rpg2014.cloud.date_tracker
 use com.rpg2014.cloud.common#ValidatedOperation
 use com.rpg2014.cloud.common#CommonHeaders
+use com.rpg2014.cloud.date_tracker#Picture
 
 // @noReplace
 resource DateOuting {
-    identifiers: { id: String },
-
+    identifiers: { dateId: String },
+    resources: [Picture]
     //TODO: Decide if i should be putting the properties in here, or just specifying them in the API's via the Data object?
     // pros of Data: easy to add values,
     // cons : don't get smithy validations? idk if thats trues
@@ -33,32 +34,39 @@ structure DateInfo {
     /// Unique identifier for the date
     @required
     /// Represents an date with various data fields
-    @resourceIdentifier("id")
+    @resourceIdentifier("dateId")
     id: String,
 
     /// Location of the date
     @required
     location: String,
 
-    /// List of picture URLs associated with the date
     @required
-    pictures: PictureList,
+    coordinates: Coordinates,
 
     @required
-    ownerId: String
+    date: Timestamp
+
+    /// Id of the picture associated with the date
+    @required
+    pictureId: String,
+
+    @required
+    userId: String
 
     /// Additional notes about the date
     note: String,
 }
 
-/// A list of picture URLs
-list PictureList {
-    member: String
+structure Coordinates {
+    lat: String,
+    long: String
+    alt: String,
 }
 
 // CRUD Operations
 @readonly
-@http(method: "GET", uri: "/dates/{id}")
+@http(method: "GET", uri: "/v1/dates/{dateId}")
 operation GetDate with [ValidatedOperation] {
     input: GetDateInput,
     output: GetDateOutput,
@@ -68,18 +76,18 @@ operation GetDate with [ValidatedOperation] {
 structure GetDateInput {
     @required
     @httpLabel
-    id: String
+    dateId: String
 }
 
 @output
-structure GetDateOutput for DateOuting {
+structure GetDateOutput for DateOuting with [CommonHeaders] {
     @required
     @httpPayload
     outing: DateInfo,
 }
 
 @idempotent
-@http(method: "POST", uri: "/dates")
+@http(method: "POST", uri: "/v1/dates")
 operation CreateDate with [ValidatedOperation] {
     input: CreateDateInput,
     output: CreateDateOutput,
@@ -89,19 +97,25 @@ operation CreateDate with [ValidatedOperation] {
 structure CreateDateInput {
     @required
     location: String,
+    
     @required
-    pictures: PictureList,
+    pictureId: String,
+    @required
     note: String,
+    @required
+    coordinates: Coordinates
+
+    date: Timestamp
 }
 
-structure CreateDateOutput {
+structure CreateDateOutput with [CommonHeaders] {
     @required
     @httpPayload
     outing: DateInfo,
 }
 
 @idempotent
-@http(method: "PUT", uri: "/dates/{id}")
+@http(method: "PUT", uri: "/v1/dates/{dateId}")
 operation UpdateDate with [ValidatedOperation] {
     input: UpdateDateInput,
     output: UpdateDateOutput,
@@ -111,20 +125,21 @@ operation UpdateDate with [ValidatedOperation] {
 structure UpdateDateInput {
     @required
     @httpLabel
-    id: String,
+    dateId: String,
     location: String,
-    pictures: PictureList,
+    picture: String,
     note: String,
+    coordinates: Coordinates,
 }
 
-structure UpdateDateOutput {
+structure UpdateDateOutput with [CommonHeaders] {
     @required
     @httpPayload
     outing: DateInfo,
 }
 
 @idempotent
-@http(method: "DELETE", uri: "/dates/{id}")
+@http(method: "DELETE", uri: "/v1/dates/{dateId}")
 operation DeleteDate with [ValidatedOperation]{
     input: DeleteDateInput,
     output: DeleteDateOutput,
@@ -134,7 +149,7 @@ operation DeleteDate with [ValidatedOperation]{
 structure DeleteDateInput {
     @required
     @httpLabel
-    id: String,
+    dateId: String,
 }
 
 structure DeleteDateOutput {
@@ -144,7 +159,7 @@ structure DeleteDateOutput {
 
 @readonly
 @paginated(inputToken: "nextToken", outputToken: "nextToken", pageSize: "pageSize")
-@http(method: "GET", uri: "/dates")
+@http(method: "GET", uri: "/v1/dates")
 operation ListDates with [ValidatedOperation] {
     input: ListDatesInput,
     output: ListDatesOutput,
@@ -157,7 +172,7 @@ structure ListDatesInput {
     pageSize: Integer,
 }
 @output
-structure ListDatesOutput {
+structure ListDatesOutput with [CommonHeaders] {
     @required
     items: DateList,
     nextToken: String,
@@ -165,4 +180,54 @@ structure ListDatesOutput {
 
 list DateList {
     member: DateInfo
+}
+
+@http(method: "POST", uri: "/v1/locations")
+operation SearchForLocation with [ValidatedOperation] {
+    input: SearchForLocationInput
+    output: SearchForLocationOutput
+}
+@input
+structure SearchForLocationInput {
+    @required
+    searchText: String
+    biasPosition: Coordinates
+}
+
+@output
+structure SearchForLocationOutput with [CommonHeaders] {
+    @required
+    results: SearchResultsList
+}
+
+list SearchResultsList {
+    member: SearchResult
+}
+structure SearchResult {
+    text: String,
+    placeId: String
+}
+
+@http(method: "GET", uri: "/v1/locations/{placeId}")
+operation GetLocationByPlaceId with [ValidatedOperation]{
+    input: GetLocationByPlaceIdInput
+    output: GetLocationByPlaceIdOutput
+    
+}
+@input
+structure GetLocationByPlaceIdInput {
+    @httpLabel
+    @required
+    placeId: String
+}
+@output
+structure GetLocationByPlaceIdOutput {
+    place: Place
+}
+structure Place {
+    @required
+    label: String,
+    typeOfPlace: String,
+    @required
+    coordinates: Coordinates
 }

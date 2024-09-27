@@ -10,7 +10,7 @@ import { Checkbox } from "~/components/ui/Checkbox";
 import { Label } from "~/components/ui/Label";
 
 export default function Summary() {
-  const { submit, cancel, loading, error, messages, userMessage, setUserMessage } = useAIChat();
+  const { submit, cancel, loading, error, messages, userMessage, setUserMessage } = useAIChat({ fetchMessages: false });
   const [useStreaming, setUseStreaming] = useLocalStorage("useStreaming-summarize", false);
   const { shareUrl } = useOutletContext<{ shareUrl?: string }>();
   // submit the share url if present.

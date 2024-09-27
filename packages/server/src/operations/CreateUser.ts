@@ -14,7 +14,7 @@ export const CreateUserOperation: Operation<CreateUserInput, CreateUserOutput, H
     const result = await processor.createUser(input.email, input.displayName);
     return {
       success: result.success,
-    }
+    };
   } catch (e: any) {
     throw new InternalServerError({ message: e.message });
   }

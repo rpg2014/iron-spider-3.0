@@ -1,7 +1,7 @@
 import { Button } from "~/components/ui/Button";
 import styles from "../styles/settings.module.css";
 import { useEffect, useState } from "react";
-import { API_DOMAIN, API_DOMAIN_VERSION, notificationSettingKey } from "~/constants";
+import { API_DOMAIN_VERSION, notificationSettingKey } from "~/constants";
 import { fetcher } from "~/utils";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import { useLoaderData, useRevalidator } from "@remix-run/react";
@@ -103,10 +103,7 @@ const LogoutButton = () => {
   const handleLogout = async () => {
     try {
       setLoading(true);
-      await IronSpiderAPI.logout();
-    } catch (e) {
-      console.error(e);
-      console.log("falling back to raw fetch");
+      // await IronSpiderAPI.logout();
       await fetcher(
         `${API_DOMAIN_VERSION}/logout`,
         {
@@ -116,6 +113,18 @@ const LogoutButton = () => {
         },
         false,
       );
+    } catch (e) {
+      console.error(e);
+      console.log("falling back to raw fetch");
+      // await fetcher(
+      //   `${API_DOMAIN_VERSION}/logout`,
+      //   {
+      //     credentials: "include",
+      //     method: "POST",
+      //     mode: "cors",
+      //   },
+      //   false,
+      // );
     } finally {
       setLoading(false);
       revalidator.revalidate();

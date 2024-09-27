@@ -74,7 +74,7 @@ const processor: PasskeyFlowProcessor = {
 
     return {
       success: true,
-      verificationCode
+      verificationCode,
     };
   },
   async verifyTokenAndGenerateRegistrationOptions(token: string): Promise<PublicKeyCredentialCreationOptionsJSON> {

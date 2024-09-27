@@ -1,5 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { AUTH_DOMAIN } from "./constants";
+
+const isServer = typeof window === "undefined";
 
 /**
  * Performs a fetch request with custom headers and error handling.
@@ -17,9 +20,12 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, incl
     origin: `https://remix.parkergiven.com`,
   };
   if (includeContentType) {
-    headers["content-type"] = "application/json";
+    headers["Content-Type"] = "application/json";
   }
-
+  if (isServer) {
+    headers["user-agent"] = "IronSpiderRemixFn";
+  }
+  //                                                                                    this might need to be ===
   if ((init?.body || init?.method === "POST") && !input.toString().includes("server") && includeContentType !== undefined) {
     console.log(`Adding content-type header for input ${input.toString()}`);
     headers["Content-Type"] = "application/json";
@@ -27,20 +33,29 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, incl
   if (includeContentType === false) {
     delete headers["Content-Type"];
   }
-
+  console.log(`Making request to ${input.toString()} with body ${init?.body?.toString()} and headers ${JSON.stringify(headers, null, 2)}`); //
   const res = await fetch(input, {
     mode: "no-cors", // todo: fix cors
     ...init,
     headers,
   });
+  console.log(`Got ${res.status} from path: ${input.toString()}`);
+  try {
+    const data = await res.json();
 
-  const data = await res.json();
-
-  if (res.status >= 400) {
-    console.error(`Got ${res.status} error from backend`);
-    throw new Error(data.message);
+    if (res.status >= 400) {
+      console.error(`Got ${res.status} error from backend`);
+      throw new Error(data.message);
+    }
+    return data;
+  } catch (e: any) {
+    console.warn(JSON.stringify(res));
+    try {
+      console.warn(JSON.stringify(await res.text()));
+    } catch (e) {}
+    console.error(`Error parsing response ${e}: message: ${e.message}`);
+    throw new Error(e.message);
   }
-  return data;
 };
 
 /**
@@ -52,3 +67,6 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, incl
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export const getLoginRedirect = (returnLocation: string) =>
+  `${AUTH_DOMAIN}?return_url=${encodeURIComponent(returnLocation)}&message=${encodeURIComponent(`Need To login`)}`;

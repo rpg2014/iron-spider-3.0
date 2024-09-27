@@ -1,13 +1,14 @@
 // a react hook that contains a local state. the state includes fields for temperature, top_k, top_p n_predict, n_keep
 import { useCallback, useEffect, useState } from "react";
 import type { AIEndpointSettings, AISettings } from "../genAi/genAiUtils";
-import { completion, getTokenCount } from "../genAi/genAiUtils";
+
 import { useLocalStorage } from "./useLocalStorage.client";
-import type { AgentStep, Output, Step } from "~/genAi/spiderAssistant";
+import type { AgentStep, Input, Output, Step } from "~/genAi/spiderAssistant";
 import { assistant } from "~/genAi/spiderAssistant";
-import { EventSourceMessage } from "@microsoft/fetch-event-source";
 import { useOutletContext } from "@remix-run/react";
-import { createMessage, type Message } from "~/components/chat/Messages/Messages.client";
+import { createMessage } from "~/components/chat/Messages/Messages.client";
+import type { Message } from "~/components/chat/Messages/model";
+import type { OutletState } from "~/routes/chat";
 
 // type ChatSettings
 /**
@@ -192,31 +193,45 @@ export type AIChatProps = {
 export const useAIChat = (props?: AIChatProps) => {
   const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const { temperature, maxTokens } = useOutletContext<{ temperature: number; maxTokens: number }>();
+  const { temperature, maxTokens } = useOutletContext<OutletState>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>();
+  const [chatId, setChatId] = useLocalStorage("ai-chat-chatId", "2");
   const [abortController, setAbortController] = useState(new AbortController());
 
+  // fetch messages on load
   useEffect(() => {
     const getMessages = async () => {
-      if (props?.fetchMessages) {
-        const memory = await assistant.memory.get();
-        if (memory.messages) {
+      const memory = await assistant.memory.chat.get(chatId);
+      if (memory.messages) {
+        setMessages(memory.messages);
+      }
+    };
+    if (props?.fetchMessages) {
+      getMessages();
+    }
+  }, []);
+
+  const newChat = async () => {
+    try {
+      const saveResult = await assistant.memory.chat.save(chatId);
+      if (!saveResult.success) {
+        console.warn("failed to save chat");
+        setError("failed to save chat, server false, should never happen");
+      } else {
+        // success, create new chat
+        const res = await assistant.memory.chat.new();
+        setChatId(res.chatId);
+        setMessages([]);
+        const memory = await assistant.memory.chat.get(res.chatId);
+        if (memory.messages && memory.messages.length > 0) {
+          console.warn("newChat failed, messages were returned");
+          setError("newChat failed, messages were returned");
           setMessages(memory.messages);
         }
       }
-    };
-  });
-
-  const newChat = async () => {
-    await assistant.memory.newChat();
-    setMessages([]);
-    const memory = await assistant.memory.get();
-    console.log("memory", memory.messages);
-    if (memory.messages && memory.messages.length > 0) {
-      console.warn("newChat failed, messages were returned");
-      setError("newChat failed, messages were returned");
-      setMessages(memory.messages);
+    } catch (e) {
+      setError(e);
     }
   };
 
@@ -238,8 +253,25 @@ export const useAIChat = (props?: AIChatProps) => {
     }
     return messages;
   };
+  /**
+   * Builds an Input object from a prompt string and current state.
+   *
+   * @param {string} prompt - The prompt string to be used for building the Input object.
+   * @returns {Input} The Input object built from the prompt string.
+   */
+  const buildInput = (prompt: string): Input => {
+    return {
+      prompt: prompt,
+      opts: {
+        temperature,
+        maxTokens,
+        chatId: chatId,
+      },
+      storage: "dynamodb",
+    };
+  };
 
-  const submit = async (prompt: string, mode: "summarize" | "agent" | "invoke" | "summarize-stream") => {
+  const submit = async (prompt: string, mode: "summarize" | "agent" | "invoke" | "summarize-stream" | "agent-stream") => {
     setMessages([...messages, createMessage("user", prompt)]);
     // need to set outside of react here.
     const ac = new AbortController();
@@ -254,7 +286,7 @@ export const useAIChat = (props?: AIChatProps) => {
       let streamingResponse: AsyncGenerator<Output> | undefined = undefined;
       switch (mode) {
         case "summarize-stream":
-          streamingResponse = await assistant.streaming.summarizeStream(
+          streamingResponse = assistant.streaming.summarizeStream(
             {
               prompt,
               opts: {
@@ -278,16 +310,10 @@ export const useAIChat = (props?: AIChatProps) => {
           );
           break;
         case "agent":
-          response = await assistant.agent(
-            {
-              prompt,
-              opts: {
-                temperature,
-                maxTokens,
-              },
-            },
-            ac.signal,
-          );
+          response = await assistant.agent(buildInput(prompt), ac.signal);
+          break;
+        case "agent-stream":
+          streamingResponse = assistant.streaming.agent(buildInput(prompt), ac.signal);
           break;
         case "invoke":
           const res = await assistant.invoke(prompt);
@@ -313,8 +339,10 @@ export const useAIChat = (props?: AIChatProps) => {
       } else if (streamingResponse !== undefined) {
         const firstChunk = await streamingResponse.next();
         const messagesToAdd: Message[] = [];
-        // add any steps
-        messagesToAdd.push(...firstChunk.value.steps.map(parseSteps).flat());
+        // add any steps todo: Support multiple steps coming in.
+        if (firstChunk.value.steps) {
+          messagesToAdd.push(...firstChunk.value.steps.map(parseSteps).flat());
+        }
         // add first content as message
         let responseStr: string = firstChunk.value.content;
         messagesToAdd.push(createMessage("agent_response", responseStr));
@@ -322,6 +350,15 @@ export const useAIChat = (props?: AIChatProps) => {
         //parse rest of stream.
         for await (let chunk of streamingResponse) {
           ac.signal.throwIfAborted();
+          try {
+            if (chunk.steps) {
+              // need to add it to a message before?
+              const toolMessages = chunk.steps.map(parseSteps).flat();
+              setMessages(p => [...p.slice(0, -1), ...toolMessages, p.pop() as Message]);
+            }
+          } catch (e) {
+            console.warn("Caught error when parseing multiple tool step events", e);
+          }
           // for now assuming no additional steps come in, works for now.
           // set the last message to the current response string
           setMessages(p => {
@@ -338,8 +375,10 @@ export const useAIChat = (props?: AIChatProps) => {
           }
         }
       }
-    } catch (e) {
-      setError(e);
+    } catch (e: { message?: string } | any) {
+      const errorMessage = e.message && e.message !== "" ? e.message : e;
+      console.error(`Error from ai submit call: ${errorMessage}`);
+      setError({ message: errorMessage });
       setLoading(false);
     }
   };

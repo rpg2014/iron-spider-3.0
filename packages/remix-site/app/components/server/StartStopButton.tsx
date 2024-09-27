@@ -6,11 +6,17 @@ export interface StartStopButtonProps {
   serverStatus?: ServerStatus;
   error?: { message: string };
   loading: boolean;
+  loggedIn: boolean;
   updateStatus: () => Promise<void>;
   stopServer: () => Promise<void>;
   startServer: () => Promise<void>;
 }
 
+/**
+ * TODO: add logged in status, so if not logged in button is disabled
+ * @param param0
+ * @returns
+ */
 export const StartStopButton: React.FC<StartStopButtonProps> = ({ serverStatus, error, updateStatus, loading, stopServer, startServer }) => {
   const [clicked, setClicked] = useState(false);
 

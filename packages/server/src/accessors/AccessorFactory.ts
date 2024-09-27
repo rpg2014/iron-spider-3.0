@@ -1,13 +1,16 @@
 import { DynamoUserAccessor } from "./dynamo/DynamoUserAccessor";
-import { CredentialsAccessor, EmailAccessor, SecretKeyAccessor, UserAccessor } from "./AccessorInterfaces";
+import { CredentialsAccessor, EmailAccessor, SecretKeyAccessor, UserAccessor, DateAccessor, LocationAccessor } from "./AccessorInterfaces";
 import { SESEmailAccessor } from "./SESEmailAccessor";
 import { SecretsManagerSecretKeyAccessor } from "./SecretsManagerSecretKeyAccessor";
 import { DynamoCredentialsAccessor } from "./dynamo/DynamoCredentialAccessor";
+import { DynamoDateAccessor } from "./dynamo/DynamoDateAccessor";
+import { AWSLocationAccessor } from "./AWSLocationAccessor";
 
 let userAccessor: UserAccessor;
 let sesAccessor: EmailAccessor;
 let secretKeyAccessor: SecretKeyAccessor;
 let credentialsAccessor: CredentialsAccessor;
+let locationAccessor: LocationAccessor;
 
 export function getUserAccessor(): UserAccessor {
   if (!userAccessor) {
@@ -35,4 +38,19 @@ export function getCredentialsAccessor(): CredentialsAccessor {
     credentialsAccessor = new DynamoCredentialsAccessor();
   }
   return credentialsAccessor;
+}
+
+let dateAccessor: DateAccessor;
+
+export function getDateAccessor(): DateAccessor {
+  if (!dateAccessor) {
+    dateAccessor = new DynamoDateAccessor();
+  }
+  return dateAccessor;
+}
+export function getLocationAccessor(): LocationAccessor {
+  if (!locationAccessor) {
+    locationAccessor = new AWSLocationAccessor();
+  }
+  return locationAccessor;
 }

@@ -1,4 +1,4 @@
-import {  DateInfo } from "iron-spider-ssdk";
+import { DateInfo } from "iron-spider-ssdk";
 
 export interface IDateDB {
   listDates(userId: string): Promise<DateInfo[]>;
@@ -12,7 +12,6 @@ export class StubDateDB implements IDateDB {
   async listDates(userId: string): Promise<DateInfo[]> {
     // Stub implementation
     return [];
-    
   }
   async createDate(date: DateInfo): Promise<DateInfo> {
     // Stub implementation
@@ -35,7 +34,7 @@ export class StubDateDB implements IDateDB {
 }
 
 //in memory db
-export class InMemoryDb  implements IDateDB {
+export class InMemoryDb implements IDateDB {
   private dates: DateInfo[] = [];
 
   async listDates(userId: string): Promise<DateInfo[]> {

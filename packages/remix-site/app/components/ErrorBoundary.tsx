@@ -19,6 +19,10 @@ export const ErrorBoundary = () => {
       default:
         throw new Error(error.data || error.statusText);
     }
+    let parsedData: { message?: string } | undefined = undefined;
+    if (error.data) {
+      parsedData = JSON.parse(error.data);
+    }
 
     return (
       <>
@@ -26,6 +30,8 @@ export const ErrorBoundary = () => {
           {error.status}: {error.statusText}
         </h1>
         {message}
+        <hr />
+        {parsedData && `Message: ${parsedData.message}`}
       </>
     );
   }

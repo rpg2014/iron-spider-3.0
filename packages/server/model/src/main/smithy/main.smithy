@@ -6,6 +6,8 @@ use aws.api#service
 use aws.protocols#restJson1
 use smithy.framework#ValidationException
 use com.rpg2014.cloud.date_tracker#DateOuting
+use com.rpg2014.cloud.date_tracker#GetLocationByPlaceId
+use com.rpg2014.cloud.date_tracker#SearchForLocation
 
 @title("Various API's to support services")
 
@@ -13,6 +15,7 @@ use com.rpg2014.cloud.date_tracker#DateOuting
 // Cors should be enabled for externally facing services and disabled for internally facing services.
 // Enabling cors will modify the OpenAPI spec used to define your API Gateway endpoint.
 // Uncomment the line below to enable cross-origin resource sharing
+// I've manually implemented my own CORS api
 // @cors(origin: "*" ,additionalAllowedHeaders: ["Content-Type", "content-type"] )
 @sigv4(name: "execute-api")
 @restJson1
@@ -46,6 +49,10 @@ service IronSpider {
 
         // Unrelated other web api's
         Logout,
+
+        // support the date trackerW
+        SearchForLocation, 
+        GetLocationByPlaceId
         ],
 }
 
@@ -64,6 +71,12 @@ structure BadRequestError {
 @error("client")
 structure NeedDomainAccessError {
     message: String
+}
+
+@httpError(404)
+@error("client")
+structure NotFoundError {
+    message:  String
 }
 
 

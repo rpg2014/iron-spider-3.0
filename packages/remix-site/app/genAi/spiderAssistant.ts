@@ -1,8 +1,7 @@
-import { AGENT_URL } from "~/constants";
+import { AGENT_CHATS_PATH, AGENT_INVOKE_SUFFIX, AGENT_STREAMING_SUFFIX, AGENT_URL } from "~/constants";
 import { fetcher } from "~/utils";
 import type { ReadableStream2 } from "./coreUtils";
 import { parseEventStream } from "./coreUtils";
-import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { Message } from "~/components/chat/Messages/model";
 
 type InputOpts = Partial<{
@@ -10,11 +9,14 @@ type InputOpts = Partial<{
   maxTokens: number;
   model: string;
   storage: string;
+  chatId: string;
 }> &
   any;
 export interface Input {
   prompt: string;
   opts: InputOpts;
+  agentType?: "xml" | "tool";
+  storage?: "dynamodb" | "valkey";
 }
 
 export type Step = {
@@ -29,6 +31,9 @@ export type Output = {
   finalPart?: boolean;
 };
 export type StatusResponse = { status: "ok" | "error"; message?: string; availibleModels?: string[]; availibleBackends?: string[] };
+/**
+ * @deprecated I think? use Step isntead.
+ */
 export interface AgentStep {
   action: {
     tool: string; // tool name
@@ -63,7 +68,7 @@ const invoke = async (prompt: string): Promise<string> => {
 
 async function invokeAgent(input: Input, signal: AbortSignal) {
   const response = await fetcher(
-    `${AGENT_URL}/agentInvoke`,
+    `${AGENT_CHATS_PATH}/${input.opts.chatId}${AGENT_INVOKE_SUFFIX}?storage=${input.storage}`,
     {
       method: "POST",
       mode: "cors",
@@ -79,8 +84,8 @@ async function invokeAgent(input: Input, signal: AbortSignal) {
   return response;
 }
 
-async function* streamAgent(prompt: string, signal: any) {
-  const res = await fetch(`${AGENT_URL}/agent`, {
+async function* streamAgent(input: Input, signal: AbortSignal) {
+  const res = await fetch(`${AGENT_CHATS_PATH}/${input.opts.chatId}${AGENT_STREAMING_SUFFIX}?storage=${input.storage}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -88,40 +93,13 @@ async function* streamAgent(prompt: string, signal: any) {
       Accept: "text/event-stream",
     },
     credentials: "include",
-    body: JSON.stringify({
-      prompt: prompt,
-      //   ...options,
-      //   stream: true,
-      //   cache_prompt: true,
-    }),
+    body: JSON.stringify(input),
     signal,
   });
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   if (!res.body) throw new Error(`No body`);
   return yield* parseEventStream(res.body as ReadableStream2);
-}
-async function /***/ streamAgentNewFetch(prompt: string, signal: any, onMessage: () => void) {
-  const res = await fetchEventSource(`${AGENT_URL}/agent`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "spider-access-token": "no-token",
-      Accept: "text/event-stream",
-    },
-    credentials: "include",
-    body: JSON.stringify({
-      prompt: prompt,
-      //   ...options,
-      //   stream: true,
-      //   cache_prompt: true,
-    }),
-    signal,
-    onmessage: onMessage,
-  });
-
-  //   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  //   return yield* await parseEventStream(res.body);
 }
 
 const getMemory = async (): Promise<{ messages?: Message[] }> => {
@@ -135,8 +113,16 @@ const getMemory = async (): Promise<{ messages?: Message[] }> => {
  *
  * @returns the chatId of the new chat
  */
-const newChat = async (): Promise<{ chatId: string }> => {
-  const res = await fetcher(`${AGENT_URL}/memory/newChat`, { credentials: "include", mode: "cors", method: "POST" });
+const createChat = async (): Promise<{ chatId: string }> => {
+  const res = await fetcher(`${AGENT_CHATS_PATH}`, { credentials: "include", mode: "cors", method: "POST" });
+  return res;
+};
+const saveChat = async (chatId: string): Promise<{ success: boolean }> => {
+  const res = await fetcher(`${AGENT_CHATS_PATH}/${chatId}?storage=dynamodb`, { credentials: "include", mode: "cors", method: "PUT" });
+  return res;
+};
+const getChat = async (chatId: string): Promise<{ messages?: Message[] }> => {
+  const res = await fetcher(`${AGENT_CHATS_PATH}/${chatId}?storage=dynamodb`, { credentials: "include", mode: "cors" });
   return res;
 };
 
@@ -191,13 +177,17 @@ export const assistant = {
     return response;
   },
   agent: invokeAgent,
-  streamAgentNewFetch,
   summarize,
   streaming: {
     summarizeStream,
+    agent: streamAgent,
   },
   memory: {
     get: getMemory,
-    newChat,
+    chat: {
+      get: getChat,
+      new: createChat,
+      save: saveChat,
+    },
   },
 };

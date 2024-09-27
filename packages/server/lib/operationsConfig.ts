@@ -55,26 +55,31 @@ const AuthOperations: Partial<IEntryPoints> = {
     handlerFunction: "verifyRegistrationHandler",
     memorySize: 256,
   },
-  GenerateAuthenticationOptions: {
-    handlerFile: "AuthHandler",
-    handlerFunction: "getAuthOptions",
-    memorySize: 256,
-  },
-  VerifyAuthentication: {
-    handlerFile: "AuthHandler",
-    handlerFunction: "verifyAuthResponse",
-    memorySize: 256,
-  },
-  UserInfo: {
-    handlerFile: "WebsiteAPIs",
-    handlerFunction: "userInfo",
-    memorySize: 256,
-  },
-  GetPublicKeys: {
-    handlerFile: "WebsiteAPIs",
-    handlerFunction: "getPublicKeys",
-    memorySize: 256,
-  },
+
+  // GenerateAuthenticationOptions: {
+  //   handlerFile: "AuthHandler",
+  //   handlerFunction: "getAuthOptions",
+  //   memorySize: 256,
+  // },
+  // VerifyAuthentication: {
+  //   handlerFile: "AuthHandler",
+  //   handlerFunction: "verifyAuthResponse",
+  //   memorySize: 256,
+  // },
+  // UserInfo: {
+  //   handlerFile: "WebsiteAPIs",
+  //   handlerFunction: "userInfo",
+  //   memorySize: 256,
+  // },
+  // GetPublicKeys: {
+  //   handlerFile: "WebsiteAPIs",
+  //   handlerFunction: "getPublicKeys",
+  //   memorySize: 256,
+  // },
+  GenerateAuthenticationOptions: null,
+  VerifyAuthentication: null,
+  UserInfo: null,
+  GetPublicKeys: null,
 };
 
 const LightweightAPIs: Partial<IEntryPoints> = {
@@ -91,6 +96,12 @@ const DateAPIs: Partial<IEntryPoints> = {
   DeleteDate: null,
   ListDates: null,
   CreateDate: null,
+  GetPicture: null,
+  DeletePicture: null,
+  CreatePicture: null,
+
+  SearchForLocation: null,
+  GetLocationByPlaceId: null
 };
 
 export const operations = {

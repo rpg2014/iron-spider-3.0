@@ -1,7 +1,7 @@
 import type { LinksFunction } from "@remix-run/node";
 import type { MetaFunction } from "@remix-run/react";
 import { NavLink, isRouteErrorResponse, useRouteError, Link, Outlet, ClientActionFunctionArgs, Form, useLoaderData } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import { AUTH_DOMAIN } from "~/constants";
 import { Button } from "~/components/ui/Button";
@@ -36,15 +36,31 @@ export const meta: MetaFunction = () => [
   // your meta here
   { title: "AI Agent" },
 ];
-
+export type OutletState = {
+  shareUrl?: string;
+  temperature?: number;
+  maxTokens?: number;
+  storage?: "dynamodb" | "valkey";
+  status?: StatusResponse;
+};
 export default function Chat() {
   const { hasCookie } = useLoaderData<typeof loader>();
   const [status, setStatus] = useState<StatusResponse | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [temperature, setTemperature] = useLocalStorage("modelTemperature", 0.5);
   const [maxTokens, setMaxTokens] = useLocalStorage("modelMaxTokens", 2048);
+  const [storage, setStorage] = useLocalStorage<"dynamodb" | "valkey">("chatAgentStorage", "dynamodb");
   const [shareUrl, setShareUrl] = useState<string | undefined>();
-
+  // todo, maybe just make 1 big state object
+  const outletState = useMemo(() => {
+    return {
+      shareUrl,
+      temperature,
+      maxTokens,
+      storage,
+      status,
+    };
+  }, [shareUrl, temperature, maxTokens, storage, status]);
   useEffect(() => {
     const url = new URL(window.location.href);
     const urlParam = url.searchParams.get("url") || url.searchParams.get("text");
@@ -79,8 +95,9 @@ export default function Chat() {
     setIsModalOpen(!isModalOpen);
   };
 
-  const handleTemperatureChange = (e: string[]) => {
-    setTemperature(parseFloat(e[0]));
+  const handleTemperatureChange = (e: number[] | string[]) => {
+    if (typeof e[0] === "number") setTemperature(e[0]);
+    else if (typeof e[0] === "string") setTemperature(parseFloat(e[0]));
   };
 
   const handleMaxTokensChange = (e: { target: { value: string } }) => {
@@ -121,11 +138,11 @@ export default function Chat() {
                 Streaming Agent
               </NavLink>
             </li> */}
-            <li>
+            {/* <li>
               <NavLink className={"navigation-link"} to="memory">
                 Memory
               </NavLink>
-            </li>
+            </li> */}
           </ul>
           <div className="flex settings-div ">
             <button className="settings-button" onClick={toggleModal}>
@@ -136,7 +153,7 @@ export default function Chat() {
         </nav>
       </div>
       <div className="outlet-container ">
-        <Outlet context={{ temperature, maxTokens, status, shareUrl }} />
+        <Outlet context={outletState} />
       </div>
       {/* Kinda want to move this settings modal to the status component? */}
       {isModalOpen && (

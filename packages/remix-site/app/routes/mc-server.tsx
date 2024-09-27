@@ -9,20 +9,28 @@ import { MCServerApi } from "~/service/MCServerService";
 import { StartStopButton } from "~/components/server/StartStopButton";
 import { RefreshCcw, RefreshCcwIcon } from "lucide-react";
 import { Alert } from "~/components/ui/Alert";
+import { checkCookieAuth } from "~/utils.server";
 
 //TODO: add the auth loader to this, and return the hasCookie value
 // then in the component add an message on the button for this.
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    return MCServerApi.getStatus(request.headers);
+    const authResult = await checkCookieAuth(request);
+    return {
+      initialStatus: MCServerApi.getStatus(request.headers),
+      hasCookie: authResult.hasCookie,
+    };
   } catch (e: any) {
     console.log(e);
-    return "Error: " + e["message"];
+    return {
+      initialStatus: "Error: " + e["message"],
+      hasCookie: false,
+    };
   }
 };
 
 export default function Server() {
-  const initalStatus = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>();
   const {
     minecraftServer: { status, getLoading, actionLoading, actions, domainName, error },
   } = useServers();
@@ -40,11 +48,12 @@ export default function Server() {
       <div className="container justify-center flex  scroll-m-20 text-4xl  tracking-tight ">
         {/* pretty sure the error handling is messing this one up, getting it stuck in a loading state, might need to pull this out to a new component */}
         <>
-          Server is {status === "LoadingStatus" ? initalStatus : !getLoading ? status : "..."} <RefreshButton />{" "}
+          Server is {status === "LoadingStatus" ? data.initialStatus : !getLoading ? status : "..."} <RefreshButton />{" "}
         </>
       </div>
       <div className="h-25 pt-5 pb-3 align-middle flex flex-col items-center mx-auto start-button">
         <StartStopButton
+          loggedIn={data.hasCookie}
           loading={actionLoading}
           serverStatus={status as ServerStatus}
           updateStatus={async () => actions.status()}

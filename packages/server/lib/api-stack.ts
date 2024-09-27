@@ -16,13 +16,14 @@ import {
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Code, Runtime } from "aws-cdk-lib/aws-lambda";
-import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal, IManagedPolicy } from "aws-cdk-lib/aws-iam";
+import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal, IManagedPolicy, ManagedPolicy, Policy } from "aws-cdk-lib/aws-iam";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { operations, singletonServiceOpList } from "./operationsConfig";
 import { DELIMITER } from "../src/constants/common";
 import { getMinecraftPolicies } from "../../../bin/cdk-constants";
+import { InfraStack } from "./infra-stack";
 
 type EntryMetadata = {
   timeout?: Duration;
@@ -51,10 +52,11 @@ type OtherProps = {
 
 export class ApiStack extends Stack {
   operations: { [op in IronSpiderServiceOperations]?: NodejsFunction };
-  readonly authOperations;
+  readonly authOperations: NodejsFunction[];
   corsFunction;
   serviceFn: NodejsFunction;
-  singletonFn: NodejsFunction
+  singletonFn: NodejsFunction;
+  infraStack: InfraStack;
   constructor(scope: Construct, id: string, props: StackProps & OtherProps) {
     super(scope, id, props);
     //set the allowed origins, for use for cors
@@ -81,7 +83,7 @@ export class ApiStack extends Stack {
     // Create main service functions
     this.serviceFn = new NodejsFunction(this, "IronSpiderServiceFn", {
       code: Code.fromAsset(path.join(__dirname, `../dist/IronSpiderHandler`)),
-      handler: "ironSpiderHandler",
+      handler: "IronSpiderHandler.ironSpiderHandler",
       runtime: Runtime.NODEJS_20_X,
       memorySize: 256,
       timeout: Duration.seconds(15),
@@ -92,11 +94,11 @@ export class ApiStack extends Stack {
         DOMAIN: props.domainName,
         SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
       },
-    })
-    
+    });
+
     this.singletonFn = new NodejsFunction(this, "SingletonFn", {
       code: Code.fromAsset(path.join(__dirname, `../dist/SingletonHandler`)),
-      handler: "singleInstanceHandler",
+      handler: "SingletonHandler.singleInstanceHandler",
       runtime: Runtime.NODEJS_20_X,
       memorySize: 256,
       timeout: Duration.minutes(15),
@@ -108,17 +110,35 @@ export class ApiStack extends Stack {
         SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
       },
       reservedConcurrentExecutions: 1,
-    })
+    });
 
+    this.infraStack = new InfraStack(this, "IronSpiderInfraStack", {
+      functionsForAccess: [this.serviceFn, this.singletonFn],
+      env: props.env || {},
+    });
+    this.serviceFn.addEnvironment("DATE_TABLE_NAME", this.infraStack.DateDDBTable.tableName);
+    this.serviceFn.addEnvironment("DATE_USER_INDEX_NAME", this.infraStack.DateDDBTableByUserIndexName);
+    this.serviceFn.addEnvironment("PLACE_INDEX_NAME", this.infraStack.DatePlacesIndex.placeIndexName);
+    
     getMinecraftPolicies().forEach(policy => {
-      this.singletonFn.role?.addManagedPolicy(policy)
-      this.serviceFn.role?.addManagedPolicy(policy)
-    })
+      this.singletonFn.role?.addManagedPolicy(policy);
+      this.serviceFn.role?.addManagedPolicy(policy);
+    });
+    // give the service fn access to amazon location service apis
+    this.serviceFn.role?.attachInlinePolicy(
+      new Policy(this, "AmazonLocationService", {
+        statements: [
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ["geo:SearchPlaceIndexForSuggestions", "geo:GetPlace"],
+            resources: [this.infraStack.DatePlacesIndex.placeIndexArn],
+          }),
+        ],
+      })
+    );
 
-    
-    
     // Define all the lambda functions, 1 per operation above.  Associate either, one of the main functions above
-    // with the operation, or create a new lambda for it, depending on the config metadata. 
+    // with the operation, or create a new lambda for it, depending on the config metadata.
     this.operations = (Object.keys(operationData) as IronSpiderServiceOperations[]).reduce((acc, operation) => {
       const entryMetadata = operationData[operation];
       const fn = this.loadOperationFunction(entryMetadata, operation, props);
@@ -128,8 +148,12 @@ export class ApiStack extends Stack {
       };
     }, {});
 
-    // get a list of the authOperations to give permissions to the ddb tables.
-    this.authOperations = (Object.keys(operations.authOperations) as IronSpiderServiceOperations[]).map(operationName => this.operations[operationName]);
+    // get a list of the authOperations to give permissions to the ddb tables. Doens't include service fn
+    this.authOperations = (Object.keys(operations.authOperations) as IronSpiderServiceOperations[])
+      .map(operationName => this.operations[operationName])
+      // filter out undefineds and nulls
+      .filter(fn => !!fn);
+    // add service fucnction to this
 
     //Define APIG
     const apiDef = ApiDefinition.fromInline(this.getOpenApiDef(this.operations, props?.authorizerInfo));
@@ -186,22 +210,22 @@ export class ApiStack extends Stack {
   }
 
   /**
- * Loads an AWS Lambda function for a given operation. If null, will reuse the main service lambdas, else 
- * will create a unique lambda for the operation.
- *
- * @param {EntryMetadata | null} entryMetadata - The operation metadata, or null if not provided.
- * @param {IronSpiderServiceOperations} operationName - The name of the operation.
- * @param {any} props - Additional properties required for function creation.
- * @returns {NodejsFunction} The created AWS Lambda function.
- */
+   * Loads an AWS Lambda function for a given operation. If null, will reuse the main service lambdas, else
+   * will create a unique lambda for the operation.
+   *
+   * @param {EntryMetadata | null} entryMetadata - The operation metadata, or null if not provided.
+   * @param {IronSpiderServiceOperations} operationName - The name of the operation.
+   * @param {any} props - Additional properties required for function creation.
+   * @returns {NodejsFunction} The created AWS Lambda function.
+   */
   private loadOperationFunction = (entryMetadata: EntryMetadata | null, operationName: IronSpiderServiceOperations, props: any): NodejsFunction => {
     console.log(`loading operation: ${JSON.stringify(operationName)}`);
     // if in singleton list, use singleton fn, else use service fn.
     // opt in to this behavior, EntryMetadata must be null
-    if(entryMetadata == null) {
-      if(singletonServiceOpList.includes(operationName)) {
+    if (entryMetadata == null) {
+      if (singletonServiceOpList.includes(operationName)) {
         return this.singletonFn;
-      }else {
+      } else {
         return this.serviceFn;
       }
     }
@@ -262,7 +286,21 @@ export class ApiStack extends Stack {
         }
         const functionArn = functions[op.operationId as IronSpiderServiceOperations]?.functionArn;
         if (functionArn === null || functionArn === undefined) {
-          throw new Error("no function for " + op.operationId + " at " + path);
+          throw new Error("no function for " + op.operationId + " at " + path+ ". Did you create an cdk config for this operation?");
+          // op["x-amazon-apigateway-integration"] = {
+          //     type: "aws_proxy",
+          //     httpMethod: "POST",
+          //     uri: "",
+          //     responses: {
+          //       default: {
+          //         statusCode: "200",
+          //         responseParameters: {
+          //           "method.response.header.Access-Control-Allow-Origin": `*`,
+          //           "method.response.header.Access-Control-Expose-Headers": "'Content-Length,Content-Type,X-Amzn-Errortype,X-Amzn-Requestid'",
+          //         },
+          //       },
+          //     },
+          //   };
         }
         if (!integration) {
           // do this instead of throwing an error if I want to deploy a new model without a backing lambda yet
@@ -276,7 +314,7 @@ export class ApiStack extends Stack {
           //     default: {
           //       statusCode: "200",
           //       responseParameters: {
-          //         "method.response.header.Access-Control-Allow-Origin": `${this.allowedOrigins}`,
+          //         "method.response.header.Access-Control-Allow-Origin": `*`,//${this.allowedOrigins}`,
           //         "method.response.header.Access-Control-Expose-Headers": "'Content-Length,Content-Type,X-Amzn-Errortype,X-Amzn-Requestid'",
           //       },
           //     },
@@ -286,7 +324,7 @@ export class ApiStack extends Stack {
             `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/server-sdk/model/apigateway.smithy`
           );
         }
-        integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
+        if (integration) integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
 
         // Tried to make the stop function async but it jsut times out instead? or throws a 502.
         if (path === "/server/stop") {

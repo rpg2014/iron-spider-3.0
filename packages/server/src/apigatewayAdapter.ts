@@ -4,7 +4,7 @@ import { ServiceHandler } from "@aws-smithy/server-common";
 import { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
 import { HttpResponse } from "@aws-sdk/protocol-http";
 import { validateCors } from "./cors/CorsProcessor";
-import { HandlerContext } from "authorizer/src/model/models";
+import { HandlerContext } from "./model/common";
 
 const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<string, string> => {
   if (!allowed || !allowed.origin || !allowed.headers) {
@@ -28,15 +28,18 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
   return async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // Extract anything from the APIGateway requestContext that you'd need in your operation handler
     const startTime = Date.now();
-
+    console.log(`Got request for: ${event.httpMethod} ${event.path}`);
     // basic check cors headers
     const origin = event.headers["origin"];
     if (!origin || !origin.includes("parkergiven.com")) {
+      // do something?
+      console.warn(`request didn't come from my domain, rejecting. Origin: ${origin}`);
+      return convertVersion1Response(new HttpResponse({ statusCode: 403, body: "Forbidden", headers: { ...addCORSHeaders({ origin: "*", headers: "" }) } }));
     }
 
     // pull out auth context from the event
     const authContext: HandlerContext | undefined | null = event.requestContext.authorizer;
-    console.log(event.requestContext);
+    // console.log(event.requestContext);
     console.log("Auth context: " + JSON.stringify(authContext));
 
     //Require username for server API's
@@ -46,18 +49,22 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
       throw new Error("Request didn't go through authorizer, no username found.");
     }
     // build user context
-    const context = { user: authContext?.user, username: authContext?.displayName, ...authContext };
+    const context = { user: authContext?.user, /*Dont think username is used anymore -> */ username: authContext?.displayName, ...authContext };
 
     // convert event to smithy handler request
     const httpRequest = convertEvent(event);
-    console.debug("httpRequest:", httpRequest);
+    // console.debug("httpRequest:", httpRequest);
     try {
       // validate cors and get response headers
       const allowed = validateCors(httpRequest);
 
       // Perform the operation
       const httpResponse = await handler.handle(httpRequest, context);
-      console.debug("httpResponse: ", httpResponse);
+      // console.debug("httpResponse: ", httpResponse);
+      console.log(`Response: ${httpResponse.statusCode}`);
+      if (httpResponse.statusCode >= 400) {
+        console.error(`Error body: ${httpResponse.body}`);
+      }
       // dont forget to add the cors headers to the response
       httpResponse.headers = { ...httpResponse.headers, ...addCORSHeaders(allowed) };
       // convert from smithy generated handler response to apig response
@@ -93,7 +100,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
         }
         addToHeader("Server-Timing", `total;dur=${responseTime}`);
       }
-      console.debug("apiResponse: ", apiResponse);
+      // console.debug("apiResponse: ", apiResponse);
       return apiResponse;
     } catch (e: any) {
       console.error("CORS error");

@@ -50,22 +50,21 @@ async function buildOperationHandler(props: BuildOperationHandlerProps) {
   }
 }
 
-
-const buildServiceHandlers = async() => {
-//first build the main handler
+const buildServiceHandlers = async () => {
+  //first build the main handler
   await buildOperationHandler({
     opName: "IronSpiderHandler",
     outFile: "IronSpiderHandler.js",
     outputDir: path.join(outputDir, "IronSpiderHandler"),
     entryPoint: path.join(handlersDir, "IronSpiderHandler.ts"),
-  })
+  });
   //build singleton handler
   await buildOperationHandler({
     opName: "MCServerHandlers",
     outFile: "SingletonHandler.js",
     outputDir: path.join(outputDir, "SingletonHandler"),
     entryPoint: path.join(handlersDir, "MCServerHandlers.ts"),
-  })
+  });
   //build cors handler @workspace
   await buildOperationHandler({
     opName: "cors",
@@ -73,20 +72,20 @@ const buildServiceHandlers = async() => {
     outputDir: path.join(outputDir, "cors"),
     entryPoint: path.join(__dirname, "../src/cors/cors_handler.ts"),
   });
-}
+};
 
 // old build script
 const build = async () => {
   // Clean output directory
   fs.rmSync(outputDir, { recursive: true, force: true });
   fs.mkdirSync(outputDir, { recursive: true });
-  await buildServiceHandlers()
+  await buildServiceHandlers();
 
   // Build operation handlers
   for (const op in operationData) {
     const opData = operationData[op];
-    if(opData === null) {
-      console.log(`No opData found for ${op}, skipping, they'll be handled by the main service lambda`)
+    if (opData === null) {
+      console.log(`No opData found for ${op}, skipping, they'll be handled by the main service lambda`);
       continue;
     }
     const newOutputDir = path.join(outputDir, opData.handlerFile);
@@ -106,6 +105,4 @@ const build = async () => {
   });
 };
 
-
 build();
-

@@ -57,7 +57,7 @@ const infraStack = new PasskeyInfraStack(app, "PasskeyInfra", {
   env,
   userTableName: USER_TABLE_NAME,
   credentialsTableName: CREDENTIAL_TABLE_NAME,
-  operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction],
+  operationsAccess: [...apiStack.authOperations, authStack.AuthorizerFunction, apiStack.serviceFn],
   sesArns: SES_ARNS as any, // made offline
 });
 

@@ -27,8 +27,10 @@
     "lib"
   ],
   "dependencies": {
+    "@aws-cdk/aws-location-alpha": "^2.156.0-alpha.0",
     "@aws-sdk/client-dynamodb": "^3.458.0",
     "@aws-sdk/client-ec2": "^3.458.0",
+    "@aws-sdk/client-location": "^3.645.0",
     "@aws-sdk/client-route-53": "^3.458.0",
     "@aws-sdk/client-secrets-manager": "^3.458.0",
     "@aws-sdk/client-sesv2": "^3.458.0",

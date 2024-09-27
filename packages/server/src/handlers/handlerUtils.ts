@@ -2,16 +2,24 @@ import { HandlerContext } from "authorizer/src/model/models";
 import {
   CreateDateInput,
   CreateDateOutput,
+  CreatePictureInput,
+  CreatePictureOutput,
   CreateUserServerInput,
   CreateUserServerOutput,
   DeleteDateInput,
   DeleteDateOutput,
+  DeletePictureInput,
+  DeletePictureOutput,
   GenerateAuthenticationOptionsServerInput,
   GenerateAuthenticationOptionsServerOutput,
   GenerateRegistrationOptionsServerInput,
   GenerateRegistrationOptionsServerOutput,
   GetDateInput,
   GetDateOutput,
+  GetLocationByPlaceIdInput,
+  GetLocationByPlaceIdOutput,
+  GetPictureInput,
+  GetPictureOutput,
   GetPublicKeysServerInput,
   GetPublicKeysServerOutput,
   InternalServerError,
@@ -20,6 +28,8 @@ import {
   ListDatesOutput,
   LogoutServerInput,
   LogoutServerOutput,
+  SearchForLocationInput,
+  SearchForLocationOutput,
   ServerDetailsServerInput,
   ServerDetailsServerOutput,
   ServerStatusServerInput,
@@ -37,6 +47,8 @@ import {
   VerifyRegistrationServerInput,
   VerifyRegistrationServerOutput,
 } from "iron-spider-ssdk";
+
+// for (const s: string in IronSpiderServiceOperat)
 
 export const getNoOpFunctions = (): IronSpiderService<HandlerContext> => {
   return {
@@ -96,6 +108,21 @@ export const getNoOpFunctions = (): IronSpiderService<HandlerContext> => {
       throw new InternalServerError({ message: "Function not implemented." });
     },
     ListDates: function (input: ListDatesInput, context: HandlerContext): Promise<ListDatesOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    GetPicture: function (input: GetPictureInput, context: HandlerContext): Promise<GetPictureOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    CreatePicture: function (input: CreatePictureInput, context: HandlerContext): Promise<CreatePictureOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    DeletePicture: function (input: DeletePictureInput, context: HandlerContext): Promise<DeletePictureOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    SearchForLocation: function (input: SearchForLocationInput, context: HandlerContext): Promise<SearchForLocationOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    GetLocationByPlaceId: function (input: GetLocationByPlaceIdInput, context: HandlerContext): Promise<GetLocationByPlaceIdOutput> {
       throw new InternalServerError({ message: "Function not implemented." });
     },
   };

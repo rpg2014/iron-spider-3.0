@@ -12,6 +12,7 @@ import { createHash } from "crypto";
 import { API_DOMAIN, AUTH_DOMAIN, PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "./constants";
 import pkg from "jsonwebtoken";
 import { fetcher } from "./utils";
+import { createCookie } from "@remix-run/node";
 const { verify } = pkg;
 type JwtPayload = pkg.JwtPayload;
 
@@ -25,56 +26,71 @@ const isPublicRoute = (url: string) => {
   return PUBLIC_ROUTES.includes(path);
 };
 let publicKey: { keys?: string[] } | undefined;
-export const doAuthRedirect = async (request: Request) => {
+
+// cookie test
+export const idCookie = createCookie("x-pg-id");
+
+export const checkCookieAuth = async (request: Request) => {
   //get x-pg-id cookie from request cookie header
   console.log("Doing Auth");
   const cookies = request.headers.get("Cookie");
+  const cookie = await idCookie.parse(cookies);
   if (!cookies) {
     console.warn("No Cookies, not authorized");
   }
   const authCookieString = cookies?.split(";").find(c => c.trim().startsWith("x-pg-id="));
-
+  console.log(`Remix parsed cookie = my parsed cookie: ${cookie === authCookieString?.split("=")[1]}`);
   if (authCookieString) {
     // const authCookie = authCookieString.split("=")[1];
     if (!publicKey) {
       try {
-        publicKey = await fetcher(
-          PUBLIC_KEYS_PATH,
-          {
-            headers: { ...request.headers, Cookie: request.headers.get("Cookie") },
-          },
-          false,
-        );
+        publicKey = await refreshKey(request.headers);
       } catch (e) {
         console.warn("Error fetching public key, prob not authorized", e);
-        return json({ hasCookie: false, userData: undefined });
+        return { hasCookie: false, userData: undefined };
       }
     }
     if (publicKey && publicKey.keys) {
       try {
         const decoded = verifyWithKey({ token: authCookieString.split("=")[1], publicKey: publicKey.keys[0], issuer: "auth.parkergiven.com" });
-        return json({ userData: decoded, hasCookie: true });
+        // good case return
+        return { userData: decoded, hasCookie: true, authToken: authCookieString };
       } catch (e) {
         console.warn("Error verifying token", e);
-        return json({ hasCookie: false, userData: undefined });
+        // async refresh the key.  Only matters if lambda is getting reused right around a
+        // deployment?
+        setTimeout(async () => {
+          publicKey = await refreshKey(request.headers);
+        });
+        return { hasCookie: false, userData: undefined };
       }
     } else {
       console.log("No public keys");
       throw new Error("Unable to fetch public key");
     }
   } else if (!authCookieString && !isPublicRoute(request.url)) {
-    return json({ hasCookie: false });
+    return { hasCookie: false };
   } else {
     console.log("No auth cookie, but is a public route, returning no data");
-    return json({ hasCookie: false });
+    return { hasCookie: false };
   }
+};
+
+const refreshKey = async (headers: Headers) => {
+  return await fetcher(
+    PUBLIC_KEYS_PATH,
+    {
+      headers: { ...headers, Cookie: headers.get("Cookie") },
+    },
+    false,
+  );
 };
 
 export const DEFAULT_AUTH_LOADER = async ({ request }: LoaderFunctionArgs) => {
   //to add a delay in the response
   // const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   // await sleep(1000);
-  return doAuthRedirect(request);
+  return json(await checkCookieAuth(request));
 };
 
 export type VerifyWithKeyOptions = {
