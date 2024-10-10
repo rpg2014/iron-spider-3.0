@@ -52,6 +52,8 @@ interface EsbuildBuildProps {
   absWorkingDir: string;
   external?: string[];
   format?: "cjs" | "esm";
+  sourceMaps?: boolean;
+  plugins: any[]
 }
 
 const esbuildBuild = async (props: EsbuildBuildProps) => {
@@ -72,13 +74,14 @@ const esbuildBuild = async (props: EsbuildBuildProps) => {
     // analyze: "verbose",
     treeShaking: true,
     // absWorkingDir: props.absWorkingDir,
-
+    sourcemap: props.sourceMaps && 'inline',
     // debug build
     logLevel: "info",
     mainFields: ['module', 'main'],
     packages: 'bundle',
     metafile: shouldAnalyze,
-    plugins: [
+    plugins: props.plugins ? [
+      ...props.plugins,
       // {
       //   name: 'external-resolver-2',
       //   setup(build) {
@@ -91,7 +94,7 @@ const esbuildBuild = async (props: EsbuildBuildProps) => {
       //     });
       //   },
       // }
-    ],
+    ]: undefined,
     define: {
       'process.env.NODE_ENV': '"production"',
     },

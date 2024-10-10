@@ -49,15 +49,16 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "@simplewebauthn/typescript-types": "^8.3.4",
     "@tsconfig/node20": "^20.1.4",
-    "@types/jest": "^26.0.24",
+    "@types/jest": "^29.5.13",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "authorizer": "workspace:^",
-    "aws-cdk-lib": "^2.151.0",
+    "aws-cdk-lib": "^2.160.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.19.6",
     "eslint": "^8.48.0",
@@ -72,7 +73,8 @@
     "rimraf": "^3.0.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "velocityjs": "^2.0.6"
   },
   "lint-staged": {
     "*.(js|ts)": [

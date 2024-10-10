@@ -37,6 +37,8 @@ structure DateInfo {
     @resourceIdentifier("dateId")
     id: String,
 
+    @required
+    title: String,
     /// Location of the date
     @required
     location: String,
@@ -47,15 +49,16 @@ structure DateInfo {
     @required
     date: Timestamp
 
-    /// Id of the picture associated with the date
-    @required
-    pictureId: String,
+    
 
     @required
     userId: String
 
     /// Additional notes about the date
     note: String,
+
+    /// Id of the picture associated with the date
+    pictureId: String,
 }
 
 structure Coordinates {
@@ -97,9 +100,8 @@ operation CreateDate with [ValidatedOperation] {
 structure CreateDateInput {
     @required
     location: String,
-    
     @required
-    pictureId: String,
+    title: String,
     @required
     note: String,
     @required
@@ -130,6 +132,7 @@ structure UpdateDateInput {
     picture: String,
     note: String,
     coordinates: Coordinates,
+    title: String
 }
 
 structure UpdateDateOutput with [CommonHeaders] {
@@ -208,6 +211,7 @@ structure SearchResult {
     placeId: String
 }
 
+@readonly
 @http(method: "GET", uri: "/v1/locations/{placeId}")
 operation GetLocationByPlaceId with [ValidatedOperation]{
     input: GetLocationByPlaceIdInput

@@ -1,11 +1,12 @@
 import { Button } from "~/components/ui/Button";
 import styles from "../styles/settings.module.css";
 import { useEffect, useState } from "react";
-import { API_DOMAIN_VERSION, notificationSettingKey } from "~/constants";
+import { API_DOMAIN_VERSION, AUTH_DOMAIN, notificationSettingKey } from "~/constants";
 import { fetcher } from "~/utils";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import { useLoaderData, useRevalidator } from "@remix-run/react";
 import { IronSpiderAPI } from "~/service/IronSpiderClient";
+import { Label } from "~/components/ui/Label";
 
 //TODO: remove this loader if this adds latency and shit
 export const loader = DEFAULT_AUTH_LOADER;
@@ -26,7 +27,7 @@ export default function Settings() {
       <hr />
 
       <div className={styles.setting}>
-        <label className={styles.settingsLabel}>Notifications</label>
+        <Label className={styles.settingsLabel}>Notifications</Label>
         <Button
           variant="outline"
           disabled={notificationPermission === "granted"}
@@ -53,7 +54,7 @@ export default function Settings() {
         {/* <Switch state={notificationsOptIn} setState={setNotificationsOptIn} /> */}
       </div>
       <div className={styles.setting}>
-        <label className={styles.settingsLabel}>Test Notifications</label>
+        <Label className={styles.settingsLabel}>Test Notifications</Label>
 
         <Button
           className={styles.button}
@@ -88,10 +89,18 @@ export default function Settings() {
       </div>
       <hr />
       {hasCookie && (
-        <div className={styles.setting}>
-          <label className={styles.settingsLabel}>Sign out</label>
-          <LogoutButton />
-        </div>
+        <>
+          <div className={styles.setting}>
+            <Label className={styles.settingsLabel}>Manage Account</Label>
+            <a href={`${AUTH_DOMAIN}/account`}>
+              <Button variant="secondary">Auth Site</Button>
+            </a>
+          </div>
+          <div className={styles.setting}>
+            <Label className={styles.settingsLabel}>Sign out</Label>
+            <LogoutButton />
+          </div>
+        </>
       )}
     </main>
   );

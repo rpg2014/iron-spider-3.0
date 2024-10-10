@@ -9,18 +9,8 @@ export const singletonServiceOpList: IronSpiderServiceOperations[] = ["StartServ
 
 // make the data null to add the operation to the main service lambda
 const minecraftServerOperations: Partial<IEntryPoints> = {
-  ServerStatus: {
-    handlerFile: "MCServerHandlers",
-    handlerFunction: "statusHandler",
-    memorySize: 256,
-    policies: getMinecraftPolicies(),
-  },
-  ServerDetails: {
-    handlerFile: "MCServerHandlers",
-    handlerFunction: "detailsHandler",
-    memorySize: 256,
-    policies: getMinecraftPolicies(),
-  },
+  ServerStatus: null,
+  ServerDetails: null,
   StartServer: {
     handlerFile: "MCServerHandlers",
     handlerFunction: "startHandler",
@@ -80,6 +70,7 @@ const AuthOperations: Partial<IEntryPoints> = {
   VerifyAuthentication: null,
   UserInfo: null,
   GetPublicKeys: null,
+  GetJwks: null,
 };
 
 const LightweightAPIs: Partial<IEntryPoints> = {
@@ -101,7 +92,7 @@ const DateAPIs: Partial<IEntryPoints> = {
   CreatePicture: null,
 
   SearchForLocation: null,
-  GetLocationByPlaceId: null
+  GetLocationByPlaceId: null,
 };
 
 export const operations = {

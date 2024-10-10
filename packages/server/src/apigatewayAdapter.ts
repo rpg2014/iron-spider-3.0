@@ -1,5 +1,5 @@
 import { convertEvent, convertVersion1Response } from "@aws-smithy/server-apigateway";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { ServiceHandler } from "@aws-smithy/server-common";
 import { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
 import { HttpResponse } from "@aws-sdk/protocol-http";
@@ -15,6 +15,7 @@ const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<s
     "access-control-allow-headers": allowed.headers,
     "access-control-allow-methods": "POST, GET, OPTIONS",
     "access-control-allow-credentials": "true",
+    Vary: "Origin",
   };
 };
 
@@ -25,9 +26,12 @@ const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<s
  * 3. convert the output of ServiceHandler into the result (APIGatewayProxyResult) expected by APIGateway
  */
 export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): APIGatewayProxyHandler {
-  return async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  return async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
     // Extract anything from the APIGateway requestContext that you'd need in your operation handler
     const startTime = Date.now();
+    //uncomment for debugging
+    // console.log("Got event", event);
+    // console.log("Got context", context);
     console.log(`Got request for: ${event.httpMethod} ${event.path}`);
     // basic check cors headers
     const origin = event.headers["origin"];
@@ -49,7 +53,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
       throw new Error("Request didn't go through authorizer, no username found.");
     }
     // build user context
-    const context = { user: authContext?.user, /*Dont think username is used anymore -> */ username: authContext?.displayName, ...authContext };
+    const operationContext = { user: authContext?.user, /*Dont think username is used anymore -> */ username: authContext?.displayName, ...authContext };
 
     // convert event to smithy handler request
     const httpRequest = convertEvent(event);
@@ -59,7 +63,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
       const allowed = validateCors(httpRequest);
 
       // Perform the operation
-      const httpResponse = await handler.handle(httpRequest, context);
+      const httpResponse = await handler.handle(httpRequest, operationContext);
       // console.debug("httpResponse: ", httpResponse);
       console.log(`Response: ${httpResponse.statusCode}`);
       if (httpResponse.statusCode >= 400) {
@@ -96,7 +100,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
           //@ts-ignore: We know this is present from logs
           addToHeader("Server-Timing", `auth;dur=${authContext.integrationLatency}`);
           //@ts-ignore: We know this is present from logs
-          responseTime = responseTime + authContext.integrationLatency;
+          responseTime = Number.parseInt(responseTime) + Number.parseInt(authContext.integrationLatency);
         }
         addToHeader("Server-Timing", `total;dur=${responseTime}`);
       }

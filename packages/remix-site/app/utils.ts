@@ -34,25 +34,22 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, incl
     delete headers["Content-Type"];
   }
   console.log(`Making request to ${input.toString()} with body ${init?.body?.toString()} and headers ${JSON.stringify(headers, null, 2)}`); //
-  const res = await fetch(input, {
-    mode: "no-cors", // todo: fix cors
-    ...init,
-    headers,
-  });
-  console.log(`Got ${res.status} from path: ${input.toString()}`);
   try {
-    const data = await res.json();
+    const res = await fetch(input, {
+      mode: "no-cors", // todo: fix cors
+      ...init,
+      headers,
+    });
+    console.log(`Got ${res.status} from path: ${input.toString()}`);
 
+    const data = await res.json();
     if (res.status >= 400) {
       console.error(`Got ${res.status} error from backend`);
       throw new Error(data.message);
     }
+    console.log(`Got Data: ${JSON.stringify(data, null, 2)}`);
     return data;
   } catch (e: any) {
-    console.warn(JSON.stringify(res));
-    try {
-      console.warn(JSON.stringify(await res.text()));
-    } catch (e) {}
     console.error(`Error parsing response ${e}: message: ${e.message}`);
     throw new Error(e.message);
   }

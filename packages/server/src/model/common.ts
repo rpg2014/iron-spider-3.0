@@ -11,4 +11,5 @@ export interface HandlerContext {
     siteAccess?: string
     apiAccess?: string
     tokenExpiry?: string,
+    integrationLatency?: string
   }

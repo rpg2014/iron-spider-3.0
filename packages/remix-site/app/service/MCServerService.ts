@@ -35,7 +35,10 @@ export interface IServerState {
  * on the server
  */
 export const MCServerApi = {
-  getStatus: async (headers?: any) => {
+  getStatus: async (headers?: any, ctx?: any) => {
+    if (ctx && ctx.traceId) {
+      headers = { ...headers, "X-Amzn-Trace-Id": ctx.traceId };
+    }
     const response: { status: IServerState["status"] } = await fetcher(`${SERVER_PATH}/status`, { mode: "cors", headers: headers, credentials: "include" });
     return response.status;
   },

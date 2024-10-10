@@ -6,20 +6,19 @@ import {
   RecordTarget,
 } from "aws-cdk-lib/aws-route53";
 import {
+  AccessLevel,
   AllowedMethods,
   Distribution,
   Function,
   FunctionCode,
   FunctionEventType,
   HttpVersion,
-  OriginAccessIdentity,
   PriceClass,
   SecurityPolicyProtocol,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import { BlockPublicAccess, Bucket } from "aws-cdk-lib/aws-s3";
-import { CanonicalUserPrincipal, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
+import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import * as path from "path";
@@ -49,13 +48,6 @@ export class DomainAuthAssetsStack extends Stack {
       domainName: props.domainName,
     });
     const siteDomain = props.subDomain + "." + props.domainName;
-    const cloudfrontOAI = new OriginAccessIdentity(
-      this,
-      name + "cloudfront-OAId",
-      {
-        comment: `OAI for ${name}`,
-      },
-    );
 
     new CfnOutput(this, "AuthSiteDomain", { value: "https://" + siteDomain });
 
@@ -80,17 +72,17 @@ export class DomainAuthAssetsStack extends Stack {
     });
 
     // Grant access to cloudfront
-    siteBucket.addToResourcePolicy(
-      new PolicyStatement({
-        actions: ["s3:GetObject"],
-        resources: [siteBucket.arnForObjects("*")],
-        principals: [
-          new CanonicalUserPrincipal(
-            cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
-          ),
-        ],
-      }),
-    );
+    // siteBucket.addToResourcePolicy(
+    //   new PolicyStatement({
+    //     actions: ["s3:GetObject"],
+    //     resources: [siteBucket.arnForObjects("*")],
+    //     principals: [
+    //       new CanonicalUserPrincipal(
+    //         cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+    //       ),
+    //     ],
+    //   }),
+    // );
 
     // Cloudfront function that will attach a .html to the end of paths in order to serve the ssr version of it
     // when that occurs remove the /index.html error response from the 403 error.
@@ -127,8 +119,8 @@ export class DomainAuthAssetsStack extends Stack {
         },
       ],
       defaultBehavior: {
-        origin: new S3Origin(siteBucket, {
-          originAccessIdentity: cloudfrontOAI,
+        origin: S3BucketOrigin.withOriginAccessControl(siteBucket, {
+          originAccessLevels: [AccessLevel.READ]
         }),
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,

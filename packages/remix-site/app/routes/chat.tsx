@@ -15,6 +15,7 @@ import { Label } from "~/components/ui/Label";
 import type { StatusResponse } from "~/genAi/spiderAssistant";
 import { assistant } from "~/genAi/spiderAssistant";
 import { AIBackendStatus } from "~/components/chat/Status";
+import AuthGate from "~/components/AuthGate";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
@@ -79,7 +80,7 @@ export default function Chat() {
       try {
         const response = await assistant.status();
         setStatus(response);
-      } catch (e) {
+      } catch (e: any) {
         // Should also pull this out to a real error status, but i was being lazy
         setStatus({
           status: "error",
@@ -105,13 +106,7 @@ export default function Chat() {
   };
 
   if (!hasCookie && import.meta.env.PROD) {
-    return (
-      <div className="flex flex-col items-center">
-        <a href={`${AUTH_DOMAIN}?return_url=${encodeURIComponent(location.href)}&message=${encodeURIComponent(`Unable To login`)}`}>
-          <Button variant={"default"}>Click here to login</Button>
-        </a>
-      </div>
-    );
+    return <AuthGate />;
   }
   return (
     <>

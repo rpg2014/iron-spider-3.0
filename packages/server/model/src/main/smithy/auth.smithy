@@ -57,6 +57,13 @@ operation GetPublicKeys {
     errors: [InternalServerError, BadRequestError, ValidationException]
 }
 
+@readonly
+@http(method: "GET", uri: "/.well-known/jwks.json")
+operation GetJwks  with [ValidatedOperation] {
+    output: GetJwksOutput
+}
+
+
 structure CreateUserInput {
     @required
     displayName: String,// displayName
@@ -168,4 +175,26 @@ structure GetPublicKeysOutput with [CommonHeaders] {
 }
 list KeyList {
     member: String
+}
+
+structure GetJwksOutput with [CommonHeaders] {
+    @required
+    keys: JwksKeyList
+}
+list JwksKeyList {
+    member: JwksKey
+}
+structure JwksKey {
+    @required
+    kty: String
+    @required
+    use: String
+    @required
+    kid: String,
+    @required
+    n: String,
+    @required
+    e: String,
+    @required
+    alg: String,
 }

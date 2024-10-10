@@ -1,6 +1,7 @@
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import type { ActionFunction, ActionFunctionArgs } from "@remix-run/node";
-import { Form, json } from "@remix-run/react";
-import type { Coordinates, CreateDateCommandInput } from "iron-spider-client";
+import { Form, json, redirect, useLoaderData } from "@remix-run/react";
+import type { Coordinates, CreateDateCommandInput, Place } from "iron-spider-client";
 import { DateInfo } from "iron-spider-client";
 import { NewDateForm, NewDateFormV2 } from "~/components/date_tracker/NewDateForm";
 import { Button } from "~/components/ui/Button";
@@ -9,7 +10,7 @@ import { Input } from "~/components/ui/Input";
 import { Label } from "~/components/ui/Label";
 import { Textarea } from "~/components/ui/TextArea";
 import type { ICreateDateInput } from "~/service/DateService";
-import { DateService } from "~/service/DateService";
+import { DateService, LocationService } from "~/service/DateService";
 
 export interface DateModel {
   id?: String;
@@ -50,6 +51,7 @@ export interface DateModel {
 // };
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
+  throw new Response(JSON.stringify({ message: `Function not implemented. Got Form data: ${JSON.stringify(formData)}` }), { status: 500 });
   const dateService = new DateService(); // Assume this is properly initialized
 
   const dateInfo: CreateDateCommandInput = {
@@ -59,9 +61,9 @@ export const action: ActionFunction = async ({ request }) => {
       long: formData.get("long") as string,
       alt: formData.get("alt") as string,
     },
+    title: formData.get("title") as string,
     date: new Date(formData.get("date") as string),
     note: formData.get("note") as string,
-    pictureId: "TBD",
   };
 
   const pictureFile = formData.get("picture") as File;
@@ -93,13 +95,33 @@ export const action: ActionFunction = async ({ request }) => {
     return json({ success: false, error: (error as Error).message });
   }
 };
+
+export const loader = async ({ request, context, params }: LoaderFunctionArgs) => {
+  try {
+    const url = new URL(request.url);
+    const placeId = url.searchParams.get("placeId");
+    const headers = {...request.headers, "cookie": request.headers.get("cookie")}
+    if (placeId) {
+      const location = await new LocationService().getLocationByPlaceId(placeId, headers);
+      if (location) {
+        return { location };
+      }
+    }
+    return redirect("/dates/create");
+  } catch (e) {
+    console.log(e);
+    throw new Response(JSON.stringify({ message: (e as Error).message }), { status: 500 });
+  }
+};
+
 export default function Index() {
+  const { location } = useLoaderData<typeof loader>();
   return (
     <>
       <Form method="post" encType="multipart/form-data">
         <Card>
           <div className="flex flex-col gap-4">
-            <NewDateFormV2 />
+            <NewDateFormV2 location={location as Place} />
           </div>
           <CardFooter>
             <Button type="submit">Create</Button>

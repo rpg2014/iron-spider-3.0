@@ -4,6 +4,7 @@ import { Button } from "../ui/Button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/Card";
 import { Input } from "../ui/Input";
 import { Textarea } from "../ui/TextArea";
+import { Place } from "iron-spider-client";
 
 export const NewDateForm = ({ dateId }: { dateId?: string }) => {
   return (
@@ -32,7 +33,7 @@ export const NewDateForm = ({ dateId }: { dateId?: string }) => {
   );
 };
 
-export const NewDateFormV2 = ({ title }: { title?: string }) => {
+export const NewDateFormV2 = ({ title, location }: { title?: string; location: Place }) => {
   return (
     <>
       <CardHeader>
@@ -42,24 +43,24 @@ export const NewDateFormV2 = ({ title }: { title?: string }) => {
       </CardHeader>
       <CardContent>
         <div>
-          <Label htmlFor="location">Location: / date Title</Label>
-          <Input type="text" id="location" name="location" required />
+          <Label htmlFor="title">Date Title</Label>
+          <Input type="text" id="title" name="title" required />
         </div>
         <div>
-          <Label>Place</Label>
-          <Input type="text" id="place" name="place" />
+          <Label htmlFor="location">Location</Label>
+          <Input type="text" id="location" name="location" defaultValue={location.label} />
         </div>
         <div>
           <Label htmlFor="lat">Latitude:</Label>
-          <Input type="text" id="lat" name="lat" />
+          <Input type="text" id="lat" name="lat" defaultValue={location.coordinates?.lat} />
         </div>
         <div>
           <Label htmlFor="long">Longitude:</Label>
-          <Input type="text" id="long" name="long" />
+          <Input type="text" id="long" name="long" defaultValue={location.coordinates?.long} />
         </div>
         <div>
           <Label htmlFor="alt">Altitude:</Label>
-          <Input type="text" id="alt" name="alt" />
+          <Input type="text" id="alt" name="alt" defaultValue={location.coordinates?.alt} />
         </div>
         <div>
           <Label htmlFor="date">Date:</Label>

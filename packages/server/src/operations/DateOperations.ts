@@ -29,9 +29,9 @@ export const CreateDate: Operation<CreateDateInput, CreateDateOutput, HandlerCon
   // Implementation using StubDateDB
   const newDate: DateInfo = {
     id: randomUUID(),
+    title: input.title,
     userId: context.userId ?? "1",
     location: input.location,
-    pictureId: input.pictureId,
     coordinates: input.coordinates,
     date: new Date(),
   };
@@ -48,6 +48,7 @@ export const UpdateDate: Operation<UpdateDateInput, UpdateDateOutput, HandlerCon
   // Implementation using StubDateDB
   const updatedDate: DateInfo = {
     id: input.dateId,
+    title: input.title,
     userId: "1",
     location: input.location,
     pictureId: input.picture,
@@ -72,22 +73,22 @@ export const ListDates: Operation<ListDatesInput, ListDatesOutput, HandlerContex
 
 // location operations
 export const SearchForLocation: Operation<SearchForLocationInput, SearchForLocationOutput, HandlerContext> = async (input, context) => {
-  console.log(`Got request for search location: ${input.searchText}`)
+  console.log(`Got request for search location: ${input.searchText}`);
   // use the aws sdk to search for location
   if (!input.searchText) throw new BadRequestError({ message: "searchText is required" });
   const results = await getLocationAccessor().searchForPlace(input.searchText, input.biasPosition);
-  console.log(`Got aws response for search location: ${JSON.stringify(results)}`)
+  console.log(`Got aws response for search location: ${JSON.stringify(results)}`);
   return {
     results: results,
   };
 };
 
 export const GetLocationByPlaceId: Operation<GetLocationByPlaceIdInput, GetLocationByPlaceIdOutput, HandlerContext> = async (input, context) => {
-  console.log(`Got request for get location by place id: ${input.placeId}`)
+  console.log(`Got request for get location by place id: ${input.placeId}`);
   // use the aws sdk to get place by id
   if (!input.placeId) throw new BadRequestError({ message: "placeId is required" });
   const result = await getLocationAccessor().getPlaceDetails(input.placeId);
-  console.log(`Got aws response for get location by place id: ${JSON.stringify(result)}`)
+  console.log(`Got aws response for get location by place id: ${JSON.stringify(result)}`);
   return {
     place: result,
   };

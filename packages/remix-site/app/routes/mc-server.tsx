@@ -1,11 +1,10 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { defer, json, useLoaderData } from "@remix-run/react";
 import React, { useEffect } from "react";
 import { Button } from "~/components/ui/Button";
 import { useServers } from "~/hooks/MCServerHooks";
 import logo from "~/images/minecraft-logo-17.png";
-import type { ServerStatus } from "~/service/MCServerService";
-import { MCServerApi } from "~/service/MCServerService";
+import { ServerStatus, MCServerApi } from "~/service/MCServerService";
 import { StartStopButton } from "~/components/server/StartStopButton";
 import { RefreshCcw, RefreshCcwIcon } from "lucide-react";
 import { Alert } from "~/components/ui/Alert";
@@ -13,11 +12,13 @@ import { checkCookieAuth } from "~/utils.server";
 
 //TODO: add the auth loader to this, and return the hasCookie value
 // then in the component add an message on the button for this.
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   try {
     const authResult = await checkCookieAuth(request);
+    const initialStatus = await MCServerApi.getStatus(request.headers, context);
+    console.log(`MC Server Status: ${initialStatus}`);
     return {
-      initialStatus: MCServerApi.getStatus(request.headers),
+      initialStatus,
       hasCookie: authResult.hasCookie,
     };
   } catch (e: any) {
@@ -34,6 +35,8 @@ export default function Server() {
   const {
     minecraftServer: { status, getLoading, actionLoading, actions, domainName, error },
   } = useServers();
+
+  const currentStatus = status === ServerStatus.InitialStatus ? data.initialStatus : !getLoading ? status : "...";
   //Quick refresh button
   const RefreshButton = () => (
     <span onClick={() => actions.status()} className={"flex justify-center align-middle items-center m-2 cursor-pointer"}>
@@ -48,14 +51,14 @@ export default function Server() {
       <div className="container justify-center flex  scroll-m-20 text-4xl  tracking-tight ">
         {/* pretty sure the error handling is messing this one up, getting it stuck in a loading state, might need to pull this out to a new component */}
         <>
-          Server is {status === "LoadingStatus" ? data.initialStatus : !getLoading ? status : "..."} <RefreshButton />{" "}
+          Server is {currentStatus} <RefreshButton />{" "}
         </>
       </div>
       <div className="h-25 pt-5 pb-3 align-middle flex flex-col items-center mx-auto start-button">
         <StartStopButton
           loggedIn={data.hasCookie}
           loading={actionLoading}
-          serverStatus={status as ServerStatus}
+          serverStatus={currentStatus as ServerStatus}
           updateStatus={async () => actions.status()}
           stopServer={async () => actions.stop()}
           startServer={async () => actions.start()}

@@ -1,0 +1,59 @@
+#set($allParams = $input.params())
+{
+    "body": null,
+    "headers": {
+    #foreach($param in $input.params().header.keySet())
+        "$param": "$util.escapeJavaScript($input.params().header.get($param))"#if($foreach.hasNext),#end
+    #end
+    },
+    "multiValueHeaders": {
+     #foreach($param in $input.params().header.keySet())
+        "$param": [
+            "$input.params().header.get($param)"
+        ]#if($foreach.hasNext),#end
+    #end
+    },
+    "httpMethod": "$context.httpMethod",
+    "isBase64Encoded": false,
+    "path": "$context.path",
+    "requestContext": {
+        "accountId": "$context.accountId",
+        "apiId": "$context.apiId",
+        "authorizer": {
+            "siteAccess": "$context.authorizer.siteAccess",
+            "userId": "$context.authorizer.userId",
+            "apiAccess": "$context.authorizer.apiAccess",
+            "displayName": "$context.authorizer.displayName",
+            "integrationLatency": "$context.authorizer.integrationLatency",
+            "principalId": "$context.authorizer.principalId"
+        },
+        "domainName": "$context.domainName",
+        "domainPrefix": "$context.domainPrefix",
+        "extendedRequestId": "$context.extendedRequestId",
+        "httpMethod": "$context.httpMethod",
+        "identity": {
+            "accessKey": "$context.identity.accessKey",
+            "accountId": "$context.identity.accountId",
+            "caller": "$context.identity.caller",
+            "cognitoAuthenticationProvider": "$context.identity.cognitoAuthenticationProvider",
+            "cognitoAuthenticationType": "$context.identity.cognitoAuthenticationType",
+            "cognitoIdentityId": "$context.identity.cognitoIdentityId",
+            "cognitoIdentityPoolId": "$context.identity.cognitoIdentityPoolId",
+            "principalOrgId": "$context.identity.principalOrgId",
+            "sourceIp": "$context.identity.sourceIp",
+            "user": "$context.identity.user",
+            "userAgent": "$context.identity.userAgent",
+            "userArn": "$context.identity.userArn"
+        },
+        "path": "$context.path",
+        "protocol": "$context.protocol",
+        "requestId": "$context.requestId",
+        "requestTime": "$context.requestTime",
+        "requestTimeEpoch": $context.requestTimeEpoch,
+        "resourceId": "$context.resourceId",
+        "resourcePath": "$context.resourcePath",
+        "stage": "$context.stage",
+        "operationName": "StopServer"
+    },
+    "resource": "$context.resourcePath"
+}

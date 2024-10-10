@@ -85,6 +85,12 @@ apply GetPublicKeys @aws.apigateway#integration(
     uri: ""
 )
 
+apply GetJwks @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
 //date APis
 apply CreateDate @aws.apigateway#integration(
     type: "aws_proxy",

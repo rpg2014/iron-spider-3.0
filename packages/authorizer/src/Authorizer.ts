@@ -5,7 +5,8 @@ import * as AuthDynamoWrapper from './AuthDynamoWrapper';
 import {JWTProcessor as jwtlib} from 'jwt-lib';
 
 export const USER_TOKEN_COOKIE_NAME: string = "x-pg-id";
-const bypass_auth_for_paths = ['/v1/registration', "/v1/authentication", "/server/status", "/v1/userInfo"]
+// TODO: figure out api keys to work with this.
+const bypass_auth_for_paths = ['/v1/registration', "/v1/authentication", "/server/status", "/v1/userInfo", '/.well-known/jwks.json']
 
 const verifier = CognitoJwtVerifier.create({
     userPoolId: "us-east-1_mX9fI3lzt",

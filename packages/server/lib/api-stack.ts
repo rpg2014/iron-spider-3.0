@@ -49,9 +49,25 @@ type OtherProps = {
   subDomain: string;
   certificateArn: string;
 };
-
+type OperationsMap = {
+  [op in IronSpiderServiceOperations]?: NodejsFunction;
+};
+type OpenAPIOperation = {
+  "x-amazon-apigateway-integration": {
+    type: string;
+    httpMethod: string;
+    uri: string;
+  } & any;
+  operationId: string;
+  reponses: {
+    [httpStatus: string]: {
+      description: string;
+      content: any;
+    };
+  };
+};
 export class ApiStack extends Stack {
-  operations: { [op in IronSpiderServiceOperations]?: NodejsFunction };
+  operations: OperationsMap;
   readonly authOperations: NodejsFunction[];
   corsFunction;
   serviceFn: NodejsFunction;
@@ -119,7 +135,7 @@ export class ApiStack extends Stack {
     this.serviceFn.addEnvironment("DATE_TABLE_NAME", this.infraStack.DateDDBTable.tableName);
     this.serviceFn.addEnvironment("DATE_USER_INDEX_NAME", this.infraStack.DateDDBTableByUserIndexName);
     this.serviceFn.addEnvironment("PLACE_INDEX_NAME", this.infraStack.DatePlacesIndex.placeIndexName);
-    
+
     getMinecraftPolicies().forEach(policy => {
       this.singletonFn.role?.addManagedPolicy(policy);
       this.serviceFn.role?.addManagedPolicy(policy);
@@ -167,6 +183,7 @@ export class ApiStack extends Stack {
         loggingLevel: MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
         metricsEnabled: true,
+        tracingEnabled: true,
       },
       policy: new PolicyDocument({
         statements: [
@@ -268,25 +285,27 @@ export class ApiStack extends Stack {
    * @param authorizerInfo
    * @returns
    */
-  private getOpenApiDef(functions: { [op in IronSpiderServiceOperations]?: NodejsFunction }, authorizerInfo: { fnArn: string; roleArn: string }) {
+  private getOpenApiDef(functions: OperationsMap, authorizerInfo: { fnArn: string; roleArn: string }) {
     const openapi = JSON.parse(
       readFileSync(path.join(__dirname, "../codegen/server-sdk/build/smithyprojections/server-codegen/apigateway/openapi/IronSpider.openapi.json"), "utf8")
     );
 
     //Add CDK generated function arns to the open api definition
-    for (const path in openapi.paths) {
+    for (const operationPath in openapi.paths) {
       // TODO: add options integration.
 
-      for (const operation in openapi.paths[path]) {
-        const op = openapi.paths[path][operation];
+      for (const operation in openapi.paths[operationPath]) {
+        const op: OpenAPIOperation = openapi.paths[operationPath][operation];
         const integration = op["x-amazon-apigateway-integration"];
         // Don't try to mess with mock integrations
         if (integration !== null && integration !== undefined && integration["type"] === "mock") {
           continue;
         }
+
+        // Get arn from function map based on Operation name from smithy model.
         const functionArn = functions[op.operationId as IronSpiderServiceOperations]?.functionArn;
         if (functionArn === null || functionArn === undefined) {
-          throw new Error("no function for " + op.operationId + " at " + path+ ". Did you create an cdk config for this operation?");
+          throw new Error("no function for " + op.operationId + " at " + operationPath + ". Did you create an cdk op-config for this operation?");
           // op["x-amazon-apigateway-integration"] = {
           //     type: "aws_proxy",
           //     httpMethod: "POST",
@@ -327,34 +346,62 @@ export class ApiStack extends Stack {
         if (integration) integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
 
         // Tried to make the stop function async but it jsut times out instead? or throws a 502.
-        if (path === "/server/stop") {
-          op["x-amazon-apigateway-integration"].requestParameters = {
-            ...op["x-amazon-apigateway-integration"].requestParameters,
+        // this is due to a malformed proxy response.  The UI failes from cors though.  TODO: add cors headers to this
+        // default reponse? https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-gateway-responses-in-swagger.html
+        // lambda is returning 202 b/c thats what event ones do, we need to map that 202 to a 200 reponse to the frontend.
+        // 502 is b/c apig doesn't know what to do with it.
+        if (operationPath === "/server/stop") {
+          const integ = op["x-amazon-apigateway-integration"];
+          integ.requestParameters = {
+            ...integ.requestParameters,
             "integration.request.header.X-Amz-Invocation-Type": "'Event'",
+            // "integration.request.header.Origin": "method.request.header.Origin"
           };
-          op["x-amazon-apigateway-integration"].responses = {
-            ...op["x-amazon-apigateway-integration"].responses,
-            default: op["x-amazon-apigateway-integration"].default
-              ? {
-                  ...op["x-amazon-apigateway-integration"].responses.default,
-                  statusCode: 200,
-                }
-              : undefined,
+          
+          // need to inhance this mapping, lets also make it neater
+          integ.requestTemplates = {
+            "application/json": readFileSync(path.join(__dirname, "async-integration.vm"), "utf8"),
           };
+          // might need to change this to aws, and fix the integ todo: put into apig smithy file
+          integ.type = "aws";
+          integ.passthroughBehavior = "when_no_match";
+          integ.contentHandling = "CONVERT_TO_TEXT";
+          integ.responses = {
+            // was responses
+            202: {
+              statusCode: "202",
+              // responseTemplates: {
+              //   "application/json": '{"serverStopping": true}',
+              // },
+            },
+            500: {
+              statusCode: "500",
+              responseTemplates: {
+                "application/json": '{"message": "Something went wrong"}',
+              },
+            },
+            default: {
+              statusCode: "200",
+              // responseTemplates: {
+              //   "application/json": '{"serverStopping": true}',
+              // },
+            },
+          };
+          op["x-amazon-apigateway-integration"] = integ;
         }
       }
 
       // Add options integration to each path
-      openapi.paths[path]["options"] = {
+      openapi.paths[operationPath]["options"] = {
         description: `Handles CORS-preflight requests`,
-        operationId: `Cors${path
+        operationId: `Cors${operationPath
           .toString()
           .split("/")
           .map(s => s.charAt(0).toUpperCase() + s.slice(1))
           .join("")}`,
         responses: {
           "200": {
-            description: "Canned response for CORS-preflight requests",
+            description: "Canned headers for CORS-preflight requests",
             headers: {
               "Access-Control-Allow-Headers": {
                 schema: {
@@ -404,9 +451,23 @@ export class ApiStack extends Stack {
       ACCESS_DENIED: {
         responseParameters: {
           "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+          "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'"
+        },
+      },
+      DEFAULT_4XX: {
+        responseParameters: {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+          "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'",
+        },
+      },
+      DEFAULT_5XX: {
+        responseParameters: {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'https://remix.parkergiven.com'",
+          "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'",
         },
       },
     };
+
     //Add authorizer fn and role to the open API def, easy way
     let openapiString = JSON.stringify(openapi)
       .replace("{{AUTH_FUNCTION_ARN}}", `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${authorizerInfo.fnArn}/invocations`)

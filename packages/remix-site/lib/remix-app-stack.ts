@@ -5,8 +5,10 @@ import type { StackProps } from "aws-cdk-lib";
 import { Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import { LogLevel, NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
-import { HttpOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
+import { HttpOrigin, S3BucketOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
+import type { EdgeLambda } from "aws-cdk-lib/aws-cloudfront";
 import {
+  AccessLevel,
   AllowedMethods,
   CachePolicy,
   Distribution,
@@ -21,7 +23,7 @@ import {
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import type { FunctionUrl } from "aws-cdk-lib/aws-lambda";
-import { Code, FunctionUrlAuthType, InvokeMode, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Code, FunctionUrlAuthType, InvokeMode, Runtime, Tracing } from "aws-cdk-lib/aws-lambda";
 import path from "path";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { AaaaRecord, ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
@@ -59,17 +61,14 @@ export class RemixAppStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
-    const assetsBucketOriginAccessIdentity = new OriginAccessIdentity(this, "AssetsBucketOriginAccessIdentity");
-
-    const assetsBucketS3Origin = new S3Origin(assetsBucket, {
-      originAccessIdentity: assetsBucketOriginAccessIdentity,
-    });
-    const serviceWorkerBucketS3Origin = new S3Origin(serviceWorkerBucket, {
-      originAccessIdentity: assetsBucketOriginAccessIdentity,
+    // set up cloudfront origins for the s3 buckets with read permissions
+    const assetsBucketS3Origin = S3BucketOrigin.withOriginAccessControl(assetsBucket, {
+      originAccessLevels: [AccessLevel.READ],
     });
 
-    assetsBucket.grantRead(assetsBucketOriginAccessIdentity);
-    serviceWorkerBucket.grantRead(assetsBucketOriginAccessIdentity);
+    const serviceWorkerBucketS3Origin = S3BucketOrigin.withOriginAccessControl(serviceWorkerBucket, {
+      originAccessLevels: [AccessLevel.READ],
+    });
 
     const fn = new NodejsFunction(this, "RemixServerFn", {
       currentVersionOptions: {
@@ -81,6 +80,11 @@ export class RemixAppStack extends Stack {
       memorySize: 256,
       timeout: Duration.seconds(10),
       runtime: Runtime.NODEJS_20_X,
+      // tracing: Tracing.ACTIVE, // not supported on Lambda@Edge
+    });
+
+    fn.role?.addManagedPolicy({
+      managedPolicyArn: "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
     });
 
     // The only way to interact with http streams is lambda function urls, which you cannot put behind a CDN, and route 53,
@@ -110,7 +114,7 @@ export class RemixAppStack extends Stack {
                 eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
                 functionVersion: fn.currentVersion,
                 includeBody: true,
-              },
+              } as EdgeLambda,
             ]
           : undefined,
 

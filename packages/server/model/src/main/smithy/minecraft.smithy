@@ -31,8 +31,7 @@ operation StartServer {
 }
 
 
-
-@http(code:200, method: "POST", uri: "/server/stop")
+@http(code:202, method: "POST", uri: "/server/stop")
 operation StopServer {
     output: StopServerOutput,
     errors: [ValidationException, InternalServerError],

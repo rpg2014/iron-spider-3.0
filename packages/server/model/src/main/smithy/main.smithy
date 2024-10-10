@@ -46,8 +46,7 @@ service IronSpider {
         // auth related 
         UserInfo,
         GetPublicKeys,
-
-        // Unrelated other web api's
+        GetJwks,
         Logout,
 
         // support the date trackerW

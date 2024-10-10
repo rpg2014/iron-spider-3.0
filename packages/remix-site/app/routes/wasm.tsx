@@ -1,8 +1,6 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { add } from "../rust.server";
-import { Link, Outlet, isRouteErrorResponse, useLoaderData, useRouteError } from "@remix-run/react";
-// import * as w from 'rust-functions'
-// import init, {add as add2} from '../rust.client'
+import { NavLink, Outlet, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import init, { Universe, greet } from "client-rust-functions";
 import { Button } from "~/components/ui/Button";
@@ -14,7 +12,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 const Wasm = () => {
   const data = useLoaderData<typeof loader>();
-  const [csData, setCSData] = useState<number>();
   useEffect(() => {
     init().then(wasm => {
       let u = Universe.new(64, 64);
@@ -23,20 +20,15 @@ const Wasm = () => {
   }, []);
   return (
     <div>
-      <Outlet />
-      <Link to="game-of-life">
-        <Button>Game of life</Button>
-      </Link>
+      <NavLink to="game-of-life">{({ isActive, isPending }) => <Button variant={isActive ? "outline" : "default"}>Game of life</Button>}</NavLink>
+      <NavLink to="pi">{({ isActive, isPending }) => <Button variant={isActive ? "outline" : "default"}>Pi</Button>}</NavLink>
       <p>Server side Wasm, results of 2+523: {data}</p>
+      <div className="container">
+        <Outlet />
+      </div>
     </div>
   );
 };
 export default Wasm;
 
-export function ErrorBoundary() {
-  const error = useRouteError();
-  if (isRouteErrorResponse(error)) {
-    return <div />;
-  }
-  return <EB.ErrorBoundary />;
-}
+export const ErrorBoundary = EB.ErrorBoundary;

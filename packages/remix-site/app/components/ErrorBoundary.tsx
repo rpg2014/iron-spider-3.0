@@ -1,12 +1,22 @@
 import { isRouteErrorResponse, useRouteError } from "@remix-run/react";
 import * as React from "react";
 
+type ErrorMessage = {
+  message: string;
+};
+
+type ErrorResponseGeneric<T> = {
+  status: number;
+  statusText: string;
+  data: T;
+};
 export const ErrorBoundary = () => {
   const error = useRouteError();
   //Http error branch
   if (isRouteErrorResponse(error)) {
+    const errorCast = error as ErrorResponseGeneric<ErrorMessage>;
     let message;
-    switch (error.status) {
+    switch (errorCast.status) {
       case 401:
         message = <p>Oops! Looks like you tried to visit a page that you do not have access to.</p>;
         break;
@@ -14,24 +24,17 @@ export const ErrorBoundary = () => {
         message = <p>Oops! Looks like you tried to visit a page that does not exist.</p>;
         break;
       case 500:
-        message = <p>Something went wrong, status: {error.status}</p>;
+        message = <p>Something went wrong, status: {errorCast.status}, message: {errorCast.data.message}</p>;
         break;
       default:
-        throw new Error(error.data || error.statusText);
+        message = <p>Recieved Error: {errorCast.data.message}</p>;
     }
-    let parsedData: { message?: string } | undefined = undefined;
-    if (error.data) {
-      parsedData = JSON.parse(error.data);
-    }
-
     return (
       <>
         <h1>
-          {error.status}: {error.statusText}
+          Recived Error code {error.status}: {error.statusText}
         </h1>
-        {message}
-        <hr />
-        {parsedData && `Message: ${parsedData.message}`}
+        <p>{message}</p>
       </>
     );
   }
@@ -39,7 +42,7 @@ export const ErrorBoundary = () => {
   console.error(error);
   return (
     <div>
-      <h1>There was an error</h1>
+      <h1>There was an error: {error?.toString()}</h1>
       <p>{error.message}</p>
       <hr />
     </div>

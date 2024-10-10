@@ -6,7 +6,7 @@ import { GenerateRegistrationOptionsOperation } from "src/operations/GenerateReg
 import { GetAuthOptionsOperation } from "src/operations/GetAuthOptionsOperation";
 import { Logout } from "src/operations/Logout";
 import { ServerDetailsOperation, ServerStatusOperation, StartServerOperation, StopServerOperation } from "src/operations/MCServerOperations";
-import { GetPublicKeys, UserInfo } from "src/operations/UserInfoOperation";
+import { GetJwks, GetPublicKeys, UserInfo } from "src/operations/UserInfoOperation";
 import { VerifyAuthOperation } from "src/operations/VerifyAuthResponseOperation";
 import { VerifyRegistrationOperation } from "src/operations/VerifyRegistrationOperation";
 import { CreateDate, GetDate, UpdateDate, DeleteDate, ListDates, GetLocationByPlaceId, SearchForLocation } from "../operations/DateOperations";
@@ -27,6 +27,7 @@ const service: IronSpiderService<HandlerContext> = {
 
   UserInfo: UserInfo,
   GetPublicKeys: GetPublicKeys,
+  GetJwks,
   Logout: Logout,
 
   //dates
@@ -36,7 +37,7 @@ const service: IronSpiderService<HandlerContext> = {
   DeleteDate,
   ListDates,
   SearchForLocation,
-  GetLocationByPlaceId
+  GetLocationByPlaceId,
 };
 
 export const ironSpiderHandler: APIGatewayProxyHandler = getApiGatewayHandler(getIronSpiderServiceHandler(service));

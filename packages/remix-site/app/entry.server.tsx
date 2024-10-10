@@ -6,7 +6,7 @@
 
 import { PassThrough } from "node:stream";
 
-import type { AppLoadContext, EntryContext } from "@remix-run/node";
+import type { AppLoadContext as ALC, EntryContext } from "@remix-run/node";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
@@ -14,7 +14,7 @@ import { renderToPipeableStream, renderToString } from "react-dom/server";
 import { useStreams } from "../lib/constants";
 
 const ABORT_DELAY = 5_000;
-
+type AppLoadContext = ALC & { traceId?: string };
 export default function handleRequest(
   request: Request,
   responseStatusCode: number,
@@ -30,7 +30,7 @@ export default function handleRequest(
       : handleBrowserRequestStream(request, responseStatusCode, responseHeaders, remixContext);
   } else {
     // fallback to old renderToString
-    let markup = renderToString(<RemixServer context={remixContext} url={request.url} />);
+    let markup = renderToString(<RemixServer context={{ ...remixContext, ...loadContext }} url={request.url} />);
 
     responseHeaders.set("Content-Type", "text/html");
 

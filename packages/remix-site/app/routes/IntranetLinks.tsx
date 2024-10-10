@@ -2,9 +2,9 @@ import * as React from "react";
 import "../styles/intranetLinks.css?url";
 import { useLoaderData } from "@remix-run/react";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
-import { AUTH_DOMAIN } from "~/constants";
 import { Button } from "~/components/ui/Button";
 import { useEffect, useState } from "react";
+import AuthGate from "~/components/AuthGate";
 // import { Alert, Button, Spinner } from 'react-bootstrap';
 // import { HTTPMethod } from '../../../epics/common';
 // import { DYNAMIC_DNS_URL } from '../../../store/paths';
@@ -103,13 +103,7 @@ export default function IntranetLinks() {
   //   return null;
   // }
   if (!hasCookie) {
-    return (
-      <div className="flex flex-col items-center">
-        <a href={`${AUTH_DOMAIN}?return_url=${encodeURIComponent(location.href)}&message=${encodeURIComponent(`Unable To login`)}`}>
-          <Button variant={"default"}>Click here to login</Button>
-        </a>
-      </div>
-    );
+    return <AuthGate />;
   }
   return (
     <div className="row   mx-auto  translucent-bg rounded d-flex flex-column width-control">

@@ -1,8 +1,9 @@
 import { URL } from "url";
 import { createRequestHandler as createRemixRequestHandler } from "@remix-run/node";
-
+import * as AWSXRay from "aws-xray-sdk";
 import type { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontHeaders } from "aws-lambda";
 import type { AppLoadContext, ServerBuild } from "@remix-run/server-runtime";
+import { convertFetchToHttp } from "./utils";
 
 export interface GetLoadContextFunction {
   (event: CloudFrontRequestEvent): AppLoadContext;
@@ -38,8 +39,74 @@ export function createRequestHandler({
     let request = createRemixRequest(event);
     console.log(`Got Request for path: ${request.url}`);
     let loadContext = typeof getLoadContext === "function" ? getLoadContext(event) : undefined;
+    // is the below worth it? xray tracing?
+    let segment: AWSXRay.Segment | AWSXRay.Subsegment | undefined, ns;
 
-    let response = (await handleRequest(request as unknown as Request, loadContext)) as unknown as Response;
+    if (process.env.AWS_XRAY_DAEMON_ADDRESS) {
+      AWSXRay.middleware.setSamplingRules({
+        version: 2,
+        rules: [
+          {
+            description: "Lambda@Edge Tracing",
+            host: "*",
+            http_method: "*",
+            url_path: "*",
+            fixed_target: 1,
+            rate: 0.05,
+          },
+        ],
+        default: {
+          fixed_target: 1,
+          rate: 0.1,
+        },
+      });
+      console.log(`AWS X-Ray enabled. Daemon Address: ${process.env.AWS_XRAY_DAEMON_ADDRESS}`);
+      // AWSXRay.enableManualMode()
+      AWSXRay.middleware.setDefaultName("RemixSite");
+      segment = new AWSXRay.Segment(`RemixSite`);
+      ns = AWSXRay.getNamespace();
+
+      loadContext = { ...loadContext, traceId: segment.trace_id };
+      if (context.awsRequestId) {
+        segment.addAnnotation("awsRequestId", context.awsRequestId);
+        console.log(`AWS X-Ray filter:  Annotation.awsRequestId = "${context.awsRequestId}"`);
+      }
+    }
+
+    let response = await (ns && segment
+      ? ns.runPromise<Response>(() => {
+          AWSXRay.setSegment(segment);
+          const res = handleRequest(request as unknown as Request, loadContext);
+          return res;
+        })
+      : handleRequest(request as unknown as Request, loadContext));
+    // await AWSXRay.captureAsyncFunc('EdgeHandler', async (subsegment) => {
+    //   try {
+    //     if(!subsegment)
+    //       subsegment = new AWSXRay.Subsegment(`HandlerTrace`)
+    //     // Call your Remix handler
+    //     const result = await handleRequest(request, loadContext);
+
+    //     return result;
+    //   } catch (error) {
+    //     subsegment?.addError(error);
+    //     console.error("Handle request threw, this shouldn't happen")
+    //     // throw error;
+    //     return new Response("Internal Server Error", { status: 500 });
+    //   } finally {
+    //     subsegment?.close();
+    //   }
+    // }, segment);
+
+    if (response.status > 300) {
+      console.log(`Error: ${response.status} - ${response.statusText}`);
+      segment?.addError(`Error: ${response.status} - ${response.statusText}`);
+    }
+    // convert Request to http.IncomingRequest
+    const { req, res } = convertFetchToHttp(request, response);
+    AWSXRay.middleware.traceRequestResponseCycle(req, res);
+    segment?.close();
+    // until here =================================================================================
     console.log(`Returning Response for path: ${request.url} with status: ${response.status}`);
     let cloudfrontHeaders = createCloudFrontHeaders(response.headers);
     // add server timing header to headers

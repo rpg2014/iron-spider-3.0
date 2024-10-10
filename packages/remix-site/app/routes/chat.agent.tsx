@@ -19,13 +19,12 @@ export default function Agent() {
     const urlParam = url.searchParams.get("url") || url.searchParams.get("text");
     const qParam = url.searchParams.get("q");
     if (urlParam) {
-      submit(`Summarize this page: ${urlParam}`, "summarize");
+      setUserMessage(`Summarize this page: ${urlParam}`);
       //remove the url param from the browser's location
       url.searchParams.delete("url");
       window.history.replaceState(null, "", url.toString());
     } else if (qParam) {
-      // support for the standard ?q= query param 
-      // submit(qParam, "agent");
+      // support for the standard ?q= query param
       setUserMessage(qParam);
       //remove the q param from the browser's location
       url.searchParams.delete("q");

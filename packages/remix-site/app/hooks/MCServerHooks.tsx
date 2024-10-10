@@ -34,9 +34,9 @@ const minecraftInitalState: IServerContextState = {
 
 const ServerContext = createContext<IServerContext>({ minecraftServer: minecraftInitalState });
 
-export const ServerProvider = ({ children }: { children: React.ReactNode }) => {
+export const ServerProvider = ({ children, initialState }: { children: React.ReactNode; initialState?: ServerStatus }) => {
   // create useStates for each state field in IServerState
-  const [status, setStatus] = useState<IServerState["status"]>(minecraftInitalState.status);
+  const [status, setStatus] = useState<IServerState["status"]>(initialState ? initialState : minecraftInitalState.status);
   const [running, setRunning] = useState<IServerState["running"]>(minecraftInitalState.running);
   const [actionLoading, setActionLoading] = useState<IServerState["actionLoading"]>(minecraftInitalState.actionLoading);
   const [getLoading, setGetLoading] = useState<IServerState["getLoading"]>(minecraftInitalState.getLoading);
@@ -45,7 +45,9 @@ export const ServerProvider = ({ children }: { children: React.ReactNode }) => {
 
   //update status on mount
   useEffect(() => {
-    actions.status();
+    if (!initialState) {
+      actions.status();
+    }
   }, []);
 
   const call = async <T,>(fn: () => T, setStateFn: (e: T) => void, setLoadingFunction: (b: boolean) => void) => {
@@ -91,7 +93,7 @@ export const ServerProvider = ({ children }: { children: React.ReactNode }) => {
     stop: wrapWithErrorLogic(async () => {
       const serverStopping = await MCServerApi.stopServer();
       setRunning(!serverStopping);
-      setTimeout(actions.status, 1000);
+      setTimeout(actions.status, 3000);
     }, setActionLoading),
   };
   return (

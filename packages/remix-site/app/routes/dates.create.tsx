@@ -1,22 +1,20 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import type { ClientActionFunctionArgs } from "@remix-run/react";
-import { Form, Link, useActionData, useFetcher, useNavigate, useSubmit } from "@remix-run/react";
-import { Button } from "~/components/ui/Button";
+import { Link, useActionData, useFetcher, useNavigate, useSubmit } from "@remix-run/react";
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "~/components/ui/Command";
 import { Input } from "~/components/ui/Input";
-import { Label } from "~/components/ui/Label";
 import { LocationService } from "~/service/DateService";
 import * as EB from "~/components/ErrorBoundary";
 import { useEffect } from "react";
 
-export const clientAction = async ({ request }: ClientActionFunctionArgs) => {
+export const clientAction = async ({ request, context }: ClientActionFunctionArgs) => {
   const formData = await request.formData();
   const searchText = formData.get("searchText");
   if (!searchText) {
     throw new Response("Search text is required", { status: 400 });
   }
   try {
-    const response = await new LocationService().searchForLocation(searchText.toString()); //, {
+    const response = await new LocationService().searchForLocation(searchText.toString(), request.headers); //, {
     // ...request.headers,
     // //@ts-ignore
     // Cookie: request.headers.get("Cookie") || "",});
@@ -32,29 +30,30 @@ export const clientAction = async ({ request }: ClientActionFunctionArgs) => {
 };
 
 export default function StartDateCreation() {
-  const actionData = useActionData<typeof clientAction>();
+  const { Form, data, state } = useFetcher<typeof clientAction>({ key: "location-data" });
   useEffect(() => {
-    console.log(`actionData: ${JSON.stringify(actionData)}`);
-  });
-  const thing = useFetcher({ key: "location-data" });
-  //   const submit = useSubmit();
-  // if(ac)
+    console.log(data);
+  }, [data]);
   return (
     <>
       <h1>1. Start by searching for the date location</h1>
-      <div className="m-3">
-        <Command className="border-2 border-light rounded-md">
-          <thing.Form method="post">
+      <div className="m-3 h-auto">
+        <Command className="border-2 border-light rounded-md h-auto">
+          <Form method="post">
             <CommandInput className="border-none" name="searchText" id="searchText" placeholder="Search for a location..." required />
-            <Input type="submit"></Input>
-          </thing.Form>
+            <Input className="cursor-pointer" type="submit"></Input>
+          </Form>
           <CommandList>
-            {!actionData ? <CommandEmpty>No results found.</CommandEmpty> : null}
-            {actionData?.map(searchResult => {
+            {state === "loading" ? <CommandEmpty>Loading...</CommandEmpty> : null}
+            {!data ? <CommandEmpty>No results found.</CommandEmpty> : null}
+            {data?.map(searchResult => {
+              console.log(`rendering`, searchResult);
               return (
-                <CommandItem>
+                // <CommandItem>
+                <div style={{ border: "white solid 1px" }}>
                   <Link to={`/dates/new?placeId=${searchResult.placeId}`}>{searchResult.text}</Link>
-                </CommandItem>
+                </div>
+                // </CommandItem>
               );
             })}
           </CommandList>
