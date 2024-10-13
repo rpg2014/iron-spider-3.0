@@ -14,6 +14,7 @@ export const ErrorBoundary = () => {
   const error = useRouteError();
   //Http error branch
   if (isRouteErrorResponse(error)) {
+    console.error(`Got Route Error Response: `, error)
     const errorCast = error as ErrorResponseGeneric<ErrorMessage>;
     let message;
     switch (errorCast.status) {
@@ -24,7 +25,11 @@ export const ErrorBoundary = () => {
         message = <p>Oops! Looks like you tried to visit a page that does not exist.</p>;
         break;
       case 500:
-        message = <p>Something went wrong, status: {errorCast.status}, message: {errorCast.data.message}</p>;
+        message = (
+          <p>
+            Something went wrong, status: {errorCast.status}, message: {errorCast.data.message}
+          </p>
+        );
         break;
       default:
         message = <p>Recieved Error: {errorCast.data.message}</p>;

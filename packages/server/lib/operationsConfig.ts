@@ -90,6 +90,8 @@ const DateAPIs: Partial<IEntryPoints> = {
   GetPicture: null,
   DeletePicture: null,
   CreatePicture: null,
+  
+  GetConnectedUsers: null,
 
   SearchForLocation: null,
   GetLocationByPlaceId: null,

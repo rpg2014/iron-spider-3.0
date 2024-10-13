@@ -7,7 +7,7 @@ export const loader = DEFAULT_AUTH_LOADER;
 
 export default function DatesLayout() {
   const { hasCookie } = useLoaderData<typeof loader>();
-  if (!hasCookie) {
+  if (!hasCookie && import.meta.env.PROD) {
     return <AuthGate />;
   }
 

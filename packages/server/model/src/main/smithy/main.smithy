@@ -8,6 +8,7 @@ use smithy.framework#ValidationException
 use com.rpg2014.cloud.date_tracker#DateOuting
 use com.rpg2014.cloud.date_tracker#GetLocationByPlaceId
 use com.rpg2014.cloud.date_tracker#SearchForLocation
+use com.rpg2014.cloud.date_tracker#GetConnectedUsers
 
 @title("Various API's to support services")
 
@@ -51,7 +52,8 @@ service IronSpider {
 
         // support the date trackerW
         SearchForLocation, 
-        GetLocationByPlaceId
+        GetLocationByPlaceId,
+        GetConnectedUsers
         ],
 }
 

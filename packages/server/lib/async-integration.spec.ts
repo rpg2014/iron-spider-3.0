@@ -30,16 +30,15 @@ describe("async-integration", () => {
           return {
             header: {
               origin: "https://remix.parkergiven.com",
-              'accept-encoding': 'gzip, deflate, br, zstd'
+              "accept-encoding": "gzip, deflate, br, zstd",
             },
           };
         },
-        
       },
     });
 
     const sdkJsonRequestBody = JSON.parse(requestTemplateAsString);
-    console.log(sdkJsonRequestBody)
+    console.log(sdkJsonRequestBody);
     expect(sdkJsonRequestBody.requestContext.authorizer.userId).toEqual("1");
     expect(sdkJsonRequestBody).toHaveProperty("requestContext.authorizer.userId", "1");
     // check httpMethod, path, multivalueHeaders for origin

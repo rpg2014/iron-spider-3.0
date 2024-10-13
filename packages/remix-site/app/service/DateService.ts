@@ -7,8 +7,10 @@ import type {
   Place,
   SearchForLocationCommandOutput,
   SearchResult,
+  ConnectedUser,
+  GetConnectedUsersOutput,
 } from "iron-spider-client";
-import { DATES_PATH, LOCATIONS_PATH } from "~/constants";
+import { API_DOMAIN_VERSION, DATES_PATH, LOCATIONS_PATH } from "~/constants";
 import { fetcher } from "~/utils";
 
 export interface IDateClient {
@@ -16,6 +18,7 @@ export interface IDateClient {
   getDate: (input: { id: string; headers?: Headers }) => Promise<GetDateCommandOutput>;
   createDate: (input: { date: ICreateDateInput; headers?: Headers }) => Promise<DateInfo>;
   delete: (input: { id: string; headers?: Headers }) => Promise<{ success: boolean }>;
+  getConnectedUsers(input: { userId: string; headers?: Headers }): Promise<GetConnectedUsersOutput>;
 }
 
 export interface ICreateDateInput {
@@ -52,6 +55,9 @@ export class DateService implements IDateClient {
   }
   async delete(input: { id: string; headers?: Headers }): Promise<{ success: boolean }> {
     return await fetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include", method: "DELETE" });
+  }
+  async getConnectedUsers(input: { headers?: Headers }): Promise<GetConnectedUsersOutput> {
+    return await fetcher(`${API_DOMAIN_VERSION}/connected-users`, { mode: "cors", headers: input.headers, credentials: "include" });
   }
 }
 

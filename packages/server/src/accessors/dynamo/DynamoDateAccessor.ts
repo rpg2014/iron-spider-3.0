@@ -1,11 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { DateInfo } from "iron-spider-ssdk";
+import { ConnectedUser, DateInfo } from "iron-spider-ssdk";
 import { DateAccessor } from "../AccessorInterfaces";
+import { getUserAccessor } from "../AccessorFactory";
 
 export class DynamoDateAccessor extends DateAccessor {
   private client: DynamoDBDocumentClient;
   private tableName: string;
+  private connectedUsersTableName: string;
   private userIndexName: string;
 
   constructor() {
@@ -14,6 +16,9 @@ export class DynamoDateAccessor extends DateAccessor {
     this.client = DynamoDBDocumentClient.from(ddbClient);
     this.tableName = process.env.DATE_TABLE_NAME || "";
     this.userIndexName = process.env.DATE_USER_INDEX_NAME || "";
+    this.connectedUsersTableName = process.env.CONNECTED_USERS_TABLE_NAME || "";
+    //throw if any are empty
+    if (!this.tableName || !this.userIndexName || !this.connectedUsersTableName) throw new Error("Missing environment variables");
   }
 
   async listDates(userId: string): Promise<DateInfo[]> {
@@ -91,6 +96,26 @@ export class DynamoDateAccessor extends DateAccessor {
     } catch (error) {
       console.error("Error deleting date:", error);
       throw error;
+    }
+  }
+
+  async getConnectedUsers(userId: string): Promise<ConnectedUser[]> {
+    console.log("Getting connected users for user:", userId)
+    try {
+      const command = new GetCommand({
+        TableName: this.connectedUsersTableName,
+        Key: { userId },
+      });
+      const response = await this.client.send(command);
+      const userIds = response.Item?.connectedUsers as string[];
+      const userAccessor = getUserAccessor();
+      const users = await Promise.all(userIds.map(async (id) => userAccessor.getUser(id)));
+      const connectedUsers = users.map((user) => ({ userId: user.id, displayName: user.displayName } as ConnectedUser))
+      console.log("Connected users from DDB:", connectedUsers)
+      return connectedUsers
+    } catch (e) {
+      console.error("Error getting connected users:", e);
+      throw e;
     }
   }
 }

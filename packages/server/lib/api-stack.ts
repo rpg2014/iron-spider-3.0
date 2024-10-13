@@ -135,6 +135,7 @@ export class ApiStack extends Stack {
     this.serviceFn.addEnvironment("DATE_TABLE_NAME", this.infraStack.DateDDBTable.tableName);
     this.serviceFn.addEnvironment("DATE_USER_INDEX_NAME", this.infraStack.DateDDBTableByUserIndexName);
     this.serviceFn.addEnvironment("PLACE_INDEX_NAME", this.infraStack.DatePlacesIndex.placeIndexName);
+    this.serviceFn.addEnvironment("CONNECTED_USERS_TABLE_NAME", this.infraStack.ConnectedUsersTable.tableName);
 
     getMinecraftPolicies().forEach(policy => {
       this.singletonFn.role?.addManagedPolicy(policy);
@@ -340,7 +341,7 @@ export class ApiStack extends Stack {
           //   },
           // };
           throw new Error(
-            `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/server-sdk/model/apigateway.smithy`
+            `No x-amazon-apigateway-integration for ${op.operationId}. Make sure API Gateway integration is configured in codegen/server-sdk/model/apigateway.smithy.  Then rebuild`
           );
         }
         if (integration) integration.uri = `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${functionArn}/invocations`;
@@ -357,7 +358,7 @@ export class ApiStack extends Stack {
             "integration.request.header.X-Amz-Invocation-Type": "'Event'",
             // "integration.request.header.Origin": "method.request.header.Origin"
           };
-          
+
           // need to inhance this mapping, lets also make it neater
           integ.requestTemplates = {
             "application/json": readFileSync(path.join(__dirname, "async-integration.vm"), "utf8"),
@@ -451,7 +452,7 @@ export class ApiStack extends Stack {
       ACCESS_DENIED: {
         responseParameters: {
           "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
-          "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'"
+          "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'",
         },
       },
       DEFAULT_4XX: {

@@ -15,6 +15,8 @@ import {
   SearchForLocationOutput,
   GetLocationByPlaceIdInput,
   GetLocationByPlaceIdOutput,
+  GetConnectedUsersOutput,
+  ConnectedUser,
 } from "iron-spider-ssdk";
 
 import { Operation } from "@aws-smithy/server-common";
@@ -30,10 +32,11 @@ export const CreateDate: Operation<CreateDateInput, CreateDateOutput, HandlerCon
   const newDate: DateInfo = {
     id: randomUUID(),
     title: input.title,
-    userId: context.userId ?? "1",
+    dateThrower: input.dateThrower,
+    userId: context.userId,
     location: input.location,
     coordinates: input.coordinates,
-    date: new Date(),
+    date: input.date || new Date(),
   };
   return { outing: await dateAccessor.createDate(newDate) };
 };
@@ -45,7 +48,6 @@ export const GetDate: Operation<GetDateInput, GetDateOutput, HandlerContext> = a
 };
 
 export const UpdateDate: Operation<UpdateDateInput, UpdateDateOutput, HandlerContext> = async (input, context) => {
-  // Implementation using StubDateDB
   const updatedDate: DateInfo = {
     id: input.dateId,
     title: input.title,
@@ -53,7 +55,8 @@ export const UpdateDate: Operation<UpdateDateInput, UpdateDateOutput, HandlerCon
     location: input.location,
     pictureId: input.picture,
     coordinates: input.coordinates,
-    date: undefined,
+    dateThrower: input.dateThrower,
+    date: input.date,
   };
   return { outing: await dateAccessor.updateDate(updatedDate) };
 };
@@ -69,6 +72,16 @@ export const DeleteDate: Operation<DeleteDateInput, DeleteDateOutput, HandlerCon
 export const ListDates: Operation<ListDatesInput, ListDatesOutput, HandlerContext> = async (input, context) => {
   // Implementation using StubDateDB
   return { items: await dateAccessor.listDates(context.userId ?? "1") };
+};
+
+export const GetConnectedUsers: Operation<{}, GetConnectedUsersOutput, HandlerContext> = async (input, context) => {
+  const userId = context.userId
+  if (!userId) throw new BadRequestError({ message: "userId is required" });
+  const otherUsers = await dateAccessor.getConnectedUsers(userId)
+  //add current user to list
+  const users: ConnectedUser[] = [{userId, displayName: context.displayName}, ...otherUsers]
+  console.log(`connected users: ${JSON.stringify(users)}`)
+  return { users: users };
 };
 
 // location operations

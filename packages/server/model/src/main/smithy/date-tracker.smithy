@@ -49,7 +49,9 @@ structure DateInfo {
     @required
     date: Timestamp
 
-    
+    @required
+    @documentation("The person who threw the date")
+    dateThrower: String
 
     @required
     userId: String
@@ -107,6 +109,9 @@ structure CreateDateInput {
     @required
     coordinates: Coordinates
 
+    @required
+    dateThrower: String,
+
     date: Timestamp
 }
 
@@ -130,9 +135,11 @@ structure UpdateDateInput {
     dateId: String,
     location: String,
     picture: String,
+    dateThrower: String,
     note: String,
     coordinates: Coordinates,
     title: String
+    date: Timestamp
 }
 
 structure UpdateDateOutput with [CommonHeaders] {
@@ -183,6 +190,32 @@ structure ListDatesOutput with [CommonHeaders] {
 
 list DateList {
     member: DateInfo
+}
+
+@http(method: "GET", uri: "/v1/connected-users")
+operation GetConnectedUsers with [ValidatedOperation] {
+    // input: GetConnectedUsersInput,
+    output: GetConnectedUsersOutput
+}
+
+// @input 
+// structure GetConnectedUsersInput {
+
+// }
+
+@output
+structure GetConnectedUsersOutput {
+    @required
+    users: ConnectedUsersList
+}
+list ConnectedUsersList {
+    member: ConnectedUser
+}
+structure ConnectedUser {
+    @required
+    displayName: String,
+    @required
+    userId: String,
 }
 
 @http(method: "POST", uri: "/v1/locations")

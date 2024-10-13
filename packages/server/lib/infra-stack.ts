@@ -14,6 +14,7 @@ export class InfraStack extends Stack {
   public DateDDBTableByUserIndexName = "DateDDBTableByUserId";
   public PictureS3Bucket: Bucket;
   public DatePlacesIndex: PlaceIndex;
+  public ConnectedUsersTable: Table;
 
   constructor(scope: Construct, id: string, props: StackProps & InfraStackProps) {
     super(scope, id, props);
@@ -46,6 +47,11 @@ export class InfraStack extends Stack {
       dataSource: DataSource.HERE,
       description: "Place index for use with the date tracker",
       intendedUse: IntendedUse.SINGLE_USE,
+    });
+
+    this.ConnectedUsersTable = new Table(this, "ConnectedUsersTable", {
+      partitionKey: { name: "userId", type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
     });
   }
 }

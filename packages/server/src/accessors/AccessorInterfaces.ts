@@ -1,4 +1,4 @@
-import { Coordinates, DateInfo, Place, SearchResult } from "iron-spider-ssdk";
+import { ConnectedUser, Coordinates, DateInfo, Place, SearchResult } from "iron-spider-ssdk";
 import { CredentialModel, UserModel } from "../model/Auth/authModels";
 import { GetPlaceCommand, LocationClient, SearchPlaceIndexForSuggestionsCommand } from "@aws-sdk/client-location";
 
@@ -49,6 +49,7 @@ export abstract class DateAccessor {
   abstract getDate(id: string): Promise<DateInfo | undefined>;
   abstract updateDate(date: DateInfo): Promise<DateInfo>;
   abstract deleteDate(id: string): Promise<void>;
+  abstract getConnectedUsers(userId: string): Promise<ConnectedUser[]>
 }
 
 export abstract class LocationAccessor {
