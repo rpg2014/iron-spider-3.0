@@ -1,16 +1,8 @@
 import * as React from "react";
 import { Link, useNavigation } from "@remix-run/react";
 import layoutStyles from "~/styles/layout.css?url";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "./ui/NavigationMenu";
 import { Suspense } from "react";
+import { NavMenu } from "./NavMenu/NavMenu";
 
 export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
 
@@ -31,47 +23,7 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
             <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
               <RemixLogo />
             </Link>
-            <NavigationMenu /*className="remix-app__header-nav"*/>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <Link prefetch={"intent"} to="/">
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger>Pages</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <Link prefetch={"viewport"} to={"/chat"}>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Chat</NavigationMenuLink>
-                    </Link>
-                    <Link prefetch={"viewport"} to={"/intranetLinks"}>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Links</NavigationMenuLink>
-                    </Link>
-                    <Link prefetch={"viewport"} to={"/wasm"}>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Wasm</NavigationMenuLink>
-                    </Link>
-                    <Link prefetch={"viewport"} to={"/mc-server"}>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>server</NavigationMenuLink>
-                    </Link>
-                    <Link prefetch={"none"} to={"/404"}>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>404 Page</NavigationMenuLink>
-                    </Link>
-                    <Link prefetch={"viewport"} to={"/dates"}>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Date Tracker</NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link prefetch={"viewport"} to={"/settings"}>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>Settings</NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-
-                {/* <li>
-                <a href="https://github.com/rpg2014/remix-aws-cdk-template/">GitHub</a>
-              </li> */}
-              </NavigationMenuList>
-            </NavigationMenu>
+            <NavMenu />
           </Suspense>
         </div>
       </header>

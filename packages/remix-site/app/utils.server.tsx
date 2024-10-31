@@ -9,7 +9,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/server-runtime";
 import { json, redirectDocument } from "@remix-run/server-runtime";
 import { createHash } from "crypto";
-import { API_DOMAIN, AUTH_DOMAIN, PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "./constants";
+import { PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "./constants";
 import pkg from "jsonwebtoken";
 import { fetcher } from "./utils";
 import { createCookie } from "@remix-run/node";
@@ -54,7 +54,7 @@ export const checkCookieAuth = async (request: Request) => {
       try {
         const decoded = verifyWithKey({ token: authCookieString.split("=")[1], publicKey: publicKey.keys[0], issuer: "auth.parkergiven.com" });
         // good case return
-        return { userData: decoded, hasCookie: true, authToken: authCookieString };
+        return { userData: decoded, hasCookie: true }; //, authToken: authCookieString
       } catch (e) {
         console.warn("Error verifying token", e);
         // async refresh the key.  Only matters if lambda is getting reused right around a
@@ -90,7 +90,7 @@ export const DEFAULT_AUTH_LOADER = async ({ request }: LoaderFunctionArgs) => {
   //to add a delay in the response
   // const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   // await sleep(1000);
-  return json(await checkCookieAuth(request));
+  return json({...(await checkCookieAuth(request)), currentUrl: request.url});
 };
 
 export type VerifyWithKeyOptions = {

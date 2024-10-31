@@ -34,7 +34,7 @@ export default function Signup() {
       const response = await fetcher(
         "https://api.parkergiven.com/v1/registration/create",
         {
-          body: JSON.stringify({ email: email, displayName: username }),
+          body: JSON.stringify({ email: email.trim(), displayName: username.trim() }),
           method: "POST",
           mode: "cors",
         },

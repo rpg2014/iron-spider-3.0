@@ -127,6 +127,7 @@ function Login() {
   ) => {
     try {
       setState("AUTHING");
+      setError(undefined)
       const authResponse: any = await startAuthentication(
         JSON.parse(generateResults.authenticationResponseJSON),
         autocomplete,

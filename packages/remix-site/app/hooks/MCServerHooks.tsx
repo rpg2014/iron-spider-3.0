@@ -23,7 +23,7 @@ const minecraftInitalState: IServerContextState = {
   },
   running: false,
   actionLoading: false,
-  getLoading: true,
+  getLoading: false,
   actions: {
     start: async () => {},
     stop: async () => {},
@@ -39,14 +39,15 @@ export const ServerProvider = ({ children, initialState }: { children: React.Rea
   const [status, setStatus] = useState<IServerState["status"]>(initialState ? initialState : minecraftInitalState.status);
   const [running, setRunning] = useState<IServerState["running"]>(minecraftInitalState.running);
   const [actionLoading, setActionLoading] = useState<IServerState["actionLoading"]>(minecraftInitalState.actionLoading);
-  const [getLoading, setGetLoading] = useState<IServerState["getLoading"]>(minecraftInitalState.getLoading);
+  const [getLoading, setGetLoading] = useState<IServerState["getLoading"]>(false);
   const [domainName, setDomainName] = useState<string>();
-  const [error, setError] = useState<{ message: string }>();
+  const [errors, setErrors] = useState<{ message: string }[]>();
 
   //update status on mount
   useEffect(() => {
     if (!initialState) {
       actions.status();
+      actions.details();
     }
   }, []);
 
@@ -62,9 +63,10 @@ export const ServerProvider = ({ children, initialState }: { children: React.Rea
     return async () => {
       try {
         setLoadingState(true);
+        // setError(undefined);
         await fn();
       } catch (e) {
-        setError(e as { message: string });
+        setErrors(errors => (errors ? [e as { message: string }, ...errors] : [e as { message: string }]));
       } finally {
         setLoadingState(false);
       }
@@ -104,7 +106,7 @@ export const ServerProvider = ({ children, initialState }: { children: React.Rea
             loading: getLoading,
             get: actions.status,
           },
-          error,
+          errors,
           status,
           running,
           actionLoading,

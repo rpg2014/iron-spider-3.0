@@ -13,7 +13,7 @@ const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<s
   return {
     "access-control-allow-origin": allowed.origin,
     "access-control-allow-headers": allowed.headers,
-    "access-control-allow-methods": "POST, GET, OPTIONS",
+    "access-control-allow-methods": "POST, GET, OPTIONS, DELETE, PUT",
     "access-control-allow-credentials": "true",
     Vary: "Origin",
   };

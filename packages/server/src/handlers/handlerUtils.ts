@@ -14,8 +14,12 @@ import {
   GenerateAuthenticationOptionsServerOutput,
   GenerateRegistrationOptionsServerInput,
   GenerateRegistrationOptionsServerOutput,
+  GetConnectedUsersOutput,
+  GetConnectedUsersServerInput,
   GetDateInput,
   GetDateOutput,
+  GetJwksServerInput,
+  GetJwksServerOutput,
   GetLocationByPlaceIdInput,
   GetLocationByPlaceIdOutput,
   GetPictureInput,
@@ -123,6 +127,12 @@ export const getNoOpFunctions = (): IronSpiderService<HandlerContext> => {
       throw new InternalServerError({ message: "Function not implemented." });
     },
     GetLocationByPlaceId: function (input: GetLocationByPlaceIdInput, context: HandlerContext): Promise<GetLocationByPlaceIdOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    GetConnectedUsers: function (input: GetConnectedUsersServerInput, context: HandlerContext): Promise<GetConnectedUsersOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    GetJwks: function (input: GetJwksServerInput, context: HandlerContext): Promise<GetJwksServerOutput> {
       throw new InternalServerError({ message: "Function not implemented." });
     },
   };

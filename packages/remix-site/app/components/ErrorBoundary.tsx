@@ -5,6 +5,7 @@ type ErrorMessage = {
   message: string;
 };
 
+export type APIError = ErrorMessage;
 type ErrorResponseGeneric<T> = {
   status: number;
   statusText: string;
@@ -14,8 +15,13 @@ export const ErrorBoundary = () => {
   const error = useRouteError();
   //Http error branch
   if (isRouteErrorResponse(error)) {
-    console.error(`Got Route Error Response: `, error)
+    console.error(`Got Route Error Response: `, error);
+    // if error.data is a string, JSON parse it
+    if (typeof error.data === "string") {
+      error.data = JSON.parse(error.data) as ErrorMessage;
+    }
     const errorCast = error as ErrorResponseGeneric<ErrorMessage>;
+
     let message;
     switch (errorCast.status) {
       case 401:
@@ -48,7 +54,7 @@ export const ErrorBoundary = () => {
   return (
     <div>
       <h1>There was an error: {error?.toString()}</h1>
-      <p>{error.message}</p>
+      <p>{(error as Error).message}</p>
       <hr />
     </div>
   );

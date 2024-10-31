@@ -1,8 +1,6 @@
-import { Outlet } from "@remix-run/react";
-import type { MetaFunction, useLoaderData } from "@remix-run/react";
-
+import { data, Outlet } from "@remix-run/react";
+import { MetaFunction, useLoaderData } from "@remix-run/react";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
-
 import globalStylesUrl from "~/styles/global.css?url";
 import themeUrl from "~/styles/themes.css?url";
 import favicon from "~/images/favicon.ico";
@@ -12,6 +10,8 @@ import { Document } from "~/components/Document";
 import { cssBundleHref } from "@remix-run/css-bundle";
 import { ThemeProvider } from "./hooks/useTheme";
 import { ServerProvider } from "./hooks/MCServerHooks";
+import { MCServerApi } from "./service/MCServerService";
+import { getHeaders } from "./utils";
 
 export let links: LinksFunction = () => {
   return [
@@ -34,6 +34,11 @@ export const meta: MetaFunction = () => [
   { title: "Parker's Remix site" },
 ];
 
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const initialStatus = await MCServerApi.getStatus(getHeaders(request), context);
+  return { initialStatus };
+};
+
 /**
  * The root module's default export is a component that renders the current
  * route via the `<Outlet />` component. Think of this as the global layout
@@ -44,9 +49,10 @@ export const meta: MetaFunction = () => [
  * if not logged in, redirect to auth flow.
  */
 export default function App() {
+  const data = useLoaderData<typeof loader>();
   return (
     <ThemeProvider>
-      <ServerProvider>
+      <ServerProvider initialState={data.initialStatus}>
         <Document>
           <Layout>
             <Outlet />

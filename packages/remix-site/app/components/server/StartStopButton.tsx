@@ -115,10 +115,10 @@ export const StartStopButton: React.FC<StartStopButtonProps> = ({ serverStatus, 
         className={`px-6 py-4 text-lg font-semibold text-white bg-gray-800 rounded-lg shadow-md my-5 min-h-[100px] ${
           isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-700"
         }`}
-        disabled={isDisabled}
+        disabled={isDisabled || text === ""}
         onClick={handleClick}
       >
-        {text}
+        {text !== "" ? text : serverStatus}
       </button>
     </div>
   );

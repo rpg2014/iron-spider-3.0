@@ -20,7 +20,7 @@ import { PolicyDocument, PolicyStatement, Effect, AnyPrincipal, ServicePrincipal
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
-import { operations, singletonServiceOpList } from "./operationsConfig";
+import { operations as operationsConfig, singletonServiceOpList } from "./operationsConfig";
 import { DELIMITER } from "../src/constants/common";
 import { getMinecraftPolicies } from "../../../bin/cdk-constants";
 import { InfraStack } from "./infra-stack";
@@ -80,8 +80,8 @@ export class ApiStack extends Stack {
 
     // build the map of operations and their metadata from the config.
     const operationData: IEntryPoints = {
-      ...operations.apiOperationsList.reduce((merged, obj) => ({ ...merged, ...obj })),
-      ...operations.authOperations,
+      ...operationsConfig.apiOperationsList.reduce((merged, obj) => ({ ...merged, ...obj })),
+      ...operationsConfig.authOperations,
     } as IEntryPoints;
     //define Cors helper function
     this.corsFunction = new NodejsFunction(this, "CorsFunction", {
@@ -166,7 +166,7 @@ export class ApiStack extends Stack {
     }, {});
 
     // get a list of the authOperations to give permissions to the ddb tables. Doens't include service fn
-    this.authOperations = (Object.keys(operations.authOperations) as IronSpiderServiceOperations[])
+    this.authOperations = (Object.keys(operationsConfig.authOperations) as IronSpiderServiceOperations[])
       .map(operationName => this.operations[operationName])
       // filter out undefineds and nulls
       .filter(fn => !!fn);
@@ -205,8 +205,8 @@ export class ApiStack extends Stack {
     });
 
     // Give APIG execution permissions on the functions
-    for (const [k, v] of Object.entries(this.operations)) {
-      v.addPermission(`${k}Permission`, {
+    for (const [opName, nodeJSFun] of Object.entries(this.operations)) {
+      nodeJSFun?.addPermission(`${opName}Permission`, {
         principal: new ServicePrincipal("apigateway.amazonaws.com"),
         sourceArn: `arn:${this.partition}:execute-api:${this.region}:${this.account}:${api.restApiId}/*/*/*`,
       });
@@ -255,6 +255,7 @@ export class ApiStack extends Stack {
     const env = {
       AWS_ACCOUNT_ID: process.env.CDK_DEFAULT_ACCOUNT || "",
       EC2_INSTANCE_TYPE: "m6i.xlarge",
+      MINECRAFT_SERVER_TYPE: "choccy", // "choccy" || vanilla
       DOMAIN: props.domainName,
       SUB_DOMAINS: props.corsSubDomains.join(DELIMITER),
     };
@@ -356,14 +357,13 @@ export class ApiStack extends Stack {
           integ.requestParameters = {
             ...integ.requestParameters,
             "integration.request.header.X-Amz-Invocation-Type": "'Event'",
-            // "integration.request.header.Origin": "method.request.header.Origin"
           };
 
-          // need to inhance this mapping, lets also make it neater
+          // velocity template for application/json requests
           integ.requestTemplates = {
             "application/json": readFileSync(path.join(__dirname, "async-integration.vm"), "utf8"),
           };
-          // might need to change this to aws, and fix the integ todo: put into apig smithy file
+          // aws uses velocity template aws_proxy is the standard one
           integ.type = "aws";
           integ.passthroughBehavior = "when_no_match";
           integ.contentHandling = "CONVERT_TO_TEXT";
@@ -371,9 +371,24 @@ export class ApiStack extends Stack {
             // was responses
             202: {
               statusCode: "202",
-              // responseTemplates: {
-              //   "application/json": '{"serverStopping": true}',
-              // },
+              responseTemplates: {
+                "text/html": '{"serverStopping": true}',
+                "application/json": '{"serverStopping": true}',
+                // catch all mime type
+                "text/plain": '{"serverStopping": true}',
+                "application/octet-stream": '{"serverStopping": true}',
+                "application/x-www-form-urlencoded": '{"serverStopping": true}',
+                "multipart/form-data": '{"serverStopping": true}',
+                "application/xml": '{"serverStopping": true}',
+                "text/xml": '{"serverStopping": true}',
+                "*/*": '{"serverStopping": true}',
+              },
+            },
+            200: {
+              statusCode: "200",
+              responseTemplates: {
+                "application/json": '{"serverStopping": true}',
+              },
             },
             500: {
               statusCode: "500",
@@ -457,7 +472,7 @@ export class ApiStack extends Stack {
       },
       DEFAULT_4XX: {
         responseParameters: {
-          "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'https://remix.parkergiven.com'",
           "gatewayresponse.header.Access-Control-Allow-Credentials": "'true'",
         },
       },

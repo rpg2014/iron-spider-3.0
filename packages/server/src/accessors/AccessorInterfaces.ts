@@ -46,13 +46,17 @@ export abstract class UserAccessor {
 export abstract class DateAccessor {
   abstract listDates(userId: string): Promise<DateInfo[]>;
   abstract createDate(date: DateInfo): Promise<DateInfo>;
-  abstract getDate(id: string): Promise<DateInfo | undefined>;
+  abstract getDate(id: string): Promise<DateInfo>;
   abstract updateDate(date: DateInfo): Promise<DateInfo>;
   abstract deleteDate(id: string): Promise<void>;
-  abstract getConnectedUsers(userId: string): Promise<ConnectedUser[]>
+  abstract getConnectedUsers(userId: string): Promise<ConnectedUser[]>;
 }
 
 export abstract class LocationAccessor {
   abstract searchForPlace(text: string, biasPosition?: Coordinates): Promise<SearchResult[]>;
   abstract getPlaceDetails(placeId: string): Promise<Place | undefined>;
 }
+
+// export abstract class PictureAccessor {
+//   abstract createPicture
+// }

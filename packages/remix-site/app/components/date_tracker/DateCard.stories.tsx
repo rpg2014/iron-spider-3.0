@@ -14,9 +14,11 @@ export const Default: Story = {
   args: {
     date: {
       id: "1",
+      title: "Date in Paris!",
       location: "Paris, France",
-      picture: "https://picsum.photos/100",
+      pictureId: "https://picsum.photos/100",
       note: "Romantic dinner at the Eiffel Tower",
+      dateThrower: "Molly",
     },
   },
 };
@@ -25,8 +27,10 @@ export const WithoutNote: Story = {
   args: {
     date: {
       id: "2",
+      title: "Date in New York!",
       location: "New York, USA",
-      picture: "https://picsum.photos/100",
+      pictureId: "https://picsum.photos/100",
+      date: new Date(new Date("2023-06-15").getTime() / 1000).getTime() as unknown,
     },
   },
 };
@@ -35,9 +39,21 @@ export const LongLocation: Story = {
   args: {
     date: {
       id: "3",
+      title: "Date in a very long location name, we also have a very long title",
       location: "A very long location name that might wrap to multiple lines. Even longer than that, but just a bit longer.",
-      picture: "https://picsum.photos/100",
+      pictureId: "https://picsum.photos/100",
       note: "Testing how the component handles long location names",
+    },
+  },
+};
+
+export const NoPicture: Story = {
+  args: {
+    date: {
+      id: "4",
+      title: "Date with no picture",
+      location: "No Picture",
+      note: "Testing how the component handles no picture",
     },
   },
 };

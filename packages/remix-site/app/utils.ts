@@ -67,3 +67,9 @@ export function cn(...inputs: ClassValue[]) {
 
 export const getLoginRedirect = (returnLocation: string) =>
   `${AUTH_DOMAIN}?return_url=${encodeURIComponent(returnLocation)}&message=${encodeURIComponent(`Need To login`)}`;
+
+export const getHeaders = (request: Request) => ({
+  ...request.headers,
+  //@ts-ignore
+  Cookie: request.headers.get("Cookie") || "",
+});

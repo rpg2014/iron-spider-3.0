@@ -41,8 +41,13 @@ export class MinecraftEC2Wrapper {
   private static readonly SECURITY_GROUP_ID = "sg-0bcf97234db49f1d4";
   private static readonly AWS_ACCOUNT_ID = process.env.AWS_ACCOUNT_ID || "";
   private static readonly INSTANCE_TYPE = process.env.EC2_INSTANCE_TYPE || "";
+  private static readonly MINECRAFT_SERVER_TYPE = process.env.MINECRAFT_SERVER_TYPE || "vanilla";
   // sh minecraft/run_server.sh base64 encoded.
-  private static readonly USER_DATA = "c2ggbWluZWNyYWZ0L3J1bl9zZXJ2ZXIuc2g=";
+  private static readonly VANILLA_USER_DATA = "c2ggbWluZWNyYWZ0L3J1bl9zZXJ2ZXIuc2g=";
+  // #!/bin/bash\ncd /home/ec2-user\nbash start.sh base 64 encoded
+  private static readonly CHOCCY_USER_DATA = "IyEvYmluL2Jhc2gKY2QgL2hvbWUvZWMyLXVzZXIKYmFzaCBzdGFydC5zaA==";
+  private static readonly USER_DATA =
+    MinecraftEC2Wrapper.MINECRAFT_SERVER_TYPE === "vanilla" ? MinecraftEC2Wrapper.VANILLA_USER_DATA : MinecraftEC2Wrapper.CHOCCY_USER_DATA;
   private static readonly SERVER_DETAILS = new MinecraftDBWrapper();
   private static readonly EC2_CLIENT = new EC2Client({ region: "us-east-1" });
 
@@ -327,7 +332,8 @@ export class MinecraftEC2Wrapper {
   private async makeAMI(instanceId: string): Promise<string> {
     const createImageCommandInput: CreateImageCommandInput = {
       InstanceId: instanceId,
-      Name: MinecraftEC2Wrapper.AMI_NAME + "-" + Date.now().toString(),
+      Name: MinecraftEC2Wrapper.AMI_NAME + "-" + Date.now().toString() + MinecraftEC2Wrapper.MINECRAFT_SERVER_TYPE,
+      TagSpecifications: [{ ResourceType: "image", Tags: [{ Key: "serverType", Value: MinecraftEC2Wrapper.MINECRAFT_SERVER_TYPE }] }],
     };
     console.info(`Making AMI with command ${JSON.stringify(createImageCommandInput)}`);
     try {

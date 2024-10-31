@@ -4,36 +4,144 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Alert, AlertTitle, AlertDescription } from "../ui/Alert";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Button } from "../ui/Button";
+import { useState, useEffect, useRef } from "react";
+import { Slider } from "~/components/ui/Slider";
+import { Input } from "~/components/ui/Input";
+import { Label } from "~/components/ui/Label";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/Drawer.client";
 
-export const AIBackendStatus = ({ status }: { status: StatusResponse | undefined }) => {
-  //   const [showDialog, setShowDialog] = useState(false);
+export const AIBackendStatus = ({
+  status,
+  temperature,
+  setTemperature,
+  maxTokens,
+  setMaxTokens,
+}: {
+  status: StatusResponse | undefined;
+  temperature: number;
+  setTemperature: (value: number) => void;
+  maxTokens: number;
+  setMaxTokens: (value: number) => void;
+}) => {
+  const [innerWidth, setInnerWidth] = useState(window.innerWidth);
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
+  const [isOpen, setIsOpen] = useState(false);
+  const inputRef = useRef(null);
+
+  // set value on unmount
+  useEffect(() => {
+    return () => {
+      if (inputRef.current) {
+        setMaxTokens((inputRef.current as HTMLInputElement).valueAsNumber);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(innerWidth < 768); // 768px is typical md breakpoint
+    };
+
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
   if (!status) {
     return <Circle style={{ color: "yellow" }} />;
   }
-  return (
-    <Dialog>
-      <DialogTrigger className="mx-5" style={{ color: status?.status == "ok" ? "green" : "red" }}>
-        {status?.status == "ok" ? <CheckCircle2 /> : <CircleX />}
-      </DialogTrigger>
+
+  const handleTemperatureChange = (e: number[] | string[]) => {
+    if (typeof e[0] === "number") setTemperature(e[0]);
+    else if (typeof e[0] === "string") setTemperature(parseFloat(e[0]));
+  };
+
+  const handleMaxTokensChange = (e: { target: { value: string } }) => {
+    setMaxTokens(parseInt(e.target.value));
+  };
+
+  const ContentComponent = () => (
+    <>
+      {status.status === "ok" && (
+        <Alert className="" variant={"success"}>
+          <AlertTitle>Success:</AlertTitle>
+          <AlertDescription>
+            <pre>{JSON.stringify(status, null, 2)}</pre>
+          </AlertDescription>
+        </Alert>
+      )}
+      {status?.status === "error" && (
+        <Alert className="" variant="light_destructive">
+          <AlertTitle>Error:</AlertTitle>
+          <AlertDescription>{status.message}</AlertDescription>
+        </Alert>
+      )}
+      <div className="settings-content">
+        <h2 className="mb-1">Global Settings</h2>
+        <Label className="model-label my-2">
+          Temperature:
+          <Slider
+            className="my-1 cursor-ew-resize"
+            min={0}
+            max={1}
+            step={0.1}
+            // value={[temperature]}
+            defaultValue={[temperature]}
+            // onValueChange={handleTemperatureChange}
+            onValueCommit={handleTemperatureChange}
+          />
+          {temperature.toFixed(1)}
+        </Label>
+        <Label className="modal-label">
+          Max Tokens:
+          <Input
+            ref={inputRef}
+            className="my-1"
+            type="number"
+            min="1"
+            max="8096"
+            // value={maxTokens}
+            defaultValue={maxTokens}
+            onBlur={handleMaxTokensChange}
+          />
+        </Label>
+      </div>
+    </>
+  );
+
+  const triggerButton = (
+    <div className="mx-5" style={{ color: status?.status == "ok" ? "green" : "red" }}>
+      {status?.status == "ok" ? <CheckCircle2 /> : <CircleX />}
+    </div>
+  );
+
+  return isSmallScreen ? (
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+      <DrawerTrigger asChild>{triggerButton}</DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>AI Backend Status and Settings</DrawerTitle>
+          <DrawerDescription>AI Backend is {status?.status == "ok" ? "running" : "not running"}</DrawerDescription>
+        </DrawerHeader>
+        <div className="px-4">
+          <ContentComponent />
+        </div>
+        <DrawerFooter>
+          <DrawerClose asChild>
+            <Button type="button" variant="outline">
+              Close
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  ) : (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>AI Backend Status</DialogTitle>
+          <DialogTitle>AI Backend Status and Settings</DialogTitle>
           <DialogDescription>AI Backend is {status?.status == "ok" ? "running" : "not running"}</DialogDescription>
         </DialogHeader>
-        {status.status === "ok" && (
-          <Alert className="" variant={"success"}>
-            <AlertTitle>Success:</AlertTitle>
-            <AlertDescription>
-              <pre>{JSON.stringify(status, null, 2)}</pre>
-            </AlertDescription>
-          </Alert>
-        )}
-        {status?.status === "error" && (
-          <Alert className="" variant="light_destructive">
-            <AlertTitle>Error:</AlertTitle>
-            <AlertDescription>{status.message}</AlertDescription>
-          </Alert>
-        )}
+        <ContentComponent />
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
@@ -44,139 +152,4 @@ export const AIBackendStatus = ({ status }: { status: StatusResponse | undefined
       </DialogContent>
     </Dialog>
   );
-  {
-    /* <Alert variant={status?.status === 'ok'?'success': 'destructive'}>
-              <AlertTitle>Status</AlertTitle>
-              <AlertDescription>
-              {JSON.stringify(status, null, 2)}
-              </AlertDescription>
-              </Alert> */
-  }
 };
-
-//New settings
-// import { Bird, Rabbit, Turtle } from "lucide-react"
-
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select"
-// import { Textarea } from "@/components/ui/textarea"
-
-// export default function Component() {
-//   return (
-//     <div
-//       className="relative hidden flex-col items-start gap-8 md:flex"
-//     >
-//       <form className="grid w-full items-start gap-6">
-//         <fieldset className="grid gap-6 rounded-lg border p-4">
-//           <legend className="-ml-1 px-1 text-sm font-medium">Settings</legend>
-//           <div className="grid gap-3">
-//             <Label htmlFor="model">Model</Label>
-//             <Select>
-//               <SelectTrigger
-//                 id="model"
-//                 className="items-start [&_[data-description]]:hidden"
-//               >
-//                 <SelectValue placeholder="Select a model" />
-//               </SelectTrigger>
-//               <SelectContent>
-//                 <SelectItem value="genesis">
-//                   <div className="flex items-start gap-3 text-muted-foreground">
-//                     <Rabbit className="size-5" />
-//                     <div className="grid gap-0.5">
-//                       <p>
-//                         Neural{" "}
-//                         <span className="font-medium text-foreground">
-//                           Genesis
-//                         </span>
-//                       </p>
-//                       <p className="text-xs" data-description>
-//                         Our fastest model for general use cases.
-//                       </p>
-//                     </div>
-//                   </div>
-//                 </SelectItem>
-//                 <SelectItem value="explorer">
-//                   <div className="flex items-start gap-3 text-muted-foreground">
-//                     <Bird className="size-5" />
-//                     <div className="grid gap-0.5">
-//                       <p>
-//                         Neural{" "}
-//                         <span className="font-medium text-foreground">
-//                           Explorer
-//                         </span>
-//                       </p>
-//                       <p className="text-xs" data-description>
-//                         Performance and speed for efficiency.
-//                       </p>
-//                     </div>
-//                   </div>
-//                 </SelectItem>
-//                 <SelectItem value="quantum">
-//                   <div className="flex items-start gap-3 text-muted-foreground">
-//                     <Turtle className="size-5" />
-//                     <div className="grid gap-0.5">
-//                       <p>
-//                         Neural{" "}
-//                         <span className="font-medium text-foreground">
-//                           Quantum
-//                         </span>
-//                       </p>
-//                       <p className="text-xs" data-description>
-//                         The most powerful model for complex computations.
-//                       </p>
-//                     </div>
-//                   </div>
-//                 </SelectItem>
-//               </SelectContent>
-//             </Select>
-//           </div>
-//           <div className="grid gap-3">
-//             <Label htmlFor="temperature">Temperature</Label>
-//             <Input id="temperature" type="number" placeholder="0.4" />
-//           </div>
-//           <div className="grid grid-cols-2 gap-4">
-//             <div className="grid gap-3">
-//               <Label htmlFor="top-p">Top P</Label>
-//               <Input id="top-p" type="number" placeholder="0.7" />
-//             </div>
-//             <div className="grid gap-3">
-//               <Label htmlFor="top-k">Top K</Label>
-//               <Input id="top-k" type="number" placeholder="0.0" />
-//             </div>
-//           </div>
-//         </fieldset>
-//         <fieldset className="grid gap-6 rounded-lg border p-4">
-//           <legend className="-ml-1 px-1 text-sm font-medium">Messages</legend>
-//           <div className="grid gap-3">
-//             <Label htmlFor="role">Role</Label>
-//             <Select defaultValue="system">
-//               <SelectTrigger>
-//                 <SelectValue placeholder="Select a role" />
-//               </SelectTrigger>
-//               <SelectContent>
-//                 <SelectItem value="system">System</SelectItem>
-//                 <SelectItem value="user">User</SelectItem>
-//                 <SelectItem value="assistant">Assistant</SelectItem>
-//               </SelectContent>
-//             </Select>
-//           </div>
-//           <div className="grid gap-3">
-//             <Label htmlFor="content">Content</Label>
-//             <Textarea
-//               id="content"
-//               placeholder="You are a..."
-//               className="min-h-[9.5rem]"
-//             />
-//           </div>
-//         </fieldset>
-//       </form>
-//     </div>
-//   )
-// }

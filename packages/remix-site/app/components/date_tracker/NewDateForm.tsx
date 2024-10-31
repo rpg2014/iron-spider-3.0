@@ -73,7 +73,7 @@ export const NewDateFormV2 = ({ title, location, connectedUsers }: { title?: str
           <Input type="text" id="location" name="location" defaultValue={location.label} />
         </div>
         <div>
-          Coords: 
+          Coords:
           {/* pretty print coords */}
           <p>{`Lat: ${location.coordinates?.lat}, Long: ${location.coordinates?.long}, Alt: ${location.coordinates?.alt || 0}`}</p>
         </div>
@@ -95,16 +95,15 @@ export const NewDateFormV2 = ({ title, location, connectedUsers }: { title?: str
           </Label>
           <Input type="hidden" id="alt" name="alt" defaultValue={location.coordinates?.alt} />
         </div>
-        
-        
+
         <div>
           <Label htmlFor="note">Note:</Label>
           <Textarea id="note" name="note"></Textarea>
         </div>
-        <div>
+        {/* <div>
           <Label htmlFor="picture">Picture:</Label>
           <Input type="file" id="picture" name="picture" accept="image/*" />
-        </div>
+        </div> */}
       </CardContent>
     </>
   );

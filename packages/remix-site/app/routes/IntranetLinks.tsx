@@ -5,12 +5,6 @@ import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import { Button } from "~/components/ui/Button";
 import { useEffect, useState } from "react";
 import AuthGate from "~/components/AuthGate";
-// import { Alert, Button, Spinner } from 'react-bootstrap';
-// import { HTTPMethod } from '../../../epics/common';
-// import { DYNAMIC_DNS_URL } from '../../../store/paths';
-// import { AuthProps, useAuthData, getHeaders } from '../../Auth/common';
-// import { ConfirmEmail } from '../../Auth/ConfirmEmail';
-// import { LoadingSpinner } from '../../LoadingSpinner';
 
 interface IDynamicDNSResponse {
   serviceName: string;
@@ -34,38 +28,12 @@ const intranetLinkConfig: UrlConfig[] = [
 export const loader = DEFAULT_AUTH_LOADER;
 
 export default function IntranetLinks() {
-  // useAuthData(props.authData);
-  // const authToken = props.authData?.getSignInUserSession()?.getAccessToken().getJwtToken();
   const [ipAddress, setIpAddress] = useState<string | null>(null);
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
   const [isHighlightingComplete, setIsHighlightingComplete] = useState(false);
-  const { hasCookie } = useLoaderData<typeof loader>();
-  // if (authToken) {
-  //   headers = getHeaders(authToken);
-  // }
-
-  // const options: RequestInit = {
-  //   headers,
-  //   method: HTTPMethod.GET,
-  // };
-
-  // //fetch raspberry pi ip address on load
-  // const { data, error, isPending, run, isFulfilled } = useFetch<IDynamicDNSResponse>(
-  //   DYNAMIC_DNS_URL + '?serviceName=' + 'raspberrypi',
-  //   options,
-  //   { defer: true, json: true }
-  // );
-
-  // React.useEffect(() => {
-  //   if (authToken && props.authState === 'signedIn') {
-  //     // console.log("fetching")
-  //     run();
-  //   }
-  // }, [authToken]);
+  const { hasCookie, currentUrl } = useLoaderData<typeof loader>();
 
   useEffect(() => {
-    // if (data) {
-    //   setIpAddress(data.IP);
     let intervalId = setInterval(() => {
       if (highlightIndex === intranetLinkConfig.length - 1) {
         clearInterval(intervalId);
@@ -77,33 +45,8 @@ export default function IntranetLinks() {
     return () => intervalId && clearInterval(intervalId);
   }, []);
 
-  // if (props.authState === 'confirmSignUp') {
-  //   return <ConfirmEmail />;
-  // }
-  // if (props.authState === 'loading') {
-  //   return (
-  //     <div className="m-auto text-center">
-  //       <div className="display-1 text-muted">Logging in...</div>
-  //       <LoadingSpinner variant="dark" />
-  //     </div>
-  //   );
-  // }
-  // if (isFulfilled && error) {
-  //   return (
-  //     <div className="m-auto text-center">
-  //       <Alert variant="danger">
-  //         <Alert.Heading>Something went wrong</Alert.Heading>
-  //         <p>{error.message}</p>
-  //         <p>Try refreshing the page</p>
-  //       </Alert>
-  //     </div>
-  //   );
-  // }
-  // if (props.authState !== 'signedIn') {
-  //   return null;
-  // }
   if (!hasCookie) {
-    return <AuthGate />;
+    return <AuthGate currentUrl={window?.location?.href ?? currentUrl} />;
   }
   return (
     <div className="row   mx-auto  translucent-bg rounded d-flex flex-column width-control">
@@ -119,16 +62,6 @@ export default function IntranetLinks() {
           );
         })}
       </div>
-      {/**<p className="pb-3  text-muted h4 lead row justify-content-center">
-        VPN IP address:{' '}
-        <span className="p-0 m-0">
-          {isPending || !isFulfilled ? (
-            <Spinner className="m-0 p-0" animation="grow" variant="light" size="sm" />
-          ) : (
-            `\t${ipAddress}`
-          )}
-        </span>
-          </p>*/}
     </div>
   );
 }

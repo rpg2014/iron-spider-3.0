@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { ConnectedUser, DateInfo } from "iron-spider-ssdk";
+import { ConnectedUser, DateInfo, InternalServerError, NotFoundError } from "iron-spider-ssdk";
 import { DateAccessor } from "../AccessorInterfaces";
 import { getUserAccessor } from "../AccessorFactory";
 
@@ -9,6 +9,37 @@ export class DynamoDateAccessor extends DateAccessor {
   private tableName: string;
   private connectedUsersTableName: string;
   private userIndexName: string;
+  /**
+   * DDB's primary key is dateId, but the date info object uses id.  This is due to
+   * smihty requireing dateId in some of the API's but thats ugly for the object
+   * @param date
+   * @returns
+   */
+  private convertToDDBDate(date: DateInfo): Record<string, any> {
+    return {
+      dateId: date.id,
+      title: date.title,
+      dateThrower: date.dateThrower,
+      userId: date.userId,
+      location: date.location,
+      coordinates: date.coordinates,
+      note: date.note,
+      date: date.date?.toISOString(),
+    };
+  }
+  private unconvertFromDDBDate(ddbDate: Record<string, any> | undefined): DateInfo {
+    if (!ddbDate) throw new InternalServerError({ message: "Date object not given to the unconvertFromDDBDate function" });
+    return {
+      id: ddbDate.dateId,
+      title: ddbDate.title,
+      dateThrower: ddbDate.dateThrower,
+      userId: ddbDate.userId,
+      location: ddbDate.location,
+      coordinates: ddbDate.coordinates,
+      note: ddbDate.note,
+      date: ddbDate.date ? new Date(ddbDate.date) : undefined,
+    };
+  }
 
   constructor() {
     super();
@@ -33,7 +64,7 @@ export class DynamoDateAccessor extends DateAccessor {
         },
       });
       const response = await this.client.send(command);
-      return response.Items as DateInfo[];
+      return response.Items?.map(date => this.unconvertFromDDBDate(date)) as DateInfo[];
     } catch (error) {
       console.error("Error listing dates:", error);
       throw error;
@@ -44,8 +75,9 @@ export class DynamoDateAccessor extends DateAccessor {
     try {
       const command = new PutCommand({
         TableName: this.tableName,
-        Item: date,
+        Item: this.convertToDDBDate(date),
       });
+      console.log("Creating date in DDB:", date);
       await this.client.send(command);
       return date;
     } catch (error) {
@@ -54,14 +86,15 @@ export class DynamoDateAccessor extends DateAccessor {
     }
   }
 
-  async getDate(dateId: string): Promise<DateInfo | undefined> {
+  async getDate(dateId: string): Promise<DateInfo> {
     try {
       const command = new GetCommand({
         TableName: this.tableName,
         Key: { dateId },
       });
       const response = await this.client.send(command);
-      return response.Item as DateInfo | undefined;
+      if (!response.Item) throw new NotFoundError({ message: "Date not found" });
+      return this.unconvertFromDDBDate(response.Item as DateInfo);
     } catch (error) {
       console.error("Error getting date:", error);
       throw error;
@@ -69,28 +102,29 @@ export class DynamoDateAccessor extends DateAccessor {
   }
 
   async updateDate(date: DateInfo): Promise<DateInfo> {
-    try {
-      const command = new UpdateCommand({
-        TableName: this.tableName,
-        Key: { dateId: date.id },
-        UpdateExpression: "set #loc = :l, pictureId = :p",
-        ExpressionAttributeNames: { "#loc": "location" },
-        ExpressionAttributeValues: { ":l": date.location, ":p": date.pictureId },
-        ReturnValues: "ALL_NEW",
-      });
-      const response = await this.client.send(command);
-      return response.Attributes as DateInfo;
-    } catch (error) {
-      console.error("Error updating date:", error);
-      throw error;
-    }
+    throw new InternalServerError({ message: "Not implemented" });
+    // try {
+    //   const command = new UpdateCommand({
+    //     TableName: this.tableName,
+    //     Key: { dateId: date.id },
+    //     UpdateExpression: "set #loc = :l, pictureId = :p",
+    //     ExpressionAttributeNames: { "#loc": "location" },
+    //     ExpressionAttributeValues: { ":l": date.location, ":p": date.pictureId },
+    //     ReturnValues: "ALL_NEW",
+    //   });
+    //   const response = await this.client.send(command);
+    //   return response.Attributes as DateInfo;
+    // } catch (error) {
+    //   console.error("Error updating date:", error);
+    //   throw error;
+    // }
   }
 
   async deleteDate(id: string): Promise<void> {
     try {
       const command = new DeleteCommand({
         TableName: this.tableName,
-        Key: { id },
+        Key: { dateId: id },
       });
       await this.client.send(command);
     } catch (error) {
@@ -100,7 +134,7 @@ export class DynamoDateAccessor extends DateAccessor {
   }
 
   async getConnectedUsers(userId: string): Promise<ConnectedUser[]> {
-    console.log("Getting connected users for user:", userId)
+    console.log("Getting connected users for user:", userId);
     try {
       const command = new GetCommand({
         TableName: this.connectedUsersTableName,
@@ -109,10 +143,10 @@ export class DynamoDateAccessor extends DateAccessor {
       const response = await this.client.send(command);
       const userIds = response.Item?.connectedUsers as string[];
       const userAccessor = getUserAccessor();
-      const users = await Promise.all(userIds.map(async (id) => userAccessor.getUser(id)));
-      const connectedUsers = users.map((user) => ({ userId: user.id, displayName: user.displayName } as ConnectedUser))
-      console.log("Connected users from DDB:", connectedUsers)
-      return connectedUsers
+      const users = await Promise.all(userIds.map(async id => userAccessor.getUser(id)));
+      const connectedUsers = users.map(user => ({ userId: user.id, displayName: user.displayName } as ConnectedUser));
+      console.log("Connected users from DDB:", connectedUsers);
+      return connectedUsers;
     } catch (e) {
       console.error("Error getting connected users:", e);
       throw e;

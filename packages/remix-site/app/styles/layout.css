@@ -13,12 +13,13 @@
 }
 
 .remix-app__header {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  /* margin-bottom: 1rem; */
+  padding-top: 0.5rem; /* Smaller padding by default (mobile) */
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-border);
   overflow: visible;
+  transition: all 0.3s ease-in-out; /* Smooth transition for all properties */
 }
+
 .loading-indicator {
   position: relative;
   overflow: hidden;
@@ -114,6 +115,10 @@
 }
 
 @media print, screen and (min-width: 640px) {
+  .remix-app__header {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
   .remix__page {
     --gap: 2rem;
     grid-auto-rows: unset;

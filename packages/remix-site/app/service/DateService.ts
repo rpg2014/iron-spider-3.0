@@ -9,25 +9,26 @@ import type {
   SearchResult,
   ConnectedUser,
   GetConnectedUsersOutput,
+  CreateDateCommandInput,
 } from "iron-spider-client";
 import { API_DOMAIN_VERSION, DATES_PATH, LOCATIONS_PATH } from "~/constants";
 import { fetcher } from "~/utils";
 
 export interface IDateClient {
   listDates: (input: { pageSize: number; headers?: Headers }) => Promise<ListDatesCommandOutput>;
-  getDate: (input: { id: string; headers?: Headers }) => Promise<GetDateCommandOutput>;
-  createDate: (input: { date: ICreateDateInput; headers?: Headers }) => Promise<DateInfo>;
+  getDate: (input: { id: string; headers?: Headers }) => Promise<DateInfo>;
+  createDate: (input: { date: CreateDateCommandInput; headers?: Headers }) => Promise<DateInfo>;
   delete: (input: { id: string; headers?: Headers }) => Promise<{ success: boolean }>;
   getConnectedUsers(input: { userId: string; headers?: Headers }): Promise<GetConnectedUsersOutput>;
 }
 
-export interface ICreateDateInput {
-  location: string;
-  pictureId: string;
-  note: string;
-  coordinates: Coordinates;
-  date: string;
-}
+let DateServiceSingleton: DateService | undefined = undefined;
+export const getDateService = (): DateService => {
+  if (!DateServiceSingleton) {
+    DateServiceSingleton = new DateService();
+  }
+  return DateServiceSingleton;
+};
 
 export class DateService implements IDateClient {
   constructor() {}
@@ -36,24 +37,30 @@ export class DateService implements IDateClient {
     return await fetcher(`${DATES_PATH}?pageSize=${input.pageSize}`, { mode: "cors", headers: input.headers, credentials: "include" });
   }
 
-  async getDate(input: { id: string; headers?: Headers }): Promise<GetDateCommandOutput> {
+  async getDate(input: { id: string; headers?: Headers }): Promise<DateInfo> {
     return await fetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include" });
   }
 
-  async createDate(input: { date: ICreateDateInput; headers?: Headers }): Promise<DateInfo> {
-    return await fetcher(`${DATES_PATH}`, {
-      body: JSON.stringify({
-        location: input.date.location,
-        picture: input.date.pictureId,
-        notes: input.date.note,
-      } as Partial<DateInfo>),
-      mode: "cors",
-      headers: input.headers,
-      credentials: "include",
-      method: "POST",
-    });
+  async createDate(input: { date: CreateDateCommandInput; headers?: Headers }): Promise<DateInfo> {
+    // the date timestamp is serialized as a epoch seconds number see: https://smithy.io/2.0/aws/protocols/aws-restjson1-protocol.html#json-shape-serialization
+    // usually this is done via the generated client
+    const date = input.date.date ? input.date.date : new Date();
+    const body = { ...input.date, date: date.getTime() / 1000 };
+    console.log(`Creating date with body: ${JSON.stringify(body)}`);
+    return await fetcher(
+      `${DATES_PATH}`,
+      {
+        body: JSON.stringify(body),
+        mode: "cors",
+        headers: input.headers,
+        credentials: "include",
+        method: "POST",
+      },
+      true,
+    );
   }
   async delete(input: { id: string; headers?: Headers }): Promise<{ success: boolean }> {
+    if (!input.id || input.id.length === 0) throw new Error("No id provided");
     return await fetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include", method: "DELETE" });
   }
   async getConnectedUsers(input: { headers?: Headers }): Promise<GetConnectedUsersOutput> {

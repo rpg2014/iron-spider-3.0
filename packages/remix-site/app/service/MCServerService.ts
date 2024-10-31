@@ -23,7 +23,7 @@ export interface IServerState {
     get: () => Promise<void>;
   };
   status: ServerStatus; //"Pending" | "Running" | "ShuttingDown" | "Terminated" | "Stopping" | "Stopped" | "LoadingStatus";
-  error?: { message: string };
+  errors?: { message: string }[];
   running: boolean;
   actionLoading: boolean;
   getLoading: boolean;

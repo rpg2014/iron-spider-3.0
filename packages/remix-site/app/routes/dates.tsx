@@ -6,16 +6,18 @@ import AuthGate from "~/components/AuthGate";
 export const loader = DEFAULT_AUTH_LOADER;
 
 export default function DatesLayout() {
-  const { hasCookie } = useLoaderData<typeof loader>();
+  const { hasCookie, currentUrl } = useLoaderData<typeof loader>();
   if (!hasCookie && import.meta.env.PROD) {
-    return <AuthGate />;
+    return (
+      <div className="container">
+        <AuthGate currentUrl={window?.location?.href ?? currentUrl} />
+      </div>
+    );
   }
 
   return (
     <div>
-      {/* <h1>Dates</h1> */}
       <div className="container">
-        {/* <Dashboard /> */}
         <Outlet />
       </div>
     </div>
