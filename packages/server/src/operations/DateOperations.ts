@@ -62,30 +62,42 @@ export const GetDate: Operation<GetDateInput, GetDateOutput, HandlerContext> = a
   if (date.userId !== context.userId && !connectedUsers.find((user: ConnectedUser) => user.userId === date.userId))
     throw new BadRequestError({ message: "You do not have access to this date" });
   // convert the dateThrower to their username
-  if (date?.dateThrower) {
-    const dateThrowerStr: string =
-      date.dateThrower === context.userId
-        ? context.displayName ?? "You"
-        : connectedUsers.find((user: ConnectedUser) => user.userId === date.dateThrower)?.displayName ?? "Unknown";
+  // if (date?.dateThrower) {
+  //   const dateThrowerStr: string =
+  //     date.dateThrower === context.userId
+  //       ? context.displayName ?? "You"
+  //       : connectedUsers.find((user: ConnectedUser) => user.userId === date.dateThrower)?.displayName ?? "Unknown";
 
-    date.dateThrower = dateThrowerStr;
-  }
+  //   date.dateThrower = dateThrowerStr;
+  // }
   return { outing: date };
 };
 
 export const UpdateDate: Operation<UpdateDateInput, UpdateDateOutput, HandlerContext> = async (input, context) => {
+  console.log(`Got request from user ${context.displayName} for update date: ${JSON.stringify(input)}`);
+  if (!input.dateId) throw new BadRequestError({ message: "id is required" });
+  const dateToUpdate = await dateAccessor.getDate(input.dateId);
+  if (!dateToUpdate) throw new NotFoundError({ message: "Date not found" });
+  if (dateToUpdate.userId !== context.userId) throw new BadRequestError({ message: "You can only update your own dates" });
+
   const updatedDate: DateInfo = {
     id: input.dateId,
     title: input.title,
     userId: context.userId,
     location: input.location,
-    pictureId: input.picture,
     coordinates: input.coordinates,
     dateThrower: input.dateThrower,
     date: input.date,
     note: input.note,
   };
-  return { outing: await dateAccessor.updateDate(updatedDate) };
+  try {
+    const outing = await dateAccessor.updateDate(updatedDate);
+    console.log(`Updated date: ${JSON.stringify(outing)}`);
+    return { outing: outing };
+  } catch (e) {
+    console.log(e);
+    throw new InternalServerError({ message: "Failed to update date: " + (e as Error).message });
+  }
 };
 
 export const DeleteDate: Operation<DeleteDateInput, DeleteDateOutput, HandlerContext> = async (input, context) => {

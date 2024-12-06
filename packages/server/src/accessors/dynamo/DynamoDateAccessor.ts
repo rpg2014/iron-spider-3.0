@@ -1,4 +1,4 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ReturnValue } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ConnectedUser, DateInfo, InternalServerError, NotFoundError } from "iron-spider-ssdk";
 import { DateAccessor } from "../AccessorInterfaces";
@@ -102,22 +102,34 @@ export class DynamoDateAccessor extends DateAccessor {
   }
 
   async updateDate(date: DateInfo): Promise<DateInfo> {
-    throw new InternalServerError({ message: "Not implemented" });
-    // try {
-    //   const command = new UpdateCommand({
-    //     TableName: this.tableName,
-    //     Key: { dateId: date.id },
-    //     UpdateExpression: "set #loc = :l, pictureId = :p",
-    //     ExpressionAttributeNames: { "#loc": "location" },
-    //     ExpressionAttributeValues: { ":l": date.location, ":p": date.pictureId },
-    //     ReturnValues: "ALL_NEW",
-    //   });
-    //   const response = await this.client.send(command);
-    //   return response.Attributes as DateInfo;
-    // } catch (error) {
-    //   console.error("Error updating date:", error);
-    //   throw error;
-    // }
+    console.log("Updating date in DDB:", date);
+    try {
+      const command = new UpdateCommand({
+        TableName: this.tableName,
+        Key: { dateId: date.id },
+        UpdateExpression:
+          "set title = :title, #dateAttr = :date, #locationAttr = :location, coordinates = :coordinates, note = :note, dateThrower = :dateThrower",
+        ExpressionAttributeValues: {
+          ":title": date.title,
+          ":date": date.date?.toISOString(),
+          ":location": date.location,
+          ":coordinates": date.coordinates,
+          ":note": date.note,
+          ":dateThrower": date.dateThrower,
+        },
+        ExpressionAttributeNames: {
+          "#dateAttr": "date",
+          "#locationAttr": "location",
+        },
+        ReturnValues: ReturnValue.ALL_NEW,
+      });
+      const response = await this.client.send(command);
+      console.log("Updated date in DDB:", response.Attributes);
+      return this.unconvertFromDDBDate(response.Attributes as Record<string, any>);
+    } catch (error) {
+      console.error("Error updating date:", error);
+      throw new InternalServerError({ message: (error as Error).message });
+    }
   }
 
   async deleteDate(id: string): Promise<void> {
