@@ -10,11 +10,11 @@ This repository contains all (most) of my AWS infrastructure.  It's mainly a Lam
 
 ## How to deploy
 how do i deploy this shit?
-`cdk deploy --profile personal` 
-or
-`yarn workspace iron-spider cdk deploy --profile personal`?
+`yarn deploy`  in the top level workspace
 
 ## how to build 
+`yarn build`
+### old model build instructions
 1. ./gradlew build && yarn install && yarn build
    1. this will fail, probably on the yarn build part
 2. cd server

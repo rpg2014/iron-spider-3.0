@@ -27,7 +27,7 @@ export interface event {
         }
       },
       "resourcePath": string,
-      "apiId": "abcdef123"
+      "apiId": string
     }
   /**
   * Defines anything the operation handler needs that is not modeled in the operation's Smithy model but comes from

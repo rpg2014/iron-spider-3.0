@@ -10491,8 +10491,8 @@ __metadata:
 
 "client-rust-functions@file:./rust-wasm/client-code/pkg::locator=remix-site%40workspace%3Apackages%2Fremix-site":
   version: 0.1.0
-  resolution: "client-rust-functions@file:./rust-wasm/client-code/pkg#./rust-wasm/client-code/pkg::hash=c63101&locator=remix-site%40workspace%3Apackages%2Fremix-site"
-  checksum: 10/b85c20010cb2bfc417050af567377e621cdd9a28c965ea7688f4961714354672b59d0c93057f02e0ccdf9effac77d1e15e645bd83f9ea56af9f0b3cc2d6e7d49
+  resolution: "client-rust-functions@file:./rust-wasm/client-code/pkg#./rust-wasm/client-code/pkg::hash=8ea70d&locator=remix-site%40workspace%3Apackages%2Fremix-site"
+  checksum: 10/7f3fb3915ed2006f9b87439a9ae18ffe70edda885a30de4919e185faba1cf86d44eacf2a2378c917621df5b97664901225984593aedcd418ca569deaa009a46f
   languageName: node
   linkType: hard
 
@@ -11906,7 +11906,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.19.6, esbuild@npm:esbuild@~0.17.6 || ~0.18.0 || ~0.19.0":
+"esbuild@npm:^0.19.0, esbuild@npm:^0.19.6, esbuild@npm:esbuild@~0.17.6 || ~0.18.0 || ~0.19.0":
   version: 0.19.12
   resolution: "esbuild@npm:0.19.12"
   dependencies:
@@ -15429,8 +15429,9 @@ __metadata:
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/jsonwebtoken": "npm:^9.0.5"
     "@types/node": "npm:^20.14.12"
+    esbuild: "npm:^0.19.0"
     jsonwebtoken: "npm:^9.0.2"
-    tsc: "npm:^2.0.4"
+    ts-node: "npm:^10.9.2"
     typescript: "npm:^5.1.6"
   languageName: unknown
   linkType: soft
@@ -20982,15 +20983,6 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 10/a91a15b3c9f76ac462f006fa88b6bfa528130dcfb849dd7ef7f9d640832ab681e235b8a2bc58ecde42f72851cc1d5d4e22c901b0c11aa51001ea1d395074b794
-  languageName: node
-  linkType: hard
-
-"tsc@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "tsc@npm:2.0.4"
-  bin:
-    tsc: bin/tsc
-  checksum: 10/50b10240887424c66454687f0fca4e319713b35cb44f0dab228719eb4dd757251f83c3d79e60d29dfbe90c2d6f1272f793b83e75a9fca2c622b4213ad3eb8cb1
   languageName: node
   linkType: hard
 

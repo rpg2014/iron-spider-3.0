@@ -17,7 +17,8 @@
     "build:domain-auth": "cd packages/domain-auth-assets && yarn build",
     "build:all": "yarn workspaces foreach -ptA run build",
     "diff": "cdk diff --profile personal",
-    "deploy": "cdk deploy --profile personal --all"
+    "deploy": "cdk deploy --profile personal --all",
+    "deploy:auth": "cdk deploy --profile personal IronSpiderAuthorizer"
   },
   "devDependencies": {
     "@aws-sdk/protocol-http": "^3.374.0",
