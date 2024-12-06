@@ -21,10 +21,10 @@ export default function Summary() {
   }, [shareUrl]);
 
   return (
-    <div className="bg-slate-950 p-1 rounded">
-      <div onClick={() => setUseStreaming(b => !b)} className="flex flex-row m-3 cursor-pointer ">
+    <div className="rounded bg-slate-950 p-1">
+      <div onClick={() => setUseStreaming(b => !b)} className="m-3 flex cursor-pointer flex-row">
         <Checkbox id="streaming" className="mx-2 my-1" checked={useStreaming} />
-        <label htmlFor="streaming" onClick={() => setUseStreaming(b => !b)} className="cursor-pointer ">
+        <label htmlFor="streaming" onClick={() => setUseStreaming(b => !b)} className="cursor-pointer">
           Stream Response
         </label>
       </div>
@@ -40,7 +40,7 @@ export default function Summary() {
       />
       {/* </div> */}
       {error && (
-        <div className=" m-1 p-5 rounded">
+        <div className="m-1 rounded p-5">
           <Alert variant="destructive">{JSON.stringify(error.message)}</Alert>
         </div>
       )}

@@ -1,95 +1,57 @@
-# Remix CDK Template
+# Remix Site
 
-A Remix project template with AWS CDK for easy deployment.
+This is the Remix site package for the Iron Spider 3.0 project.
 
-- [See this template in action](https://remix-template.parkergiven.com)
-- [Remix Docs](https://remix.run/docs)
+## Overview
 
-## Getting Started
+The Remix site is a web application built using the Remix framework. It provides the user interface and functionality for the Iron Spider 3.0 project, including features like:
 
-### Prerequisites
+- Chat interface
+- Date tracking and management
+- Minecraft server management
+- WebAssembly-powered demos
 
-Before you begin, ensure you have the following tools installed
+## Prerequisites
+
+Before you begin, ensure you have the following tools installed:
 
 - [Node.js](https://github.com/nvm-sh/nvm)
 - [Yarn package manager](https://yarnpkg.com/getting-started/install)
-- AWS CDK installed (you can install it globally with `npm install -g aws-cdk`)
+- [AWS CDK](https://aws.amazon.com/cdk/) (you can install it globally with `npm install -g aws-cdk`)
+- [Rust](https://rustup.rs/) + [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 
-### Installation
+## Package.json Commands
 
-1. Clone this repository:
+Here are some of the commands from the `package.json` file:
 
-   ```sh
-   yarn create remix --template rpg2014/remix-aws-cdk-template
-   ```
+- **Build**: `yarn release` - Builds the Remix app for production.
+- **Lint**: `yarn lint` - Runs lint checks for the codebase.
+- **Test**: `yarn test` - Runs tests for the Remix app.
+- **Clean**: `yarn clean` - Removes build artifacts and node modules.
+- **Storybook**: `yarn storybook` - Starts the Storybook development server.
+- **Deploy**: `yarn deploy` - Deploys the Remix app using AWS CDK.
 
-2. Install project dependencies using Yarn:
+## Getting Started
 
-   ```sh
-   yarn install
-   ```
+To run the Remix site locally, follow these steps:
 
-### Development
-
-Start the Remix development server with the following command:
-
-```sh
-yarn dev
-```
-
-This will run your Remix app in development mode and automatically reload when you make changes to the code.
-
-### Deployment
-
-To deploy your Remix app using AWS CDK, follow these steps:
-
-1. Configure your AWS credentials if you haven't already:
-
-   ```sh
-   aws configure --profile personal
-   ```
-
-2. Deploy the CDK stack:
-
-   ```sh
-   yarn deploy
-   ```
-
-This will deploy your Remix app to AWS using the AWS CDK.
-
-## Other Yarn Commands
-
-- **Build**: Build your Remix app for production:
-
-  ```sh
-  yarn release
-  ```
-
-- **Lint**: Run lint checks for your code:
-
-  ```sh
-  yarn lint
-  ```
-
-- **Test**: Run tests for your Remix app:
-
-  ```sh
-  yarn test
-  ```
-
-- **Clean**: Remove build artifacts and node modules:
-
-  ```sh
-  yarn clean
-  ```
+1. Clone the Iron Spider 3.0 repository.
+2. Navigate to the `/packages/remix-site` directory.
+3. Run `yarn install` to install dependencies.
+4. Run `yarn dev` to start the development server.
+5. Open your web browser and go to `http://localhost:3000` to view the site.
 
 ## Contributing
 
-Feel free to contribute to this project. Create a pull request or open an issue if you find any problems or have suggestions for improvements.
+We welcome contributions to the Remix site! If you'd like to contribute, please follow these guidelines:
+
+- Fork the repository and create a new branch for your changes.
+- Make your changes and ensure they pass all tests.
+- Submit a pull request with a detailed description of your changes.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE).
 
 ## TODO:
 
@@ -99,9 +61,7 @@ vite doesn't need the link function to return css, so I need to migrate to css m
 
 Actually need to re-write most of the css, as previous versions of remix suggested overwriting the :root css selector, which is used extensivly throughout this code. It doesn't work with vite because its a bad idea
 
-#### Imple
-
-#### Add generic JWT auth using remix auth.
+#### Implement generic JWT auth using Remix Auth
 
 Will look for a cookie on main domain on intial load,
 and redirect to auth site if not present.  

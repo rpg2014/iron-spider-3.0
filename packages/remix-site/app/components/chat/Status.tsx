@@ -23,8 +23,8 @@ export const AIBackendStatus = ({
   maxTokens: number;
   setMaxTokens: (value: number) => void;
 }) => {
-  const [innerWidth, setInnerWidth] = useState(window.innerWidth);
-  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
+  const [innerWidth, setInnerWidth] = useState(window?.innerWidth);
+  const [isSmallScreen, setIsSmallScreen] = useState(window?.innerWidth < 768);
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef(null);
 

@@ -17,11 +17,11 @@ import { getMessageBg } from "./utils";
  */
 export const ExpanderMessage = ({ message, ref }: MessageProps) => {
   return (
-    <Accordion ref={ref} type="single" key={message.id} className={`px-2 py-1 rounded-lg`}>
+    <Accordion ref={ref} type="single" key={message.id} className={`rounded-lg px-2 py-1`}>
       <AccordionItem value="item-1">
         <AccordionTrigger>{message.type}:</AccordionTrigger>
         <AccordionContent>
-          <Markdown remarkPlugins={[remarkGfm]} className={`${getMessageBg(message.type)} p-2 rounded break-words`}>
+          <Markdown remarkPlugins={[remarkGfm]} className={`${getMessageBg(message.type)} break-words rounded p-2`}>
             {message.content}
           </Markdown>
         </AccordionContent>

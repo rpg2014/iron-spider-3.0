@@ -16,8 +16,8 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
   const { state } = useNavigation();
   return (
     <div className="remix-app dark">
-      <header className={"remix-app__header "}>
-        <div className=" remix-app__header-content">
+      <header className={"remix-app__header"}>
+        <div className="remix-app__header-content">
           <Suspense fallback={<p>loading...</p>}>
             {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
             <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
@@ -33,7 +33,7 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
         </div>
       </div>
       <footer className="remix-app__footer">
-        <div className="container remix-app__footer-content">{/* <p>&copy; You!</p> */}</div>
+        <div className="remix-app__footer-content container">{/* <p>&copy; You!</p> */}</div>
       </footer>
     </div>
   );

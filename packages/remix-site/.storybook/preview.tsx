@@ -20,7 +20,7 @@ export const decorators = [
 const preview: Preview = {
   decorators: [
     Story => (
-      <body data-theme={"dark"} className="dark p-5 rounded">
+      <body data-theme={"dark"} className="dark rounded p-5">
         <Story />
       </body>
     ),

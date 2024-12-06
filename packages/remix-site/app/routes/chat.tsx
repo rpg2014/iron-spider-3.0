@@ -21,9 +21,7 @@ export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
 export const loader = DEFAULT_AUTH_LOADER;
 
-export const meta: MetaFunction = () => [
-  { title: "AI Agent" },
-];
+export const meta: MetaFunction = () => [{ title: "AI Agent" }];
 
 export type OutletState = {
   shareUrl?: string;
@@ -84,7 +82,7 @@ export default function Chat() {
   return (
     <>
       <div className="navigation-container">
-        <nav className="flex flex-row break">
+        <nav className="break flex flex-row">
           <ul>
             <li>
               <NavLink to="summarize" className="navigation-link">
@@ -97,12 +95,12 @@ export default function Chat() {
               </NavLink>
             </li>
           </ul>
-          <div className="flex settings-div ">
+          <div className="settings-div flex">
             <AIBackendStatus status={status} temperature={temperature} setTemperature={setTemperature} maxTokens={maxTokens} setMaxTokens={setMaxTokens} />
           </div>
         </nav>
       </div>
-      <div className="outlet-container ">
+      <div className="outlet-container">
         <Outlet context={outletState} />
       </div>
     </>

@@ -49,9 +49,9 @@ export default function IntranetLinks() {
     return <AuthGate currentUrl={window?.location?.href ?? currentUrl} />;
   }
   return (
-    <div className="row   mx-auto  translucent-bg rounded d-flex flex-column width-control">
+    <div className="row translucent-bg d-flex flex-column width-control mx-auto rounded">
       <p /*className="  text-muted px-3 pt-3 h5 lead" */>These links only work when you're on my network</p>
-      <div className="  row-md  text-center p-2">
+      <div className="row-md p-2 text-center">
         {intranetLinkConfig.map(({ url, name }, index) => {
           return (
             <a href={url} key={name}>

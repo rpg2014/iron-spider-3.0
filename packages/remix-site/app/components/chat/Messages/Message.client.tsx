@@ -16,9 +16,9 @@ export const Message = ({ message, ref }: MessageProps) => {
    *
    */
   return (
-    <div ref={ref} key={message.id} className={`px-2 py-1 rounded-lg`}>
+    <div ref={ref} key={message.id} className={`rounded-lg px-2 py-1`}>
       <span>{message.type}:</span>
-      <Markdown remarkPlugins={[remarkGfm]} className={`${getMessageBg(message.type)} p-2 rounded break-words`}>
+      <Markdown remarkPlugins={[remarkGfm]} className={`${getMessageBg(message.type)} break-words rounded p-2`}>
         {message.content}
       </Markdown>
     </div>

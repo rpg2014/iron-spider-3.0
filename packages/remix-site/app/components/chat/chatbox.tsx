@@ -25,7 +25,7 @@ export default function ChatBox(props: ChatBoxProps) {
   const fetcher = useFetcher();
   return (
     <fetcher.Form
-      className="flex flex-col "
+      className="flex flex-col"
       method="post"
       onSubmit={e => {
         e.preventDefault();

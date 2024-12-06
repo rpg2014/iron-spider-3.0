@@ -90,7 +90,7 @@ export const DEFAULT_AUTH_LOADER = async ({ request }: LoaderFunctionArgs) => {
   //to add a delay in the response
   // const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   // await sleep(1000);
-  return json({...(await checkCookieAuth(request)), currentUrl: request.url});
+  return json({ ...(await checkCookieAuth(request)), currentUrl: request.url });
 };
 
 export type VerifyWithKeyOptions = {

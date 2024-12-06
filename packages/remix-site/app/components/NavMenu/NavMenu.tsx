@@ -26,7 +26,7 @@ const NavLink = ({ to, ...props }: { to: string } & any) => {
 export const NavMenu = () => {
   return (
     <NavigationMenu>
-      <NavigationMenuList className="flex-row flex flex-wrap">
+      <NavigationMenuList className="flex flex-row flex-wrap">
         <NavigationMenuItem>
           <NavLink to="/" prefetch={"intent"} className={navigationMenuTriggerStyle()}>
             Home
@@ -39,13 +39,13 @@ export const NavMenu = () => {
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuTrigger>Pages</NavigationMenuTrigger>
-          <NavigationMenuContent className="flex flex-col sm:flex-row items-center transition-all duration-300 ease-in-out divide-y sm:divide-y-0 sm:divide-x divide-gray-800">
+          <NavigationMenuContent className="flex flex-col items-center divide-y divide-gray-800 transition-all duration-300 ease-in-out sm:flex-row sm:divide-x sm:divide-y-0">
             {navLinkConfig.map(link => (
               <NavLink
                 key={link.to}
                 prefetch={"viewport"}
                 to={link.to}
-                className={"rounded-none min-w-[100%] sm:min-w-fit text-nowrap" + navigationMenuTriggerStyle()}
+                className={"min-w-[100%] text-nowrap rounded-none sm:min-w-fit " + navigationMenuTriggerStyle()}
               >
                 {link.label}
               </NavLink>

@@ -10,6 +10,8 @@ import type {
   ConnectedUser,
   GetConnectedUsersOutput,
   CreateDateCommandInput,
+  UpdateDateCommandInput,
+  UpdateDateCommandOutput,
 } from "iron-spider-client";
 import { API_DOMAIN_VERSION, DATES_PATH, LOCATIONS_PATH } from "~/constants";
 import { fetcher } from "~/utils";
@@ -18,6 +20,7 @@ export interface IDateClient {
   listDates: (input: { pageSize: number; headers?: Headers }) => Promise<ListDatesCommandOutput>;
   getDate: (input: { id: string; headers?: Headers }) => Promise<DateInfo>;
   createDate: (input: { date: CreateDateCommandInput; headers?: Headers }) => Promise<DateInfo>;
+  updateDate: (input: { date: UpdateDateCommandInput; headers?: Headers }) => Promise<DateInfo>;
   delete: (input: { id: string; headers?: Headers }) => Promise<{ success: boolean }>;
   getConnectedUsers(input: { userId: string; headers?: Headers }): Promise<GetConnectedUsersOutput>;
 }
@@ -34,20 +37,31 @@ export class DateService implements IDateClient {
   constructor() {}
 
   async listDates(input: { pageSize: number; headers?: Headers }): Promise<ListDatesCommandOutput> {
-    return await fetcher(`${DATES_PATH}?pageSize=${input.pageSize}`, { mode: "cors", headers: input.headers, credentials: "include" });
+    const dates: ListDatesCommandOutput = await fetcher(`${DATES_PATH}?pageSize=${input.pageSize}`, {
+      mode: "cors",
+      headers: input.headers,
+      credentials: "include",
+    });
+    // convert timestamp to Date object, they are iso formatted. This is usually done via the smithy generated client
+    dates.items = dates.items?.map((date: DateInfo) => {
+      return { ...date, date: date.date ? new Date(date.date) : undefined };
+    });
+    return dates;
   }
 
   async getDate(input: { id: string; headers?: Headers }): Promise<DateInfo> {
-    return await fetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include" });
+    const dateInfo: DateInfo = await fetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include" });
+    // convert dateInfo.date to a date object
+    return { ...dateInfo, date: dateInfo.date ? new Date(dateInfo.date) : undefined };
   }
 
   async createDate(input: { date: CreateDateCommandInput; headers?: Headers }): Promise<DateInfo> {
-    // the date timestamp is serialized as a epoch seconds number see: https://smithy.io/2.0/aws/protocols/aws-restjson1-protocol.html#json-shape-serialization
+    // the date timestamp is serialized as a ISO datetime string
     // usually this is done via the generated client
     const date = input.date.date ? input.date.date : new Date();
-    const body = { ...input.date, date: date.getTime() / 1000 };
+    const body = { ...input.date, date: date.toISOString() };
     console.log(`Creating date with body: ${JSON.stringify(body)}`);
-    return await fetcher(
+    const dateInfo: DateInfo = await fetcher<DateInfo>(
       `${DATES_PATH}`,
       {
         body: JSON.stringify(body),
@@ -58,6 +72,27 @@ export class DateService implements IDateClient {
       },
       true,
     );
+    // convert dateInfo.date to a date object
+    return { ...dateInfo, date: dateInfo.date ? new Date(dateInfo.date) : undefined };
+  }
+  async updateDate(input: { date: UpdateDateCommandInput; headers?: Headers }): Promise<DateInfo> {
+    const date = input.date.date ? input.date.date : new Date();
+    const body = { ...input.date, date: date.toISOString() };
+    console.log(`Creating date with body: ${JSON.stringify(body)}`);
+    const output: DateInfo = await fetcher(
+      `${DATES_PATH}/${input.date.dateId}`,
+      {
+        body: JSON.stringify(body),
+        mode: "cors",
+        headers: input.headers,
+        credentials: "include",
+        method: "PUT",
+      },
+      true,
+    );
+    if (!output) throw new Error("No Date returned");
+    // make output.outing.date a date object
+    return { ...output, date: output.date ? new Date(output.date) : undefined };
   }
   async delete(input: { id: string; headers?: Headers }): Promise<{ success: boolean }> {
     if (!input.id || input.id.length === 0) throw new Error("No id provided");

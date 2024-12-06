@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 import type { ActionFunction, ActionFunctionArgs } from "@remix-run/node";
 import { Form, json, redirect, useActionData, useLoaderData, useNavigation } from "@remix-run/react";
 import type { ConnectedUser, Coordinates, CreateDateCommandInput, Place } from "iron-spider-client";
-import { NewDateForm, NewDateFormV2 } from "~/components/date_tracker/NewDateForm";
+import { NewDateFormV2 } from "~/components/date_tracker/DateForm";
 import { APIError } from "~/components/ErrorBoundary";
 import { Alert } from "~/components/ui/Alert";
 import { Button } from "~/components/ui/Button";
@@ -116,9 +116,9 @@ export default function Index() {
       <Form method="post" encType="multipart/form-data">
         <Card>
           <div className="flex flex-col gap-4">
-            <NewDateFormV2 location={location as Place} connectedUsers={connectedUsers as ConnectedUser[]} />
+            <NewDateFormV2 place={location as Place} connectedUsers={connectedUsers as ConnectedUser[]} />
           </div>
-          <CardFooter>
+          <CardFooter className="flex-row-reverse">
             <Button type="submit" disabled={navigation.state !== "idle"}>
               Create
             </Button>

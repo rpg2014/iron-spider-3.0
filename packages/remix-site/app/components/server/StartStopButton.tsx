@@ -56,7 +56,7 @@ export const StartStopButton: React.FC<StartStopButtonProps> = ({ serverStatus, 
     return (
       <Skeleton className="h-[100px] w-[250px]">
         {/* center the text */}
-        <div className="flex justify-center items-center h-full">Loading...</div>
+        <div className="flex h-full items-center justify-center">Loading...</div>
       </Skeleton>
     );
   }
@@ -64,7 +64,7 @@ export const StartStopButton: React.FC<StartStopButtonProps> = ({ serverStatus, 
   // do i need this? have an error box on in the parent component
   if (error) {
     return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-md my-5" role="alert">
+      <div className="relative my-5 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700 shadow-md" role="alert">
         {error ? error.message : "Error"}
       </div>
     );
@@ -112,8 +112,8 @@ export const StartStopButton: React.FC<StartStopButtonProps> = ({ serverStatus, 
     <div className="flex flex-col items-center">
       <button
         type="button"
-        className={`px-6 py-4 text-lg font-semibold text-white bg-gray-800 rounded-lg shadow-md my-5 min-h-[100px] ${
-          isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-700"
+        className={`my-5 min-h-[100px] rounded-lg bg-gray-800 px-6 py-4 text-lg font-semibold text-white shadow-md ${
+          isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-gray-700"
         }`}
         disabled={isDisabled || text === ""}
         onClick={handleClick}

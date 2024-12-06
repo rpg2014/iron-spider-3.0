@@ -31,7 +31,7 @@ export const CodeBlock = ({ text, inline, children }: CodeBlockProps) => {
       disabled={copied}
       data-text={text}
       onClick={copyText}
-      className={`${styles.copyButton}  ${small && styles.small} ${copied ? styles.disabled : ""}`}
+      className={`${styles.copyButton} ${small && styles.small} ${copied ? styles.disabled : ""}`}
     >
       {copied ? (
         "✓"
