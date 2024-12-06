@@ -31,14 +31,11 @@ export default function Signup() {
       return;
     }
     try {
-      const response = await fetcher(
-        "https://api.parkergiven.com/v1/registration/create",
-        {
-          body: JSON.stringify({ email: email.trim(), displayName: username.trim() }),
-          method: "POST",
-          mode: "cors",
-        },
-      );
+      const response = await fetcher("https://api.parkergiven.com/v1/registration/create", {
+        body: JSON.stringify({ email: email.trim(), displayName: username.trim() }),
+        method: "POST",
+        mode: "cors",
+      });
       setLoading(false);
 
       console.log("create user response: ", response);
@@ -64,12 +61,10 @@ export default function Signup() {
             id="name"
             name="name"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={e => setUsername(e.target.value)}
             required
           />
-          {validationErrors.username && (
-            <Alert>{validationErrors.username}</Alert>
-          )}
+          {validationErrors.username && <Alert>{validationErrors.username}</Alert>}
         </div>
 
         <div className={styles.inputDiv}>
@@ -81,39 +76,26 @@ export default function Signup() {
             id="email"
             name="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             required
           />
           {validationErrors.email && <Alert>{validationErrors.email}</Alert>}
         </div>
         {!success && (
           <div className={`${styles.inputDiv} ${styles.submitDiv}`}>
-            {loading ? (
-              <Spinner />
-            ) : (
-              <input
-                className={styles.submitButton}
-                type="submit"
-                value="Verify Email"
-                onClick={() => submitEmail()}
-              />
-            )}
+            {loading ? <Spinner /> : <input className={styles.submitButton} type="submit" value="Verify Email" onClick={() => submitEmail()} />}
           </div>
         )}
       </form>
       {success && (
         <Alert variant="success">
-          <span style={{ fontWeight: "bolder", fontSize: "large" }}>
-            Success:{" "}
-          </span>
+          <span style={{ fontWeight: "bolder", fontSize: "large" }}>Success: </span>
           Please check your email to verify your account.
         </Alert>
       )}
       {error && (
         <Alert>
-          <span style={{ fontWeight: "bolder", fontSize: "large" }}>
-            Error:{" "}
-          </span>
+          <span style={{ fontWeight: "bolder", fontSize: "large" }}>Error: </span>
           {error}
         </Alert>
       )}
