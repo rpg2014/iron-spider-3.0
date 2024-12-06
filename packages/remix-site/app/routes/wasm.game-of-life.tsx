@@ -11,6 +11,10 @@ const ALIVE_COLOR = "#000000";
 const WIDTH = 100;
 const HEIGHT = 100;
 
+/**
+ * TODO: https://claude.ai/chat/ccb6ab51-132c-4658-829d-51cb72d28686
+ * @returns 
+ */
 const Index = () => {
   const [wasm, setWasm] = useState<InitOutput>();
   useEffect(() => {
@@ -18,7 +22,7 @@ const Index = () => {
   }, []);
   return (
     <>
-      {wasm && (
+      {wasm && typeof window !== undefined ? (
         <GameOfLife
           width={WIDTH}
           height={HEIGHT}
@@ -30,6 +34,8 @@ const Index = () => {
           // this causes breakages when the GameOfLife component gets HMR'd without refetching the wasm.
           memory={wasm.memory}
         />
+      ) : (
+        "Loading..."
       )}
     </>
   );

@@ -37,9 +37,9 @@ export const ServerNavMenuItem: React.FC = () => {
   const { color, Icon } = (statusConfigs[status] || statusConfigs["default"]) as StatusConfig;
 
   return (
-    <span className="flex flex-row justify-between items-center w-100">
+    <span className="w-100 flex flex-row items-center justify-between">
       Server
-      <Icon className={`${color} h-3 w-3 rounded-full ml-2`} />
+      <Icon className={`${color} ml-2 h-3 w-3 rounded-full`} />
     </span>
   );
 };

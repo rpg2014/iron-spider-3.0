@@ -1,16 +1,24 @@
 {
-  "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "incremental": true,
-    "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
+    "target": "ES2020",
     "module": "ESNext",
-    // "baseUrl": ".",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "preserveSymlinks": true,
+    "strict": true,
+    "stripInternal": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "outDir": "./dist",
-    "lib": ["es2020",]
+    "declaration": true,
+    "declarationDir": "./dist/types"
   },
-  "exclude": ["node_modules/", "**/*.spec.ts"],
-  // "include": ["bin/"]
+  "files": [
+    "src/index.ts"
+  ],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }

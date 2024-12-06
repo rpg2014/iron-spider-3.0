@@ -3,18 +3,21 @@
   "description": "a lib for creating and verifying jwts to use across the infra",
   "type": "module",
   "packageManager": "yarn@4.3.1",
-  "module": "dist/index.js",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "yarn clean && yarn run build:js && yarn run build:types",
-    "build:js": "yarn run tsc ",
-    "build:types": "yarn run tsc --emitDeclarationOnly --declaration",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "build": "node --loader ts-node/esm configuration/build.ts",
+    "watch": "node --loader ts-node/esm configuration/build.ts --watch",
+    "test": "jest"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.458.0",
@@ -24,7 +27,8 @@
     "@tsconfig/node20": "^20.1.4",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^20.14.12",
-    "tsc": "^2.0.4",
+    "esbuild": "^0.19.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.1.6"
   }
 }

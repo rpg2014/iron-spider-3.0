@@ -8,7 +8,10 @@ import { SecretsManagerSecretKeyAccessor } from "./SecretsManagerSecretKeyAccess
 let secretKeyAccessor: SecretKeyAccessor;
 
 
-
+/**
+ * @internal
+ * @returns {SecretKeyAccessor}
+ */
 export function getSecretKeyAccessor(): SecretKeyAccessor {
   if (!secretKeyAccessor) {
     secretKeyAccessor = new SecretsManagerSecretKeyAccessor();

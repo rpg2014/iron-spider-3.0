@@ -1,10 +1,5 @@
 import { CfnOutput, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
-import {
-  ARecord,
-  AaaaRecord,
-  HostedZone,
-  RecordTarget,
-} from "aws-cdk-lib/aws-route53";
+import { ARecord, AaaaRecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import {
   AccessLevel,
   AllowedMethods,
@@ -37,11 +32,7 @@ export interface IDomainAuthSiteProps {
  * Route53 alias record, and ACM certificate.
  */
 export class DomainAuthAssetsStack extends Stack {
-  constructor(
-    parent: any,
-    name: string,
-    props: StackProps & IDomainAuthSiteProps,
-  ) {
+  constructor(parent: any, name: string, props: StackProps & IDomainAuthSiteProps) {
     super(parent, name, props);
 
     const zone = HostedZone.fromLookup(this, "DomainHostedZone", {
@@ -95,11 +86,7 @@ export class DomainAuthAssetsStack extends Stack {
 
     // CloudFront distribution
     const distribution = new Distribution(this, name + "SiteDistribution", {
-      certificate: Certificate.fromCertificateArn(
-        this,
-        "certArn",
-        props.certificateArn,
-      ),
+      certificate: Certificate.fromCertificateArn(this, "certArn", props.certificateArn),
       defaultRootObject: "index.html",
       domainNames: [siteDomain],
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
@@ -120,7 +107,7 @@ export class DomainAuthAssetsStack extends Stack {
       ],
       defaultBehavior: {
         origin: S3BucketOrigin.withOriginAccessControl(siteBucket, {
-          originAccessLevels: [AccessLevel.READ]
+          originAccessLevels: [AccessLevel.READ],
         }),
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,

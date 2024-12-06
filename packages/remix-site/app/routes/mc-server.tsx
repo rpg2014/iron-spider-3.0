@@ -1,4 +1,4 @@
-import { MetaFunction } from "@remix-run/react";
+import { MetaFunction, useLocation, useNavigation } from "@remix-run/react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { defer, json, useLoaderData } from "@remix-run/react";
 import { useServers } from "~/hooks/MCServerHooks";
@@ -9,7 +9,7 @@ import { RefreshCwIcon } from "lucide-react";
 import { Alert } from "~/components/ui/Alert";
 import { checkCookieAuth } from "~/utils.server";
 import AuthGate from "~/components/AuthGate";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Parker's Minecraft Server Control" }];
@@ -42,16 +42,21 @@ export default function Server() {
   const {
     minecraftServer: { status, getLoading, actionLoading, actions, domainName, errors },
   } = useServers();
+  const location = useLocation();
 
   // const currentStatus = status === ServerStatus.InitialStatus ? data.initialStatus : status;
   const currentStatus = status;
   //Quick refresh button
   const RefreshButton = () => (
-    <span onClick={() => actions.status()} className={"flex justify-center align-middle items-center m-2 cursor-pointer"}>
+    <span onClick={() => actions.status()} className={"m-2 flex cursor-pointer items-center justify-center align-middle"}>
       <RefreshCwIcon className={getLoading ? "animate-spin" : ""} />
     </span>
   );
 
+  // refresh status on mount
+  useEffect(() => {
+    actions.status();
+  }, []);
   // Auto-refresh server status every 2 minutes
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -62,16 +67,19 @@ export default function Server() {
   }, [actions]);
 
   return (
-    <div className=" flex-col flex h-auto m-auto">
-      <img src={logo} className="App-logo mx-auto d-block" alt="logo" />
-
-      <div className="container justify-center flex  scroll-m-20 text-4xl  tracking-tight ">
+    <div className="m-auto flex h-auto animate-fade-in flex-col">
+      <img
+        src={logo}
+        className={`${getLoading ? "App-logo" : status == ServerStatus.Running ? "pulse-shadow" : "App-logo"} d-block mx-auto`}
+        alt="minecraft logo image, a dirt block with grass on top"
+      />
+      <div className="container flex scroll-m-20 justify-center text-4xl tracking-tight">
         <>
           Server is {currentStatus} <RefreshButton />{" "}
         </>
       </div>
       {domainName && <p>Domain name: ${domainName}</p>}
-      <div className="h-25 pt-5 pb-3 align-middle flex flex-col items-center mx-auto start-button">
+      <div className="h-25 start-button mx-auto flex flex-col items-center pb-3 pt-5 align-middle">
         {data.hasCookie ? (
           <StartStopButton
             loggedIn={data.hasCookie}
@@ -82,7 +90,7 @@ export default function Server() {
             startServer={async () => actions.start()}
           />
         ) : (
-          <AuthGate currentUrl={window?.location?.href ?? data.currentUrl} />
+          <AuthGate currentUrl={data.currentUrl} />
         )}
         {errors &&
           errors.map((error, index) => (

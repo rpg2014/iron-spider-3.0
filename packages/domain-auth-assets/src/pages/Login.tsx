@@ -3,10 +3,7 @@ import styles from "./Signup.module.scss";
 import { USER_ID_TOKEN_KEY } from "../constants.ts";
 import { fetcher, isSSR } from "../util.ts";
 import Spinner from "../components/Spinner.tsx";
-import {
-  startAuthentication,
-  browserSupportsWebAuthnAutofill,
-} from "@simplewebauthn/browser";
+import { startAuthentication, browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
 import Alert from "../components/Alert.tsx";
 import { useLoaderData, useOutletContext } from "react-router-dom";
 import { OutletContext } from "./Layout.tsx";
@@ -45,9 +42,7 @@ const generateAuthOptions = async () => {
     const userId = atob(userIdEncoded);
     console.log(`Got User Id: ${userId}`);
 
-    const results = await fetcher(
-      `https://api.parkergiven.com/v1/authentication/options?userId=${userId}`,
-    );
+    const results = await fetcher(`https://api.parkergiven.com/v1/authentication/options?userId=${userId}`);
     return results;
   } else {
     console.log("No user token found, or autocomplete not supported");
@@ -65,12 +60,8 @@ function Login() {
   const [error, setError] = useState();
   const [email, setEmail] = useState("");
   const { state, setState } = useOutletContext<OutletContext>();
-  const [autocompleteSupported, setAutocompletedSupported] = useState<
-    undefined | boolean
-  >();
-  const [user, setUser] = useState<
-    undefined | { displayName: string; userId: string; siteAccess: string[] }
-  >();
+  const [autocompleteSupported, setAutocompletedSupported] = useState<undefined | boolean>();
+  const [user, setUser] = useState<undefined | { displayName: string; userId: string; siteAccess: string[] }>();
   const data: any = useLoaderData() as any;
 
   const [redirectUrl, setRedirctUrl] = useState<string | null>();
@@ -121,33 +112,24 @@ function Login() {
    * @param generateResults
    * @param autocomplete
    */
-  const doAuthFlow = async (
-    generateResults: any,
-    autocomplete: boolean = false,
-  ) => {
+  const doAuthFlow = async (generateResults: any, autocomplete: boolean = false) => {
     try {
       setState("AUTHING");
-      setError(undefined)
-      const authResponse: any = await startAuthentication(
-        JSON.parse(generateResults.authenticationResponseJSON),
-        autocomplete,
-      );
+      setError(undefined);
+      const authResponse: any = await startAuthentication(JSON.parse(generateResults.authenticationResponseJSON), autocomplete);
 
       console.log(`Auth response = `, authResponse);
       setLoading(true);
       setState("VERIFY");
       //todo: get types from generated types.
-      const verifyResults = await fetcher(
-        "https://api.parkergiven.com/v1/authentication/verification",
-        {
-          method: "POST",
-          credentials: "include",
-          body: JSON.stringify({
-            userId: generateResults.userId,
-            authenticationResponse: JSON.stringify(authResponse), // was JSON.stringified()
-          }),
-        },
-      );
+      const verifyResults = await fetcher("https://api.parkergiven.com/v1/authentication/verification", {
+        method: "POST",
+        credentials: "include",
+        body: JSON.stringify({
+          userId: generateResults.userId,
+          authenticationResponse: JSON.stringify(authResponse), // was JSON.stringified()
+        }),
+      });
       setState("DONE");
       setLoading(false);
       console.log(`Verify results = `, verifyResults);
@@ -180,7 +162,7 @@ function Login() {
       setError(e.message);
     }
   };
-  // will call the api for authentication options with the username, then startAuthentication, then verify with the api
+  // will call the api for authentication options with the username, then doAuthFlow
   const generateOptions = async () => {
     setLoading(true);
     setState("GEN_OPTS");
@@ -188,13 +170,10 @@ function Login() {
       const generateResults: {
         userId: string;
         authenticationResponseJSON: any;
-      } = await fetcher(
-        `https://api.parkergiven.com/v1/authentication/options?email=${email}`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      );
+      } = await fetcher(`https://api.parkergiven.com/v1/authentication/options?email=${encodeURIComponent(email)}`, {
+        method: "GET",
+        credentials: "include",
+      });
       console.log(`Generate results`, generateResults);
       await doAuthFlow(generateResults);
     } catch (e: any) {
@@ -211,39 +190,25 @@ function Login() {
         {!success && (
           <>
             <h2 className={styles.title}>Login</h2>
-            <p>
-              Provide your email to sign in.{" "}
-              {redirectUrl && "Login is required to access that page"}
-            </p>
+            <p>Provide your email to sign in. {redirectUrl && "Login is required to access that page"}</p>
             {/* TODO: switch this div to a form to get free submit on enter*/}
-            <form
-              onSubmit={() => generateOptions()}
-              className={styles.formContainer}
-            >
+            <form onSubmit={() => generateOptions()} className={styles.formContainer}>
               <div className={styles.inputDiv}>
-                <label htmlFor="name">Email:</label>
+                <label htmlFor="email">Email:</label>
                 <input
                   className={styles.inputField}
                   autoComplete="email webauthn"
-                  type="text"
-                  id="name"
-                  name="name"
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   required
                 />
               </div>
 
               <div className={`${styles.inputDiv} ${styles.submitDiv}`}>
-                {loading ? (
-                  <Spinner />
-                ) : (
-                  <input
-                    className={styles.submitButton}
-                    type="submit"
-                    value="Login"
-                    onClick={() => generateOptions()}
-                  />
-                )}
+                {loading ? <Spinner /> : <input className={styles.submitButton} type="submit" value="Login" onClick={() => generateOptions()} />}
               </div>
             </form>
             <div>{`State: ${state}`}</div>

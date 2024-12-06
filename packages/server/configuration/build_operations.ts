@@ -65,7 +65,7 @@ const buildServiceHandlers = async () => {
     outputDir: path.join(outputDir, "SingletonHandler"),
     entryPoint: path.join(handlersDir, "MCServerHandlers.ts"),
   });
-  //build cors handler @workspace
+  //build cors handler
   await buildOperationHandler({
     opName: "cors",
     outFile: "cors.js",
@@ -74,7 +74,7 @@ const buildServiceHandlers = async () => {
   });
 };
 
-// old build script
+// build script
 const build = async () => {
   // Clean output directory
   fs.rmSync(outputDir, { recursive: true, force: true });
@@ -96,7 +96,7 @@ const build = async () => {
       entryPoint: path.join(handlersDir, `${opData.handlerFile}.ts`),
     });
   }
-  //build cors handler @workspace
+  //build cors handler
   await buildOperationHandler({
     opName: "cors",
     outFile: "cors.js",

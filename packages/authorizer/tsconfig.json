@@ -21,6 +21,7 @@
     "inlineSourceMap": true,
     "inlineSources": true,
     "experimentalDecorators": true,
+    "preserveSymlinks": true,
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"

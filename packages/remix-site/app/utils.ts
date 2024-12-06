@@ -13,7 +13,7 @@ const isServer = typeof window === "undefined";
  * @returns {Promise<any>} A Promise that resolves with the response data.
  * @throws {Error} If the response status is greater than or equal to 400.
  */
-export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, includeContentType?: boolean) => {
+export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, includeContentType?: boolean): Promise<T> => {
   let headers: any = {
     ...init?.headers,
     "spider-access-token": "no-token",
@@ -40,17 +40,17 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, incl
       ...init,
       headers,
     });
-    console.log(`Got ${res.status} from path: ${input.toString()}`);
+    console.log(`Got ${res.status} from path: ${init?.method ?? "GET"} ${input.toString()}`);
 
-    const data = await res.json();
+    const data: T | Error = await res.json();
     if (res.status >= 400) {
       console.error(`Got ${res.status} error from backend`);
-      throw new Error(data.message);
+      throw { message: (data as Error).message, status: res.status, statusText: res.statusText };
     }
     console.log(`Got Data: ${JSON.stringify(data, null, 2)}`);
-    return data;
+    return data as T;
   } catch (e: any) {
-    console.error(`Error parsing response ${e}: message: ${e.message}`);
+    console.error(`Error parsing response ${e}: message: ${e.message}`, e);
     throw new Error(e.message);
   }
 };

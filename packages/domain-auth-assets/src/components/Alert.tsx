@@ -1,14 +1,6 @@
 import styles from "./Alert.module.scss";
 
-const ErrorAlert = ({
-  children,
-  style,
-  variant,
-}: {
-  children: any;
-  style?: React.CSSProperties;
-  variant?: "danger" | "success" | "grey";
-}) => {
+const ErrorAlert = ({ children, style, variant }: { children: any; style?: React.CSSProperties; variant?: "danger" | "success" | "grey" }) => {
   const alertStyle = {
     ...style, // Merge with additional styles if provided
   };

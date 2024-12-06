@@ -1,7 +1,14 @@
+import { MetaFunction } from "@remix-run/react";
 import * as EB from "~/components/ErrorBoundary";
 import { Outlet, useLoaderData } from "@remix-run/react";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import AuthGate from "~/components/AuthGate";
+
+export const meta: MetaFunction = () => [
+  {
+    title: "Date Tracker",
+  },
+];
 
 export const loader = DEFAULT_AUTH_LOADER;
 

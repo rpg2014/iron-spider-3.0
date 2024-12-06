@@ -37,7 +37,7 @@ export default function Messages({ messages, autoScroll }: { messages: MessageMo
     // }
   };
   return (
-    <div ref={chatContainerRef} onScroll={handleScroll} className="flex flex-col gap-1 ">
+    <div ref={chatContainerRef} onScroll={handleScroll} className="flex flex-col gap-1">
       {messages.map((message, i) => {
         if (message.subSteps) {
           //return an expander around the substeps?

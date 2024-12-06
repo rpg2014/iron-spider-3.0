@@ -47,6 +47,7 @@ structure DateInfo {
     coordinates: Coordinates,
 
     @required
+    @timestampFormat("date-time")
     date: Timestamp
 
     @required
@@ -111,7 +112,7 @@ structure CreateDateInput {
 
     @required
     dateThrower: String,
-
+    @timestampFormat("date-time")
     date: Timestamp
 }
 
@@ -134,12 +135,12 @@ structure UpdateDateInput {
     @httpLabel
     dateId: String,
     location: String,
-    picture: String,
-    dateThrower: String,
+    title: String,
     note: String,
     coordinates: Coordinates,
-    title: String
-    date: Timestamp
+    dateThrower: String,
+    @timestampFormat("date-time")
+    date: Timestamp,
 }
 
 structure UpdateDateOutput with [CommonHeaders] {

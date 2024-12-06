@@ -67,7 +67,15 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
       // console.debug("httpResponse: ", httpResponse);
       console.log(`Response: ${httpResponse.statusCode}`);
       if (httpResponse.statusCode >= 400) {
-        console.error(`Error body: ${httpResponse.body}`);
+        console.error(`Error body: ${httpResponse.body}, typeof ${typeof httpResponse.body}`);
+        if (typeof httpResponse.body === "string") {
+          try {
+            console.error(httpResponse.body);
+            console.error(JSON.parse(httpResponse.body));
+          } catch (e) {
+            console.error(e);
+          }
+        }
       }
       // dont forget to add the cors headers to the response
       httpResponse.headers = { ...httpResponse.headers, ...addCORSHeaders(allowed) };

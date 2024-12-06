@@ -1,7 +1,6 @@
 import styles from "./AccountInfo.module.scss";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
-import { OutletContext } from "./Layout";
 import { useEffect, useState } from "react";
 import { fetcher } from "../util";
 
@@ -13,7 +12,7 @@ const generateFakeAccountData = (): AccountData => {
     siteAccess: ["all", "admin"],
     //Current time + 1day + plus or minus a random number of mins and seconds, less than 1 hour in unix timestamp
     tokenExpiry: Math.floor(Date.now() / 1000 + 86400 + Math.random() * 3600 - 1800),
-    
+
     userId: `user.${Math.random().toString(36).substring(2, 15)}`,
     verified: Math.random() > 0.5,
   };
@@ -58,15 +57,12 @@ const AccountInfo = () => {
       <div className={styles.container}>
         <h2 className={styles.title}>Account info</h2>
         <p>
-          View and <span style={{ fontStyle: "italic" }}>(eventually)</span>{" "}
-          edit your account info
+          View and <span style={{ fontStyle: "italic" }}>(eventually)</span> edit your account info
         </p>
         {loading && <Spinner />}
         {error && <Alert variant="danger">{error.message}</Alert>}
         {userData && userData.verified && <AccountData data={userData} />}
-        {userData && !userData.verified && (
-          <Alert variant="danger">You need to log in</Alert>
-        )}
+        {userData && !userData.verified && <Alert variant="danger">You need to log in</Alert>}
       </div>
     </>
   );
@@ -93,26 +89,26 @@ const AccountData: React.FC<{ data: AccountData }> = ({ data }) => {
     const now = Math.floor(Date.now() / 1000); // Convert current time to Unix timestamp (seconds)
     const diffSeconds = timestamp - now;
     const absDiffSeconds = Math.abs(diffSeconds);
-  
+
     const seconds = absDiffSeconds % 60;
     const minutes = Math.floor(absDiffSeconds / 60) % 60;
     const hours = Math.floor(absDiffSeconds / (60 * 60)) % 24;
     const days = Math.floor(absDiffSeconds / (24 * 60 * 60));
-  
+
     const parts: string[] = [];
-  
-    if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-    if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-    if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
-    if (seconds > 0) parts.push(`${seconds} second${seconds > 1 ? 's' : ''}`);
-  
-    let formattedTime = parts.join(', ');
-  
+
+    if (days > 0) parts.push(`${days} day${days > 1 ? "s" : ""}`);
+    if (hours > 0) parts.push(`${hours} hour${hours > 1 ? "s" : ""}`);
+    if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? "s" : ""}`);
+    if (seconds > 0) parts.push(`${seconds} second${seconds > 1 ? "s" : ""}`);
+
+    let formattedTime = parts.join(", ");
+
     if (parts.length > 1) {
-      const lastIndex = formattedTime.lastIndexOf(', ');
-      formattedTime = formattedTime.substring(0, lastIndex) + ' and' + formattedTime.substring(lastIndex + 1);
+      const lastIndex = formattedTime.lastIndexOf(", ");
+      formattedTime = formattedTime.substring(0, lastIndex) + " and" + formattedTime.substring(lastIndex + 1);
     }
-  
+
     return diffSeconds > 0 ? `expires in ${formattedTime}` : `expired ${formattedTime} ago`;
   }
 
@@ -164,13 +160,7 @@ const AccountData: React.FC<{ data: AccountData }> = ({ data }) => {
       </div>
       <div className={styles.infoSection}>
         <h3 className={styles.sectionTitle}>Verification Status</h3>
-        <span
-          className={`${styles.badge} ${
-            data.verified ? styles.verified : styles.notVerified
-          }`}
-        >
-          {data.verified ? "Verified" : "Not Verified"}
-        </span>
+        <span className={`${styles.badge} ${data.verified ? styles.verified : styles.notVerified}`}>{data.verified ? "Verified" : "Not Verified"}</span>
         {/* </div> */}
       </div>
     </div>

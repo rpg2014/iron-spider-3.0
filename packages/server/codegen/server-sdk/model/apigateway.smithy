@@ -35,6 +35,8 @@ apply StartServer @aws.apigateway#integration(
     httpMethod: "POST",
     uri: ""
 )
+
+// This is overwritten in the CDK stack generation code
 apply StopServer @aws.apigateway#integration(
     type: "aws_proxy",
     httpMethod: "POST",

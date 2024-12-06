@@ -1,8 +1,4 @@
-export const fetcher = async (
-  input: RequestInfo | URL,
-  init?: RequestInit,
-  includeContentType: boolean = true,
-) => {
+export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, includeContentType: boolean = true) => {
   let headers: any = {
     ...init?.headers,
     "spider-access-token": "no-token",
@@ -24,5 +20,4 @@ export const fetcher = async (
   return data;
 };
 
-export const isSSR =
-  typeof window === "undefined" || window.document === undefined;
+export const isSSR = typeof window === "undefined" || window.document === undefined;

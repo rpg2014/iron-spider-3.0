@@ -381,7 +381,6 @@ export class ApiStack extends Stack {
                 "multipart/form-data": '{"serverStopping": true}',
                 "application/xml": '{"serverStopping": true}',
                 "text/xml": '{"serverStopping": true}',
-                "*/*": '{"serverStopping": true}',
               },
             },
             200: {

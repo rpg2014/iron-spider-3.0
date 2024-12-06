@@ -2,6 +2,7 @@
 import { SecretsManagerClient, GetSecretValueRequest, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { KeyPair, SecretKeyAccessor } from "./AccessorInterfaces";
 
+/**@internal */
 export class SecretsManagerSecretKeyAccessor extends SecretKeyAccessor {
   private client: SecretsManagerClient;
   private keyPair: KeyPair | undefined;

@@ -2,7 +2,7 @@ const path = require("path");
 // const esbuild = require("esbuild");
 const buildUtils = require("../../../configuration/buildUtils");
 const fs = require("fs");
-// const { wasmLoader } = require('esbuild-plugin-wasm')
+const { wasmLoader } = require("esbuild-plugin-wasm");
 // const shouldAnalyze = process.argv.includes('--analyze');
 
 console.log("Building cdk deployment bundle");
@@ -18,8 +18,9 @@ async function _(): Promise<void> {
     plugins: [
       //  doesn't work due to top level await until remix supports building to esm
       //  once that works, then can remove the wasm copy over below
+      // Might also require using the WASM in a different way
       // wasmLoader({
-      //   mode: "embedded",
+      //   mode: "deferred",
       //   targetPlatform: "node"
       // })
     ],

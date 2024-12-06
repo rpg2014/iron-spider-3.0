@@ -26,17 +26,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       });
       if (userDates.items === undefined) throw json({ message: `userDates.items is undefined` }, { status: 500 });
 
-      const items = userDates.items
-      // moving this conversion to the  UI component
-      // .map((date: DateInfo) => {
-      //   // need to multiply the date epoch number by 1000 to fix the precision from the backend
-      //   try {
-      //     if (date.date) date.date = new Date(date.date.getTime() * 1000);
-      //   } catch (e) {
-      //     console.error(`Error parsing date: ${date.date}`, e);
-      //   }
-      //   return date;
-      // });
+      const items = userDates.items;
       console.log(`Got user ListDates response: ${JSON.stringify(userDates)}`);
       return { items: items, loggedIn: true };
     } catch (e: any) {
@@ -49,22 +39,40 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Index() {
   const dates = useLoaderData<typeof loader>();
+
   return (
-    // message and link to create new date
-    <div>
-      {!dates || (dates.items.length == 0 && <p>There doesn't seem to be anything here</p>)}
-      <Link to="create">
-        <Button variant="outline">
-          <Plus />
-          Create New Date
-        </Button>
-      </Link>
-      <br></br>
-      <div className="container max-w-screen-md items-center">
-        {dates.items?.map(date => {
-          if (!date) return null;
-          return <DateCard key={date.id} date={date as DateInfo} onClickNav />;
-        })}
+    <div className="min-h-[100%] bg-gradient-to-b from-inherit to-gray-800 px-4 py-8">
+      <div className="mx-auto max-w-4xl space-y-8">
+        {/* Header Section */}
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-white">Your Dates</h1>
+          <Link to="create">
+            <Button variant={"outline"} className="flex items-center gap-2 shadow-lg transition-all duration-300 hover:shadow-xl">
+              <Plus className="h-5 w-5" />
+              Create New Date
+            </Button>
+          </Link>
+        </div>
+
+        {/* Empty State */}
+        {!dates || dates.items.length === 0 ? (
+          <div className="rounded-lg border border-gray-700 bg-gray-800/50 py-16 text-center">
+            <p className="mb-4 text-lg text-gray-400">There doesn't seem to be anything here</p>
+            <p className="text-gray-500">Create your first date to get started!</p>
+          </div>
+        ) : (
+          /* Date Cards Grid */
+          <div className="grid animate-fade-in gap-6">
+            {dates.items?.map(date => {
+              if (!date) return null;
+              return (
+                <div key={date.id} className="mx-auto w-fit transform transition-all duration-300 hover:-translate-y-1">
+                  <DateCard date={date as DateInfo} onClickNav />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
