@@ -15,10 +15,10 @@ export default function Pi() {
   const onClick = (_e: any) => {
     setStartTime(Date.now());
   };
-  const LinkWithButton = ({ iterations }: { iterations: Number }) => {
-    const iterationsStr = iterations.toString();
+  const LinkWithButton = ({ iterations }: { iterations: number }) => {
+    const iterationsStr = iterations.toLocaleString();
     return (
-      <NavLink onClick={onClick} to={iterationsStr}>
+      <NavLink onClick={onClick} to={iterations.toString()} className="mr-2 mb-2 inline-block">
         {({ isActive, isPending }) => <Button variant={isActive ? "outline" : "default"}>{iterationsStr}</Button>}
       </NavLink>
     );

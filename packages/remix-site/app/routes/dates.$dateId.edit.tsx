@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import type { LoaderFunctionArgs } from "@remix-run/node";
 import { Form, Link, redirect, useActionData, useNavigation, useOutletContext } from "@remix-run/react";
 import { ConnectedUser, DateInfo, UpdateDateCommandInput } from "iron-spider-client";
 import { NewDateFormV2 } from "~/components/date_tracker/DateForm";

@@ -108,7 +108,7 @@ export default function Settings() {
 
 const LogoutButton = () => {
   const [loading, setLoading] = useState(false);
-  let revalidator = useRevalidator();
+  const revalidator = useRevalidator();
   const handleLogout = async () => {
     try {
       setLoading(true);

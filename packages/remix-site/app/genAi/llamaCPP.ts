@@ -96,7 +96,7 @@ export async function* llama(prompt: string, params: { api_key?: any } = {}, con
       const endsWithLineBreak = text.endsWith("\n");
 
       // Split the text into lines
-      let lines = text.split("\n");
+      const lines = text.split("\n");
 
       // If the text doesn't end with a line break, then the last line is incomplete
       // Store it in leftover to be added to the next chunk of data

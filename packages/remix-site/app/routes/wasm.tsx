@@ -14,7 +14,7 @@ const Wasm = () => {
   const data = useLoaderData<typeof loader>();
   useEffect(() => {
     init().then(wasm => {
-      let u = Universe.new(64, 64);
+      const u = Universe.new(64, 64);
       console.log(u.cells());
     });
   }, []);

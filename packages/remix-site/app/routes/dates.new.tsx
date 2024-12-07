@@ -1,5 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import type { ActionFunction, ActionFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs, ActionFunction } from "@remix-run/node";
 import { Form, json, redirect, useActionData, useLoaderData, useNavigation } from "@remix-run/react";
 import type { ConnectedUser, Coordinates, CreateDateCommandInput, Place } from "iron-spider-client";
 import { NewDateFormV2 } from "~/components/date_tracker/DateForm";
@@ -10,13 +9,13 @@ import { Card, CardFooter } from "~/components/ui/Card";
 import { DateService, getDateService, LocationService } from "~/service/DateService";
 
 export interface DateModel {
-  id?: String;
-  ownerId?: String;
-  location: String;
+  id?: string;
+  ownerId?: string;
+  location: string;
   coordinates: Coordinates;
-  date: String;
-  pictureId: String;
-  note: String;
+  date: string;
+  pictureId: string;
+  note: string;
 }
 
 export const action: ActionFunction = async ({ request }) => {

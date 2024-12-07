@@ -344,11 +344,11 @@ export const useAIChat = (props?: AIChatProps) => {
           messagesToAdd.push(...firstChunk.value.steps.map(parseSteps).flat());
         }
         // add first content as message
-        let responseStr: string = firstChunk.value.content;
+        const responseStr: string = firstChunk.value.content;
         messagesToAdd.push(createMessage("agent_response", responseStr));
         setMessages(p => [...p, ...messagesToAdd]);
         //parse rest of stream.
-        for await (let chunk of streamingResponse) {
+        for await (const chunk of streamingResponse) {
           ac.signal.throwIfAborted();
           try {
             if (chunk.steps) {

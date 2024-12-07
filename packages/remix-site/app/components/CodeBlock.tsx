@@ -20,7 +20,7 @@ export const CodeBlock = ({ text, inline, children }: CodeBlockProps) => {
   const [copied, setCopied] = useState(false);
   const copyText: MouseEventHandler<HTMLButtonElement> | undefined = async e => {
     e.stopPropagation();
-    let textToCopy = text ? text : children;
+    const textToCopy = text ? text : children;
     await navigator.clipboard.writeText(textToCopy ? textToCopy.toString() : "");
     setCopied(true);
     setTimeout(() => setCopied(false), 1000);

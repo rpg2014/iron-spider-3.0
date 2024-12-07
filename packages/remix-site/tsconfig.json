@@ -8,6 +8,7 @@
     //migrating to vite
     "skipLibCheck": true,
     "module": "ESNext",
+    "types": ["@remix-run/node", "vite/client"],
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "target": "ES2019",

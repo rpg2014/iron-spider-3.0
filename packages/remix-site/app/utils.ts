@@ -14,7 +14,7 @@ const isServer = typeof window === "undefined";
  * @throws {Error} If the response status is greater than or equal to 400.
  */
 export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, includeContentType?: boolean): Promise<T> => {
-  let headers: any = {
+  const headers: any = {
     ...init?.headers,
     "spider-access-token": "no-token",
     origin: `https://remix.parkergiven.com`,

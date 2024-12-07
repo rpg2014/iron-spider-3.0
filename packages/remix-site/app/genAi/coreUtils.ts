@@ -5,7 +5,7 @@ export async function* parseEventStream(eventByteStream: ReadableStream2<Uint8Ar
   let buf: string | undefined = "";
   let ignoreNextLf = false;
 
-  let textStream = eventByteStream.pipeThrough(new TextDecoderStream()) as ReadableStream2;
+  const textStream = eventByteStream.pipeThrough(new TextDecoderStream()) as ReadableStream2;
   for await (let chunk of textStream) {
     // A CRLF could be split between chunks, so if the last chunk ended in
     // CR and this chunk started with LF, trim the LF

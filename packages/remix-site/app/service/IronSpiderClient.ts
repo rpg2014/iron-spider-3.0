@@ -12,7 +12,7 @@ const client = new IronSpiderClient(config);
  */
 export const IronSpiderAPI = {
   logout: async () => {
-    let command = new LogoutCommand({});
+    const command = new LogoutCommand({});
 
     return await client.send(command);
   },

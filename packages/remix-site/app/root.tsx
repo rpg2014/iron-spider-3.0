@@ -1,5 +1,4 @@
-import { data, Outlet } from "@remix-run/react";
-import { MetaFunction, useLoaderData } from "@remix-run/react";
+import { Outlet, MetaFunction, useLoaderData } from "@remix-run/react";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import globalStylesUrl from "~/styles/global.css?url";
 import themeUrl from "~/styles/themes.css?url";
@@ -7,15 +6,13 @@ import favicon from "~/images/favicon.ico";
 import * as EB from "~/components/ErrorBoundary";
 import { Layout, links as LayoutLinks } from "~/components/Layout";
 import { Document } from "~/components/Document";
-import { cssBundleHref } from "@remix-run/css-bundle";
 import { ThemeProvider } from "./hooks/useTheme";
 import { ServerProvider } from "./hooks/MCServerHooks";
 import { MCServerApi } from "./service/MCServerService";
 import { getHeaders } from "./utils";
 
-export let links: LinksFunction = () => {
+export const links: LinksFunction = () => {
   return [
-    ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
     { rel: "icon", href: favicon },
     { rel: "stylesheet", href: globalStylesUrl },
     { rel: "manifest", href: "/static/manifest.json" },

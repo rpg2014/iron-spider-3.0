@@ -1,13 +1,23 @@
 import { vitePlugin as remix } from "@remix-run/dev";
 import { defineConfig } from "vite";
-import { installGlobals } from "@remix-run/node";
 import tsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
 import react from "@vitejs/plugin-react";
 import { muteWarningsPlugin } from "./configuration/MuteWarnings";
 import { visualizer } from "rollup-plugin-visualizer";
 
-installGlobals();
+declare module "@remix-run/node" {
+  // or cloudflare, deno, etc.
+  interface Future {
+    v3_singleFetch: true;
+  }
+}
+declare module "@remix-run/server-runtime" {
+  // or cloudflare, deno, etc.
+  interface Future {
+    v3_singleFetch: true;
+  }
+}
 
 const warningsToIgnore: string[][] = [
   ["SOURCEMAP_ERROR", "Can't resolve original location of error"],
@@ -45,6 +55,9 @@ export default defineConfig({
             v3_fetcherPersist: true,
             v3_throwAbortReason: true,
             v3_lazyRouteDiscovery: true,
+            v3_relativeSplatPath: true,
+            v3_singleFetch: true,
+            v3_routeConfig: true,
           },
         })
       : react(),

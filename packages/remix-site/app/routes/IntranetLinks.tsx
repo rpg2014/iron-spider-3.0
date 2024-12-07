@@ -34,7 +34,7 @@ export default function IntranetLinks() {
   const { hasCookie, currentUrl } = useLoaderData<typeof loader>();
 
   useEffect(() => {
-    let intervalId = setInterval(() => {
+    const intervalId = setInterval(() => {
       if (highlightIndex === intranetLinkConfig.length - 1) {
         clearInterval(intervalId);
         setIsHighlightingComplete(true);

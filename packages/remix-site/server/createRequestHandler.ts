@@ -27,7 +27,7 @@ export function createRequestHandler({
   mode?: string;
 }): CloudFrontRequestHandler {
   //This gets the server handler from the build files
-  let handleRequest = createRemixRequestHandler(build, mode);
+  const handleRequest = createRemixRequestHandler(build, mode);
 
   // Return a handler function that wraps the remix created handlers, converting the requests and responses from the
   // ones the env (Lambda@edge) expects, to what Remix expects.  Currently just supports These CloudfrontRequests,
@@ -36,7 +36,7 @@ export function createRequestHandler({
     // start timings
     const startTime = Date.now();
 
-    let request = createRemixRequest(event);
+    const request = createRemixRequest(event);
     console.log(`Got Request for path: ${request.url}`);
     let loadContext = typeof getLoadContext === "function" ? getLoadContext(event) : undefined;
     // is the below worth it? xray tracing?
@@ -73,7 +73,7 @@ export function createRequestHandler({
       }
     }
 
-    let response = await (ns && segment
+    const response = await (ns && segment
       ? ns.runPromise<Response>(() => {
           AWSXRay.setSegment(segment);
           const res = handleRequest(request as unknown as Request, loadContext);
@@ -108,7 +108,7 @@ export function createRequestHandler({
     segment?.close();
     // until here =================================================================================
     console.log(`Returning Response for path: ${request.url} with status: ${response.status}`);
-    let cloudfrontHeaders = createCloudFrontHeaders(response.headers);
+    const cloudfrontHeaders = createCloudFrontHeaders(response.headers);
     // add server timing header to headers
     cloudfrontHeaders["server-timing"] = [
       {
@@ -130,7 +130,7 @@ export function createRequestHandler({
  * @param responseHeaders
  */
 export function createCloudFrontHeaders(responseHeaders: Headers): CloudFrontHeaders {
-  let headers: CloudFrontHeaders = {};
+  const headers: CloudFrontHeaders = {};
 
   for (const [key, value] of responseHeaders) {
     const values = value.split(", ");
@@ -143,10 +143,10 @@ export function createCloudFrontHeaders(responseHeaders: Headers): CloudFrontHea
 }
 
 export function createRemixHeaders(requestHeaders: CloudFrontHeaders): Headers {
-  let headers = new Headers();
+  const headers = new Headers();
 
-  for (let [key, values] of Object.entries(requestHeaders)) {
-    for (let { value } of values) {
+  for (const [key, values] of Object.entries(requestHeaders)) {
+    for (const { value } of values) {
       if (value) {
         headers.append(key, value);
       }
@@ -161,11 +161,11 @@ export function createRemixHeaders(requestHeaders: CloudFrontHeaders): Headers {
  * @param event
  */
 export function createRemixRequest(event: CloudFrontRequestEvent): Request {
-  let request = event.Records[0].cf.request;
+  const request = event.Records[0].cf.request;
 
-  let host = request.headers["host"] ? request.headers["host"][0].value : undefined;
-  let search = request.querystring.length ? `?${request.querystring}` : "";
-  let url = new URL(request.uri + search, `https://${host}`);
+  const host = request.headers["host"] ? request.headers["host"][0].value : undefined;
+  const search = request.querystring.length ? `?${request.querystring}` : "";
+  const url = new URL(request.uri + search, `https://${host}`);
 
   return new Request(url.toString(), {
     method: request.method,
