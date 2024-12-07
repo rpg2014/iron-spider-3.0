@@ -2,7 +2,7 @@ import { IncomingMessage, ServerResponse } from "node:http";
 import { Readable } from "node:stream";
 
 export function convertFetchToHttp(request: Request, response: Response): { req: IncomingMessage; res: ServerResponse } {
-  // Convert Request to IncomingMessage
+  // Convert Request to IncomingMessage with dummy socket
   const req = new IncomingMessage(null);
   req.method = request.method;
   req.url = request.url;

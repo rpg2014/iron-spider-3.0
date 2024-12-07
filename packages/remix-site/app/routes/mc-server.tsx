@@ -1,5 +1,5 @@
-import { MetaFunction, useLocation, useLoaderData } from "@remix-run/react";
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import { MetaFunction, useLocation, useLoaderData } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 import { useServers } from "~/hooks/MCServerHooks";
 import logo from "~/images/minecraft-logo-17.png";
 import { ServerStatus, MCServerApi } from "~/service/MCServerService";

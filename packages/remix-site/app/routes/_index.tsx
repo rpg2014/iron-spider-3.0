@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from "react-router";
 import styles from "~/styles/index.module.css";
 import { useEffect, useState } from "react";
 

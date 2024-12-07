@@ -1,6 +1,6 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "react-router";
 import { add } from "../rust.server";
-import { NavLink, Outlet, useLoaderData } from "@remix-run/react";
+import { NavLink, Outlet, useLoaderData } from "react-router";
 import { useEffect, useState } from "react";
 import init, { Universe, greet } from "client-rust-functions";
 import { Button } from "~/components/ui/Button";

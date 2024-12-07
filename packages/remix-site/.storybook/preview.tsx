@@ -2,7 +2,7 @@ import type { Preview } from "@storybook/react";
 import "tailwindcss/tailwind.css";
 import "../app/styles/global.css";
 import "../app/styles/themes.css";
-import { createRemixStub } from "@remix-run/testing";
+import { createRoutesStub } from "react-router";
 import { withThemeByClassName } from "@storybook/addon-themes";
 import React, { Component } from "react";
 
@@ -25,7 +25,7 @@ const preview: Preview = {
       </body>
     ),
     Story => {
-      const Stub = createRemixStub([
+      const Stub = createRoutesStub([
         {
           path: "/*",
           Component: Story,

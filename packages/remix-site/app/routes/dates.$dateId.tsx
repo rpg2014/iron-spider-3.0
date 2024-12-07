@@ -12,10 +12,11 @@ import {
   Link,
   NavLink,
   useLocation,
-} from "@remix-run/react";
-import type { ClientLoaderFunctionArgs, Navigation } from "@remix-run/react";
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/server-runtime";
-import { redirectDocument } from "@remix-run/server-runtime";
+  data,
+} from "react-router";
+import type { ClientLoaderFunctionArgs, Navigation } from "react-router";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
+import { redirectDocument } from "react-router";
 import DateCard from "~/components/date_tracker/DateCard";
 import { DateService, getDateService } from "~/service/DateService";
 import { getHeaders, getLoginRedirect } from "~/utils";
@@ -27,7 +28,8 @@ import { Button } from "~/components/ui/Button";
 import { Alert } from "~/components/ui/Alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "~/components/ui/Dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "~/components/ui/Drawer.client";
-import { useMediaQuery, useMediaQueryV2 } from "~/hooks/useMediaQuery";
+import { useMediaQueryV2 } from "~/hooks/useMediaQuery";
+import { Route } from "./+types/dates.$dateId";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { hasCookie, userData } = await checkCookieAuth(request);
@@ -36,7 +38,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     return redirectDocument(getLoginRedirect(request.url));
   }
   if (!params.dateId) {
-    return redirectDocument(`/dates`, 303);
+    return redirect(`/dates`, 303);
   }
   try {
     const dateService = getDateService();
@@ -48,7 +50,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     return { date, userData, connectedUsers: connectedUsers.users };
   } catch (e: any) {
     console.error(e);
-    throw new Response(JSON.stringify({ message: e.message }), { status: 500 });
+    throw data(JSON.stringify({ message: e.message }), { status: 500 });
   }
 };
 
@@ -71,8 +73,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function DateDetails() {
-  const { dateId } = useParams();
-  const { date, userData, connectedUsers } = useLoaderData<typeof loader>();
+  const { dateId } = useParams();                                         // pinning type until react-router typeing works better
+  const { date, userData, connectedUsers } = useLoaderData<typeof loader>() as {date: DateInfo, userData: {userId: string, displayName: string}, connectedUsers: {userId: string, displayName: string}[]};
   const [editMode, setEditMode] = useState(false);
 
   const actionData = useActionData<typeof action>();

@@ -1,5 +1,5 @@
-import type { MetaFunction } from "@remix-run/react";
-import { NavLink, Outlet, useNavigation } from "@remix-run/react";
+import type { MetaFunction } from "react-router";
+import { NavLink, Outlet, useNavigation } from "react-router";
 import { useState } from "react";
 import { ErrorBoundary as EB } from "~/components/ErrorBoundary";
 import { Button } from "~/components/ui/Button";

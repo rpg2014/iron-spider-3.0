@@ -1,6 +1,6 @@
 import * as React from "react";
 import "../styles/intranetLinks.css?url";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "react-router";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import { Button } from "~/components/ui/Button";
 import { useEffect, useState } from "react";

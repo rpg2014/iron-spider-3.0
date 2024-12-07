@@ -3,7 +3,7 @@ import type { DateInfo } from "iron-spider-client";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/Card";
 import styles from "./DateCard.module.css";
 import { Skeleton } from "../ui/Skeleton";
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 import { BookHeartIcon, Calendar, CalendarIcon, MapPin, MapPinIcon, UserRoundIcon } from "lucide-react";
 
 interface DateCardProps {

@@ -1,4 +1,4 @@
-import { MetaFunction, Outlet, useLoaderData } from "@remix-run/react";
+import { MetaFunction, Outlet, useLoaderData } from "react-router";
 import * as EB from "~/components/ErrorBoundary";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import AuthGate from "~/components/AuthGate";

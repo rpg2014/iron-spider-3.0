@@ -1,17 +1,17 @@
-import type { LinksFunction } from "@remix-run/node";
-import type { MetaFunction } from "@remix-run/react";
-import { NavLink, isRouteErrorResponse, useRouteError, Link, Outlet, ClientActionFunctionArgs, Form, useLoaderData } from "@remix-run/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import type { LinksFunction } from "react-router";
+import type { MetaFunction } from "react-router";
+import {
+  NavLink,
+  isRouteErrorResponse,
+  useRouteError,
+  Outlet,
+  useLoaderData,
+} from "react-router";
+import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
-import { AUTH_DOMAIN } from "~/constants";
-import { Button } from "~/components/ui/Button";
-import { CogIcon } from "lucide-react";
 import * as EB from "~/components/ErrorBoundary";
 import styles from "~/styles/chat.css?url";
 import { useLocalStorage } from "~/hooks/useLocalStorage.client";
-import { Slider } from "~/components/ui/Slider";
-import { Input } from "~/components/ui/Input";
-import { Label } from "~/components/ui/Label";
 import type { StatusResponse } from "~/genAi/spiderAssistant";
 import { assistant } from "~/genAi/spiderAssistant";
 import { AIBackendStatus } from "~/components/chat/Status";

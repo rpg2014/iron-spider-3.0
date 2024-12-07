@@ -5,7 +5,7 @@ import type { AIEndpointSettings, AISettings } from "../genAi/genAiUtils";
 import { useLocalStorage } from "./useLocalStorage.client";
 import type { AgentStep, Input, Output, Step } from "~/genAi/spiderAssistant";
 import { assistant } from "~/genAi/spiderAssistant";
-import { useOutletContext } from "@remix-run/react";
+import { useOutletContext } from "react-router";
 import { createMessage } from "~/components/chat/Messages/Messages.client";
 import type { Message } from "~/components/chat/Messages/model";
 import type { OutletState } from "~/routes/chat";

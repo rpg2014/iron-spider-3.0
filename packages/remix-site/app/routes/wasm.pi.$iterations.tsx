@@ -1,5 +1,5 @@
-import type { HeadersFunction, ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, useLoaderData, useOutletContext } from "@remix-run/react";
+import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
+import { data, useLoaderData, useOutletContext } from "react-router";
 import { estimatePi } from "~/rust.server";
 import type { WASMOutletContext } from "./wasm.pi";
 
@@ -15,7 +15,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   console.log(`Got Request for pi estimate with ${params.iterations} iterations`);
   const piResult = estimatePi(Number(params.iterations));
   console.log(`Calculated pi to be ${piResult}`);
-  return json({ estimation: piResult }, { headers: { "Cache-Control": "max-age=600, immutable" } });
+  return data({ estimation: piResult }, { headers: { "Cache-Control": "max-age=600, immutable" } });
 };
 
 export default function Pi() {

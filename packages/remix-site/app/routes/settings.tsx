@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { API_DOMAIN_VERSION, AUTH_DOMAIN, notificationSettingKey } from "~/constants";
 import { fetcher } from "~/utils";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
-import { useLoaderData, useRevalidator } from "@remix-run/react";
-import { IronSpiderAPI } from "~/service/IronSpiderClient";
+import { useLoaderData, useRevalidator } from "react-router";
 import { Label } from "~/components/ui/Label";
 
 //TODO: remove this loader if this adds latency and shit
@@ -41,7 +40,7 @@ export default function Settings() {
             //     localStorage.setItem(notificationSettingKey, !notificationsOptIn)
             // } else {
             Notification.requestPermission().then((result: string | undefined) => {
-              setNotificationPermission(result);
+              setNotificationPermission(result as NotificationPermission);
               if (result === "granted" && "localStorage" in window) {
                 localStorage.setItem(notificationSettingKey, result);
               }

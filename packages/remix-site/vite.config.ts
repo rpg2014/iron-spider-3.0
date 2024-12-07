@@ -1,4 +1,4 @@
-import { vitePlugin as remix } from "@remix-run/dev";
+import { reactRouter } from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
@@ -6,18 +6,6 @@ import react from "@vitejs/plugin-react";
 import { muteWarningsPlugin } from "./configuration/MuteWarnings";
 import { visualizer } from "rollup-plugin-visualizer";
 
-declare module "@remix-run/node" {
-  // or cloudflare, deno, etc.
-  interface Future {
-    v3_singleFetch: true;
-  }
-}
-declare module "@remix-run/server-runtime" {
-  // or cloudflare, deno, etc.
-  interface Future {
-    v3_singleFetch: true;
-  }
-}
 
 const warningsToIgnore: string[][] = [
   ["SOURCEMAP_ERROR", "Can't resolve original location of error"],
@@ -42,24 +30,7 @@ export default defineConfig({
   },
   plugins: [
     !isStorybook
-      ? remix({
-          appDirectory: "app",
-          buildDirectory: "build",
-          ignoredRouteFiles: ["**/.*"],
-          // publicPath: "/assets",
-          serverBuildFile: "index.js",
-          // I cant get lambda to fully support esm, i get dynamic import related errors. jk i guess
-          serverModuleFormat: "esm",
-          manifest: false,
-          future: {
-            v3_fetcherPersist: true,
-            v3_throwAbortReason: true,
-            v3_lazyRouteDiscovery: true,
-            v3_relativeSplatPath: true,
-            v3_singleFetch: true,
-            v3_routeConfig: true,
-          },
-        })
+      ? reactRouter()
       : react(),
     tsconfigPaths(),
     wasm(),

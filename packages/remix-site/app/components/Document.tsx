@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Links, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
+import { Links, Meta, Scripts, ScrollRestoration } from "react-router";
 import { useTheme } from "~/hooks/useTheme";
 
 const registerServiceWorker = async () => {

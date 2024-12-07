@@ -1,8 +1,8 @@
 import { URL } from "url";
-import { createRequestHandler as createRemixRequestHandler } from "@remix-run/node";
+import { createRequestHandler as createRemixRequestHandler } from "react-router";
 import * as AWSXRay from "aws-xray-sdk";
 import type { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontHeaders } from "aws-lambda";
-import type { AppLoadContext, ServerBuild } from "@remix-run/server-runtime";
+import type { AppLoadContext, ServerBuild } from "react-router";
 import { convertFetchToHttp } from "./utils";
 
 export interface GetLoadContextFunction {
@@ -104,7 +104,7 @@ export function createRequestHandler({
     }
     // convert Request to http.IncomingRequest
     const { req, res } = convertFetchToHttp(request, response);
-    AWSXRay.middleware.traceRequestResponseCycle(req, res);
+    AWSXRay.middleware.traceRequestResponseCycle(req, res).close();
     segment?.close();
     // until here =================================================================================
     console.log(`Returning Response for path: ${request.url} with status: ${response.status}`);

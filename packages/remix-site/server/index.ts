@@ -1,11 +1,9 @@
-import { installGlobals } from "@remix-run/node";
 import { createRequestHandler } from "./createRequestHandler";
 import sourceMapSupport from "source-map-support";
 
 sourceMapSupport.install();
 
-//Is needed? Not sure when node 18
-installGlobals();
+
 declare global {
   let awslambda: {
     streamifyResponse: any;

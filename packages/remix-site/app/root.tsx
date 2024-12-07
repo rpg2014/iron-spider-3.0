@@ -1,5 +1,5 @@
-import { Outlet, MetaFunction, useLoaderData } from "@remix-run/react";
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import { Outlet, MetaFunction, useLoaderData } from "react-router";
+import type { LinksFunction, LoaderFunctionArgs } from "react-router";
 import globalStylesUrl from "~/styles/global.css?url";
 import themeUrl from "~/styles/themes.css?url";
 import favicon from "~/images/favicon.ico";

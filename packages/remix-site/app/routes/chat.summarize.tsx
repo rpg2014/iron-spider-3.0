@@ -1,4 +1,4 @@
-import { isRouteErrorResponse, useOutletContext, useRouteError } from "@remix-run/react";
+import { isRouteErrorResponse, useOutletContext, useRouteError } from "react-router";
 import * as EB from "~/components/ErrorBoundary";
 import Messages from "~/components/chat/Messages/Messages.client";
 import ChatBox from "~/components/chat/chatbox";

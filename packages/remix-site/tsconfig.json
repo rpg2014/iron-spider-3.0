@@ -1,5 +1,5 @@
 {
-  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "server/index.ts", "bin/cdk-remix-app.ts", "configuration/build_remix_app.ts"],
+  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "server/index.ts", "bin/cdk-remix-app.ts", "configuration/build_remix_app.ts", ".react-router/types/**/*"],
   "exclude": ["node_modules", "cdk.out", "service-worker"],
   "compilerOptions": {
     "lib": ["dom", "DOM.Iterable", "ESNext"],
@@ -8,7 +8,8 @@
     //migrating to vite
     "skipLibCheck": true,
     "module": "ESNext",
-    "types": ["@remix-run/node", "vite/client"],
+    "types": ["@react-router/node", "vite/client", "node"],
+    "rootDirs": [".", "./.react-router/types"],
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "target": "ES2019",
@@ -16,7 +17,6 @@
     "paths": {
       "~/*": ["./app/*"]
     },
-
     // Remix takes care of building everything in `remix build`.
     "noEmit": true
   }

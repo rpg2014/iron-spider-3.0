@@ -13,7 +13,7 @@ async function _(): Promise<void> {
     outfile: "lambda_server.js",
     outDir: path.join(__dirname, "../dist"),
     absWorkingDir: "/home/rpg/iron-spider-3.0/packages/remix-site",
-    format: "cjs",
+    format: "esm",
     sourceMaps: false,
     plugins: [
       //  doesn't work due to top level await until remix supports building to esm

@@ -1,18 +1,16 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import type { ClientActionFunctionArgs } from "@remix-run/react";
-import { Link, useActionData, useFetcher, useNavigate, useSubmit } from "@remix-run/react";
+import { data, Link, useActionData, useFetcher, useNavigate, useSubmit } from "react-router";
 import { Input } from "~/components/ui/Input";
 import { LocationService } from "~/service/DateService";
 import * as EB from "~/components/ErrorBoundary";
-import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/Button";
 import { getHeaders } from "~/utils";
+import { Route } from "./+types/dates.create";
 
-export const clientAction = async ({ request, context }: ClientActionFunctionArgs) => {
+export const clientAction = async ({ request }: Route.ClientActionArgs) => {
   const formData = await request.formData();
   const searchText = formData.get("searchText");
   if (!searchText) {
-    throw new Response("Search text is required", { status: 400 });
+    throw data("Search text is required", { status: 400 });
   }
   try {
     const response = await new LocationService().searchForLocation(searchText.toString(), getHeaders(request)); //, {
@@ -26,11 +24,11 @@ export const clientAction = async ({ request, context }: ClientActionFunctionArg
     return response;
   } catch (e: any) {
     console.log(e);
-    throw new Response(JSON.stringify({ message: e.message }), { status: 500, statusText: "Internal Server Error" });
+    throw data(JSON.stringify({ message: e.message }), { status: 500, statusText: "Internal Server Error" });
   }
 };
 
-export default function StartDateCreation() {
+export default function StartDateCreation({actionData}: Route.ComponentProps) {
   const { Form, data, state } = useFetcher<typeof clientAction>({ key: "location-data" });
   const isSubmitting = state === "submitting";
   return (

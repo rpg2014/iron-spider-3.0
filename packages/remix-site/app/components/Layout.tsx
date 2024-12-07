@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link, useNavigation } from "@remix-run/react";
+import { Link, useNavigation } from "react-router";
 import layoutStyles from "~/styles/layout.css?url";
 import { Suspense } from "react";
 import { NavMenu } from "./NavMenu/NavMenu";

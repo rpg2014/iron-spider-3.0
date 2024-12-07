@@ -1,5 +1,5 @@
-import { ClientLoaderFunctionArgs, json, Link, useLoaderData } from "@remix-run/react";
-import type { LoaderFunctionArgs } from "@remix-run/server-runtime";
+import { data, Link, useLoaderData } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 import type { DateInfo } from "iron-spider-client";
 import { Plus } from "lucide-react";
 import DateCard from "~/components/date_tracker/DateCard";
@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/Button";
 import { getDateService } from "~/service/DateService";
 import { getHeaders } from "~/utils";
 import { checkCookieAuth } from "~/utils.server";
+import { Route } from "./+types/dates._index";
 
 /**
  *
@@ -15,7 +16,7 @@ import { checkCookieAuth } from "~/utils.server";
  * @param param0
  * @returns
  */
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ request }: Route.LoaderArgs) => {
   const { hasCookie, userData } = await checkCookieAuth(request);
   const dateService = getDateService();
   if (hasCookie && userData) {
@@ -24,7 +25,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         pageSize: 10,
         headers: getHeaders(request),
       });
-      if (userDates.items === undefined) throw json({ message: `userDates.items is undefined` }, { status: 500 });
+      if (userDates.items === undefined) throw data({ message: `userDates.items is undefined` }, { status: 500 });
 
       const items = userDates.items;
       console.log(`Got user ListDates response: ${JSON.stringify(userDates)}`);
@@ -37,11 +38,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return { loggedIn: false, items: [] };
 };
 
-export default function Index() {
-  const dates = useLoaderData<typeof loader>();
+export default function Index({loaderData}: Route.ComponentProps) {
+  const dates = loaderData;
 
   return (
-    <div className="min-h-[100%] bg-gradient-to-b from-inherit to-gray-800 px-4 py-8">
+    (<div className="min-h-[100%] bg-gradient-to-b from-inherit to-gray-800 px-4 py-8">
       <div className="mx-auto max-w-4xl space-y-8">
         {/* Header Section */}
         <div className="mb-8 flex items-center justify-between">
@@ -62,7 +63,7 @@ export default function Index() {
           </div>
         ) : (
           /* Date Cards Grid */
-          <div className="grid animate-fade-in gap-6">
+          (<div className="grid animate-fade-in gap-6">
             {dates.items?.map(date => {
               if (!date) return null;
               return (
@@ -71,9 +72,9 @@ export default function Index() {
                 </div>
               );
             })}
-          </div>
+          </div>)
         )}
       </div>
-    </div>
+    </div>)
   );
 }

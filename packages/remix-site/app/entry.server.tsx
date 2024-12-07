@@ -6,9 +6,9 @@
 
 import { PassThrough } from "node:stream";
 
-import type { AppLoadContext as ALC, EntryContext } from "@remix-run/node";
-import { createReadableStreamFromReadable } from "@remix-run/node";
-import { RemixServer } from "@remix-run/react";
+import type { AppLoadContext as ALC, EntryContext } from "react-router";
+import { createReadableStreamFromReadable } from "@react-router/node";
+import { ServerRouter } from "react-router";
 import { isbot } from "isbot";
 import { renderToPipeableStream, renderToString } from "react-dom/server";
 import { useStreams } from "../lib/constants";
@@ -17,12 +17,12 @@ const ABORT_DELAY = 5_000;
 // Reject/cancel all pending promises after 5 seconds
 export const streamTimeout = ABORT_DELAY + 1000;
 
-type AppLoadContext = ALC & { traceId?: string };
+type AppLoadContext = ALC 
 export default function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext,
+  reactRouterContext: EntryContext,
   loadContext: AppLoadContext,
 ) {
   // If using https streaming compatble runtime, stream the response depending on if its a crawler
@@ -30,18 +30,18 @@ export default function handleRequest(
   if (useStreams) {
     return isbot(request.headers.get("user-agent"))
       ? // for SEO purposes, we still want to not stream if it's a bot
-        handleRequestWithoutStream(request, responseStatusCode, responseHeaders, remixContext)
-      : handleRequestWithStream(request, responseStatusCode, responseHeaders, remixContext);
+        handleRequestWithoutStream(request, responseStatusCode, responseHeaders, reactRouterContext)
+      : handleRequestWithStream(request, responseStatusCode, responseHeaders, reactRouterContext);
   } else {
     // handle without streaming
-    return handleRequestWithoutStream(request, responseStatusCode, responseHeaders, remixContext);
+    return handleRequestWithoutStream(request, responseStatusCode, responseHeaders, reactRouterContext);
   }
 }
 
-function handleRequestWithoutStream(request: Request, responseStatusCode: number, responseHeaders: Headers, remixContext: EntryContext) {
+function handleRequestWithoutStream(request: Request, responseStatusCode: number, responseHeaders: Headers, reactRouterContext: EntryContext) {
   return new Promise((resolve, reject) => {
     let shellRendered = false;
-    const { pipe, abort } = renderToPipeableStream(<RemixServer context={remixContext} url={request.url} />, {
+    const { pipe, abort } = renderToPipeableStream(<ServerRouter context={reactRouterContext} url={request.url} />, {
       onAllReady() {
         shellRendered = true;
         const body = new PassThrough();
@@ -75,10 +75,10 @@ function handleRequestWithoutStream(request: Request, responseStatusCode: number
   });
 }
 
-function handleRequestWithStream(request: Request, responseStatusCode: number, responseHeaders: Headers, remixContext: EntryContext) {
+function handleRequestWithStream(request: Request, responseStatusCode: number, responseHeaders: Headers, reactRouterContext: EntryContext) {
   return new Promise((resolve, reject) => {
     let shellRendered = false;
-    const { pipe, abort } = renderToPipeableStream(<RemixServer context={remixContext} url={request.url} />, {
+    const { pipe, abort } = renderToPipeableStream(<ServerRouter context={reactRouterContext} url={request.url} />, {
       onShellReady() {
         shellRendered = true;
         const body = new PassThrough();

@@ -6,13 +6,12 @@
 // Remix won't even try to figure things out on its own, it'll just completely
 // ignore it for the browser bundles. On a related note, crypto can't be
 // imported directly into a route module, but if it's in this file you're fine.
-import type { LoaderFunctionArgs } from "@remix-run/server-runtime";
-import { json, redirectDocument } from "@remix-run/server-runtime";
+import type { LoaderFunctionArgs } from "react-router";
 import { createHash } from "crypto";
 import { PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "./constants";
 import pkg from "jsonwebtoken";
 import { fetcher } from "./utils";
-import { createCookie } from "@remix-run/node";
+import { createCookie } from "react-router";
 const { verify } = pkg;
 type JwtPayload = pkg.JwtPayload;
 
@@ -76,11 +75,11 @@ export const checkCookieAuth = async (request: Request) => {
   }
 };
 
-const refreshKey = async (headers: Headers) => {
+const refreshKey = async (headers: Headers): Promise<{ keys?: string[]; } | undefined> => {
   return await fetcher(
     PUBLIC_KEYS_PATH,
     {
-      headers: { ...headers, Cookie: headers.get("Cookie") },
+      headers: { ...headers, Cookie: headers.get("Cookie") ?? undefined },
     },
     false,
   );
@@ -90,7 +89,7 @@ export const DEFAULT_AUTH_LOADER = async ({ request }: LoaderFunctionArgs) => {
   //to add a delay in the response
   // const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   // await sleep(1000);
-  return json({ ...(await checkCookieAuth(request)), currentUrl: request.url });
+  return { ...(await checkCookieAuth(request)), currentUrl: request.url };
 };
 
 export type VerifyWithKeyOptions = {
