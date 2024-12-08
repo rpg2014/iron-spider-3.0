@@ -8,9 +8,9 @@ const authService = new AuthenticationService();
 export const authHandler = async (event: event, context) => {
     console.log(`[AuthHandler] Received request for path: ${event.path}, method: ${event.httpMethod}`);
     console.log(`[AuthHandler] Request context: ${JSON.stringify(event.requestContext)}`);
-    
+    // console.debug(`[AuthHandler] Request event: ${JSON.stringify(event)}`);
     const token: string | undefined = event.headers["spider-access-token"];
-    const cookieString: string | undefined = event.headers["cookie"];
+    const cookieString: string | undefined = event.headers["cookie"] ?? event.headers["Cookie"];
     let cookieAuthResult: AuthenticationResult | undefined;
 
     const isBypassRoute = AUTH_CONFIG.BYPASS_AUTH_PATHS.some(bypassedPath => event.path.startsWith(bypassedPath));

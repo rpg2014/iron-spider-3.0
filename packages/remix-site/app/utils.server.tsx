@@ -10,7 +10,7 @@ import type { LoaderFunctionArgs } from "react-router";
 import { createHash } from "crypto";
 import { PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "./constants";
 import pkg from "jsonwebtoken";
-import { fetcher } from "./utils";
+import { fetcher, getHeaders } from "./utils";
 import { createCookie } from "react-router";
 const { verify } = pkg;
 type JwtPayload = pkg.JwtPayload;
@@ -43,7 +43,7 @@ export const checkCookieAuth = async (request: Request) => {
     // const authCookie = authCookieString.split("=")[1];
     if (!publicKey) {
       try {
-        publicKey = await refreshKey(request.headers);
+        publicKey = await refreshKey(getHeaders(request));
       } catch (e) {
         console.warn("Error fetching public key, prob not authorized", e);
         return { hasCookie: false, userData: undefined };
@@ -59,7 +59,7 @@ export const checkCookieAuth = async (request: Request) => {
         // async refresh the key.  Only matters if lambda is getting reused right around a
         // deployment?
         setTimeout(async () => {
-          publicKey = await refreshKey(request.headers);
+          publicKey = await refreshKey(getHeaders(request));
         });
         return { hasCookie: false, userData: undefined };
       }
@@ -79,7 +79,7 @@ const refreshKey = async (headers: Headers): Promise<{ keys?: string[]; } | unde
   return await fetcher(
     PUBLIC_KEYS_PATH,
     {
-      headers: { ...headers, Cookie: headers.get("Cookie") ?? undefined },
+      headers,
     },
     false,
   );

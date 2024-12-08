@@ -18363,8 +18363,6 @@ __metadata:
   version: 0.1.2
   resolution: "server-rust-functions@file:./rust-wasm/server-code/pkg#./rust-wasm/server-code/pkg::hash=ea4a35&locator=remix-site%40workspace%3Apackages%2Fremix-site"
   checksum: 10/a1927f85ae0d5e5c54c721217b6c08ba9cf52f0f400a3779ce60735a004aea24bdaa3d5277ad11be84587491a296f91fe5d11400140c7363b9d81ace2ba9d5d0
-  resolution: "server-rust-functions@file:./rust-wasm/server-code/pkg#./rust-wasm/server-code/pkg::hash=ea4a35&locator=remix-site%40workspace%3Apackages%2Fremix-site"
-  checksum: 10/a1927f85ae0d5e5c54c721217b6c08ba9cf52f0f400a3779ce60735a004aea24bdaa3d5277ad11be84587491a296f91fe5d11400140c7363b9d81ace2ba9d5d0
   languageName: node
   linkType: hard
 
