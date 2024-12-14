@@ -18,7 +18,7 @@ const NavLink = ({ to, ...props }: { to: string } & any) => {
 
   return (
     <NavigationMenuLink className={props.className} asChild active={isActive}>
-      <Link to={to} prefetch="viewport" {...props} className={"NavigationMenuLink"} />
+      <Link to={to} prefetch="render" {...props} className={"NavigationMenuLink"} />
     </NavigationMenuLink>
   );
 };
@@ -33,7 +33,7 @@ export const NavMenu = () => {
           </NavLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavLink prefetch={"viewport"} to={"/mc-server"} className={navigationMenuTriggerStyle()}>
+          <NavLink prefetch={"render"} to={"/mc-server"} className={navigationMenuTriggerStyle()}>
             <ServerNavMenuItem />
           </NavLink>
         </NavigationMenuItem>
@@ -53,7 +53,7 @@ export const NavMenu = () => {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavLink prefetch={"viewport"} to={"/settings"} className={navigationMenuTriggerStyle()}>
+          <NavLink prefetch={"render"} to={"/settings"} className={navigationMenuTriggerStyle()}>
             Settings
           </NavLink>
         </NavigationMenuItem>

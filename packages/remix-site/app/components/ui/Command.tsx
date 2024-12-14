@@ -19,7 +19,7 @@ const Command = React.forwardRef<React.ElementRef<typeof CommandPrimitive>, Reac
 );
 Command.displayName = CommandPrimitive.displayName;
 
-type CommandDialogProps = DialogProps
+type CommandDialogProps = DialogProps;
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (

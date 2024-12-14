@@ -38,11 +38,11 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
   return { loggedIn: false, items: [] };
 };
 
-export default function Index({loaderData}: Route.ComponentProps) {
+export default function Index({ loaderData }: Route.ComponentProps) {
   const dates = loaderData;
 
   return (
-    (<div className="min-h-[100%] bg-gradient-to-b from-inherit to-gray-800 px-4 py-8">
+    <div className="min-h-[100%] bg-gradient-to-b from-inherit to-gray-800 px-4 py-8">
       <div className="mx-auto max-w-4xl space-y-8">
         {/* Header Section */}
         <div className="mb-8 flex items-center justify-between">
@@ -63,7 +63,7 @@ export default function Index({loaderData}: Route.ComponentProps) {
           </div>
         ) : (
           /* Date Cards Grid */
-          (<div className="grid animate-fade-in gap-6">
+          <div className="grid animate-fade-in gap-6">
             {dates.items?.map(date => {
               if (!date) return null;
               return (
@@ -72,9 +72,9 @@ export default function Index({loaderData}: Route.ComponentProps) {
                 </div>
               );
             })}
-          </div>)
+          </div>
         )}
       </div>
-    </div>)
+    </div>
   );
 }

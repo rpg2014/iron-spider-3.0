@@ -1,12 +1,5 @@
-import type { LinksFunction } from "react-router";
-import type { MetaFunction } from "react-router";
-import {
-  NavLink,
-  isRouteErrorResponse,
-  useRouteError,
-  Outlet,
-  useLoaderData,
-} from "react-router";
+import type { LinksFunction, MetaFunction } from "react-router";
+import { NavLink, isRouteErrorResponse, useRouteError, Outlet, useLoaderData } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import * as EB from "~/components/ErrorBoundary";

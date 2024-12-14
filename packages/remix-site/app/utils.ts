@@ -70,8 +70,8 @@ export const getLoginRedirect = (returnLocation: string) =>
 
 /**
  * Extracts the cookie from the request
- * @param request 
- * @returns 
+ * @param request
+ * @returns
  */
 export const getHeaders = (request: Request) => ({
   ...request.headers,

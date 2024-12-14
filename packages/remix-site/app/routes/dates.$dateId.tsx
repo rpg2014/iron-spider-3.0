@@ -13,10 +13,9 @@ import {
   NavLink,
   useLocation,
   data,
+  redirectDocument,
 } from "react-router";
-import type { ClientLoaderFunctionArgs, Navigation } from "react-router";
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirectDocument } from "react-router";
+import type { ClientLoaderFunctionArgs, Navigation, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import DateCard from "~/components/date_tracker/DateCard";
 import { DateService, getDateService } from "~/service/DateService";
 import { getHeaders, getLoginRedirect } from "~/utils";
@@ -73,8 +72,12 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function DateDetails() {
-  const { dateId } = useParams();                                         // pinning type until react-router typeing works better
-  const { date, userData, connectedUsers } = useLoaderData<typeof loader>() as {date: DateInfo, userData: {userId: string, displayName: string}, connectedUsers: {userId: string, displayName: string}[]};
+  const { dateId } = useParams(); // pinning type until react-router typeing works better
+  const { date, userData, connectedUsers } = useLoaderData<typeof loader>() as {
+    date: DateInfo;
+    userData: { userId: string; displayName: string };
+    connectedUsers: { userId: string; displayName: string }[];
+  };
   const [editMode, setEditMode] = useState(false);
 
   const actionData = useActionData<typeof action>();

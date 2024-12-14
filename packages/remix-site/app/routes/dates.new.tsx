@@ -107,10 +107,7 @@ export const loader = async ({ request, context, params }: Route.LoaderArgs) => 
   }
 };
 
-export default function Index({
-  loaderData,
-  actionData,
-}: Route.ComponentProps) {
+export default function Index({ loaderData, actionData }: Route.ComponentProps) {
   const { location, connectedUsers } = loaderData as { location: Place; connectedUsers: ConnectedUser[] };
   // const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -128,7 +125,7 @@ export default function Index({
           </CardFooter>
         </Card>
       </Form>
-      {(actionData as {error: string})?.error && <Alert variant="light_destructive">{(actionData as {error: string}).error}</Alert>}
+      {(actionData as { error: string })?.error && <Alert variant="light_destructive">{(actionData as { error: string }).error}</Alert>}
     </>
   );
 }

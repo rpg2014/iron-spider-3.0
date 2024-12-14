@@ -13,7 +13,7 @@ const HEIGHT = 100;
 
 /**
  * TODO: https://claude.ai/chat/ccb6ab51-132c-4658-829d-51cb72d28686
- * @returns 
+ * @returns
  */
 const Index = () => {
   const [wasm, setWasm] = useState<InitOutput>();

@@ -75,7 +75,7 @@ export const checkCookieAuth = async (request: Request) => {
   }
 };
 
-const refreshKey = async (headers: Headers): Promise<{ keys?: string[]; } | undefined> => {
+const refreshKey = async (headers: Headers): Promise<{ keys?: string[] } | undefined> => {
   return await fetcher(
     PUBLIC_KEYS_PATH,
     {

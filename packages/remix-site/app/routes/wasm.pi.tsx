@@ -18,7 +18,7 @@ export default function Pi() {
   const LinkWithButton = ({ iterations }: { iterations: number }) => {
     const iterationsStr = iterations.toLocaleString();
     return (
-      <NavLink onClick={onClick} to={iterations.toString()} className="mr-2 mb-2 inline-block">
+      <NavLink onClick={onClick} to={iterations.toString()} className="mb-2 mr-2 inline-block">
         {({ isActive, isPending }) => <Button variant={isActive ? "outline" : "default"}>{iterationsStr}</Button>}
       </NavLink>
     );

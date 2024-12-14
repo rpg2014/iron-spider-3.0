@@ -6,7 +6,6 @@ import react from "@vitejs/plugin-react";
 import { muteWarningsPlugin } from "./configuration/MuteWarnings";
 import { visualizer } from "rollup-plugin-visualizer";
 
-
 const warningsToIgnore: string[][] = [
   ["SOURCEMAP_ERROR", "Can't resolve original location of error"],
   // ['INVALID_ANNOTATION', 'contains an annotation that Rollup cannot interpret'],
@@ -29,9 +28,7 @@ export default defineConfig({
     include: ["client-rust-functions"],
   },
   plugins: [
-    !isStorybook
-      ? reactRouter()
-      : react(),
+    !isStorybook ? reactRouter() : react(),
     tsconfigPaths(),
     wasm(),
     muteWarningsPlugin(warningsToIgnore),

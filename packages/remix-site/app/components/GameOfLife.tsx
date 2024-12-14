@@ -110,19 +110,19 @@ export const GameOfLife = (props: GameOfLifeProps) => {
 
   return (
     <div className="flex flex-col items-center justify-center  p-2">
-      <div className=" rounded-lg shadow-md max-w-3xl w-full">
-        <p className="text-center  mb-4">
+      <div className=" w-full max-w-3xl rounded-lg shadow-md">
+        <p className="mb-4  text-center">
           This is a web assembly implementation of Conway's Game of Life. Created using the{" "}
-          <a href="https://rustwasm.github.io/book/game-of-life/introduction.html" className="text-blue-600 hover:text-blue-800 transition-colors">
+          <a href="https://rustwasm.github.io/book/game-of-life/introduction.html" className="text-blue-600 transition-colors hover:text-blue-800">
             wasm-game-of-life
           </a>{" "}
           rust tutorial.
         </p>
-        <div className="flex justify-center mb-4">
+        <div className="mb-4 flex justify-center">
           <canvas id="game-of-life-canvas" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} className="border border-gray-300" />
         </div>
         <div className="flex justify-center">
-          <Button onClick={handleReset} className="bg-blue-500 hover:bg-blue-700  py-2 px-4 transition-colors mx-2">
+          <Button onClick={handleReset} className="mx-2 bg-blue-500  px-4 py-2 transition-colors hover:bg-blue-700">
             Reset
           </Button>
           <Button onClick={() => (isRunning ? handlePause() : handlePlay())}>{isRunning ? "Pause" : "Play"}</Button>

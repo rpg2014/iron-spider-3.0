@@ -6,6 +6,7 @@ import { fetcher } from "~/utils";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
 import { useLoaderData, useRevalidator } from "react-router";
 import { Label } from "~/components/ui/Label";
+import { toast } from "sonner";
 
 //TODO: remove this loader if this adds latency and shit
 export const loader = DEFAULT_AUTH_LOADER;
@@ -135,6 +136,7 @@ const LogoutButton = () => {
       // );
     } finally {
       setLoading(false);
+      toast.success("Logged Out", {});
       revalidator.revalidate();
     }
   };

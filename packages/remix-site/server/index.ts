@@ -3,7 +3,6 @@ import sourceMapSupport from "source-map-support";
 
 sourceMapSupport.install();
 
-
 declare global {
   let awslambda: {
     streamifyResponse: any;

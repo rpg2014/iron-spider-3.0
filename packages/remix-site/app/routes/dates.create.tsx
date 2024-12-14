@@ -28,7 +28,7 @@ export const clientAction = async ({ request }: Route.ClientActionArgs) => {
   }
 };
 
-export default function StartDateCreation({actionData}: Route.ComponentProps) {
+export default function StartDateCreation({ actionData }: Route.ComponentProps) {
   const { Form, data, state } = useFetcher<typeof clientAction>({ key: "location-data" });
   const isSubmitting = state === "submitting";
   return (

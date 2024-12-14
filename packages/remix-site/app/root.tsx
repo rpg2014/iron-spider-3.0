@@ -1,5 +1,5 @@
+import type { HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
 import { Outlet, MetaFunction, useLoaderData } from "react-router";
-import type { LinksFunction, LoaderFunctionArgs } from "react-router";
 import globalStylesUrl from "~/styles/global.css?url";
 import themeUrl from "~/styles/themes.css?url";
 import favicon from "~/images/favicon.ico";
@@ -10,6 +10,9 @@ import { ThemeProvider } from "./hooks/useTheme";
 import { ServerProvider } from "./hooks/MCServerHooks";
 import { MCServerApi } from "./service/MCServerService";
 import { getHeaders } from "./utils";
+import { Route } from "./+types/root";
+import { Suspense } from "react";
+import { Toaster } from "./components/ui/Sonner";
 
 export const links: LinksFunction = () => {
   return [
@@ -36,6 +39,15 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   return { initialStatus };
 };
 
+// export const headers: Route.HeadersFunction = () => ({
+//   // cache control 5 mins
+//   "Cache-Control": "public, max-age=300, s-maxage=300",
+//   "X-Frame-Options": "DENY",
+//   "X-Content-Type-Options": "nosniff",
+//   "Referrer-Policy": "no-referrer",
+//   "Permissions-Policy": "geolocation=(self)",
+// });
+
 /**
  * The root module's default export is a component that renders the current
  * route via the `<Outlet />` component. Think of this as the global layout
@@ -52,7 +64,17 @@ export default function App() {
       <ServerProvider initialState={data.initialStatus}>
         <Document>
           <Layout>
-            <Outlet />
+            <Suspense
+              fallback={
+                <div className="flex h-screen items-center justify-center">
+                  <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+                  <span className="sr-only">Loading...</span>
+                </div>
+              }
+            >
+              <Outlet />
+              <Toaster />
+            </Suspense>
           </Layout>
         </Document>
       </ServerProvider>

@@ -17,7 +17,7 @@ const ABORT_DELAY = 5_000;
 // Reject/cancel all pending promises after 5 seconds
 export const streamTimeout = ABORT_DELAY + 1000;
 
-type AppLoadContext = ALC 
+type AppLoadContext = ALC;
 export default function handleRequest(
   request: Request,
   responseStatusCode: number,

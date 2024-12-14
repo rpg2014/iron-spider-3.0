@@ -8,7 +8,7 @@
     //migrating to vite
     "skipLibCheck": true,
     "module": "ESNext",
-    "types": ["@react-router/node", "vite/client", "node"],
+    "types": ["@react-router/node", "vite/client", "node", "jest"],
     "rootDirs": [".", "./.react-router/types"],
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
