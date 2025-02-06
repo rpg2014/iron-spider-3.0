@@ -14,6 +14,12 @@ const TABLE_NAME = "MinecraftAuthZTable";
 
 const client = new DynamoDBClient({ region: "us-east-1" });
 
+/**
+ * TODO: deprecate this, this is only for the old UI
+ * @deprecated
+ * @param userName The cognito username
+ * @returns 
+ */
 export async function isAuthorized(userName: string): Promise<AuthorizationDetails> {
     const itemMap = await getItem(userName);
     if (!itemMap) {

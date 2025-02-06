@@ -40,7 +40,7 @@ export const ServerDetailsOperation: Operation<{}, ServerDetailsOutput, HandlerC
 
 export const StartServerOperation: Operation<{}, StartServerOutput, HandlerContext> = async (input, context) => {
   //only do it for the new auth context, this is handled in the authorizor for the old auth context
-  if (context.displayName) {
+  if (context.displayName && !context.user) {
     console.log("displayName: ", context.displayName);
     const authDetails = await AuthDynamoWrapper.isAuthorized(context.displayName);
     if (!authDetails.allowedToStartServer) {
@@ -59,7 +59,8 @@ export const StartServerOperation: Operation<{}, StartServerOutput, HandlerConte
 };
 
 export const StopServerOperation: Operation<{}, StopServerOutput, HandlerContext> = async (input, context) => {
-  if (context.displayName) {
+  //only do it for the new auth context, this is handled in the authorizor for the old auth context
+  if (context.displayName && !context.user) {
     console.log("displayName: ", context.displayName);
     const authDetails = await AuthDynamoWrapper.isAuthorized(context.displayName);
     if (!authDetails.allowedToStartServer) {

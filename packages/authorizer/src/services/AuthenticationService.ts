@@ -63,11 +63,11 @@ export class AuthenticationService {
         try {
             await this.cognitoVerifier.hydrate();
             const payload = await this.cognitoVerifier.verify(token);
-
+            console.log("Cognito authentication successful for user:", payload.username)
             return {
                 isAuthenticated: true,
-                userId: payload.userName as any,
-                displayName: payload.displayName as any
+                userId: payload.sub as any,
+                displayName: payload.username as any
             };
         } catch (error) {
             console.error("Cognito authentication failed:", error);
@@ -75,7 +75,7 @@ export class AuthenticationService {
         }
     }
 
-    async checkServerAccess(username: string): Promise<AuthenticationResult> {
+    async checkServerAccessForCognitoUsername(username: string): Promise<AuthenticationResult> {
         // Validate username
         if (!username) {
             return { 
