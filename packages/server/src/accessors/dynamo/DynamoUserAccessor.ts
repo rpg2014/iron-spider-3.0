@@ -98,6 +98,7 @@ export class DynamoUserAccessor extends UserAccessor {
     // if length is > 1 filter by the display name.
     if (result.Items.length > 1) {
       if (displayName === null) {
+        // if this error is being thrown, i'll need to add an optional display name field to the login form, to handle this error
         throw new InternalServerError({ message: "This email has more than 1 user, but no DisplayName was provided." });
       }
       result.Items = result.Items.filter(item => item.displayName === displayName);

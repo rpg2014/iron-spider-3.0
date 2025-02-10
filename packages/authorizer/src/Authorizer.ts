@@ -68,7 +68,7 @@ export const authHandler = async (event: event, context) => {
             // Special handling for server start/stop paths, handled in api layer for the cookie auth
             if (Object.values(AUTH_CONFIG.PROTECTED_PATHS).includes(event.path)) {
                 console.log(`[AuthHandler] Checking server access for protected path: ${event.path}`);
-                const serverAccessCheck = await authService.checkServerAccessForCognitoUsername(cognitoAuth.userId || "");
+                const serverAccessCheck = await authService.checkServerAccessForCognitoUsername(cognitoAuth.displayName || "");
                 
                 if (serverAccessCheck.isAuthenticated) {
                     console.log(`[AuthHandler] Server access granted for user: ${cognitoAuth.userId} - ${cognitoAuth.displayName}`);

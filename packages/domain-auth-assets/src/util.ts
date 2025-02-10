@@ -1,4 +1,4 @@
-export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, includeContentType: boolean = true) => {
+export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, includeContentType: boolean = true): Promise<T> => {
   let headers: any = {
     ...init?.headers,
     "spider-access-token": "no-token",
@@ -17,7 +17,7 @@ export const fetcher = async (input: RequestInfo | URL, init?: RequestInit, incl
     console.error(`Got ${res.status} error from backend`);
     throw new Error(data.message);
   }
-  return data;
+  return data as T;
 };
 
 export const isSSR = typeof window === "undefined" || window.document === undefined;

@@ -34,7 +34,7 @@ const AccountInfo = () => {
       setUserData(undefined);
       setError(null);
       try {
-        const results = await fetcher(
+        const results = await fetcher<AccountData>(
           "https://api.parkergiven.com/v1/userInfo",
           {
             credentials: "include",
