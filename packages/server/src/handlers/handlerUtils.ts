@@ -32,6 +32,9 @@ import {
   ListDatesOutput,
   LogoutServerInput,
   LogoutServerOutput,
+  ODICGetInput,
+  ODICOutput,
+  ODICPostInput,
   SearchForLocationInput,
   SearchForLocationOutput,
   ServerDetailsServerInput,
@@ -135,5 +138,18 @@ export const getNoOpFunctions = (): IronSpiderService<HandlerContext> => {
     GetJwks: function (input: GetJwksServerInput, context: HandlerContext): Promise<GetJwksServerOutput> {
       throw new InternalServerError({ message: "Function not implemented." });
     },
+    // //odic
+    // ODICGet: function (input: ODICGetInput, context: HandlerContext): Promise<ODICOutput> {
+    //   throw new InternalServerError({ message: "Function not implemented." });
+    // },
+    // ODICPost: function (input: ODICPostInput, context: HandlerContext): Promise<ODICOutput> {
+    //   throw new InternalServerError({ message: "Function not implemented." });
+    // },
+    // ODICDelete: function (input: ODICGetInput, context: HandlerContext): Promise<ODICOutput> {
+    //   throw new InternalServerError({ message: "Function not implemented." });
+    // },
+    // ODICPut: function (input: ODICPostInput, context: HandlerContext): Promise<ODICOutput> {
+    //   throw new InternalServerError({ message: "Function not implemented." });
+    // },
   };
 };

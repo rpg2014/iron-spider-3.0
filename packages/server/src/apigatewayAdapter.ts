@@ -5,6 +5,9 @@ import { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
 import { HttpResponse } from "@aws-sdk/protocol-http";
 import { validateCors } from "./cors/CorsProcessor";
 import { HandlerContext } from "./model/common";
+// import Provider from "oidc-provider";
+// import { configuration } from "./odic/handler";
+// import { Http2ServerRequest, Http2ServerResponse } from "http2";
 
 const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<string, string> => {
   if (!allowed || !allowed.origin || !allowed.headers) {
@@ -57,11 +60,24 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
     // convert event to smithy handler request
     const httpRequest = convertEvent(event);
+    
     // console.debug("httpRequest:", httpRequest);
     try {
       // validate cors and get response headers
       const allowed = validateCors(httpRequest);
-
+      //handle oidc paths
+      // if(event.path.includes("oidc")){
+      //   console.log("oidc path detected, skipping cors validation");
+      //   const oidc = new Provider("http://localhost:3000", configuration)
+      //   // convert event to res
+      //   const res: Http2ServerRequest = {
+      //     method: event.httpMethod,
+      //     url: event.path,
+      //     headers: event.headers,
+          
+      //   }
+      //   oidc.callback()(res, new Http2ServerResponse())
+      // }
       // Perform the operation
       const httpResponse = await handler.handle(httpRequest, operationContext);
       // console.debug("httpResponse: ", httpResponse);

@@ -71,6 +71,10 @@ const AuthOperations: Partial<IEntryPoints> = {
   UserInfo: null,
   GetPublicKeys: null,
   GetJwks: null,
+//   ODICGet: null,
+//   ODICPost: null,
+//   ODICDelete: null,
+//   ODICPut: null,
 };
 
 const LightweightAPIs: Partial<IEntryPoints> = {

@@ -153,6 +153,14 @@ apply GetConnectedUsers @aws.apigateway#integration(
     uri: ""
 )
 
+apply GetOAuthDetails @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
+
+
+
 apply IronSpider @aws.apigateway#integration(
     type: "aws_proxy",
     httpMethod: "POST",

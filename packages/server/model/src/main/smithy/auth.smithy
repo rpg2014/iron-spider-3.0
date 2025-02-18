@@ -63,6 +63,49 @@ operation GetJwks  with [ValidatedOperation] {
     output: GetJwksOutput
 }
 
+// @http(method: "GET", uri: "/odic/{path+}")
+// operation ODICGet with [ValidatedOperation] {
+//     input: ODICGetInput
+//     output: ODICOutput
+// }
+// @http(method: "DELETE", uri: "/odic/{path+}")
+// operation ODICDelete with [ValidatedOperation]{
+//     input: ODICGetInput
+//     output: ODICOutput
+    
+// }
+// @http(method: "POST", uri: "/odic/{path+}")
+// operation ODICPost with [ValidatedOperation]{
+//     input: ODICPostInput
+//     output: ODICOutput
+    
+// }
+// @http(method: "PUT", uri: "/odic/{path+}")
+// operation ODICPut with [ValidatedOperation]{
+//     input: ODICPostInput
+//     output: ODICOutput
+    
+// }
+
+// structure ODICPostInput {
+//     @httpPayload
+//     thing: String
+//     @httpLabel()
+//     @required
+//     path: String
+// }
+
+// structure ODICGetInput {
+//     @httpLabel()
+//     @required
+//     path: String
+// }
+// structure ODICOutput {
+//     @httpPayload
+//     body: String
+// }
+
+
 
 structure CreateUserInput {
     @required

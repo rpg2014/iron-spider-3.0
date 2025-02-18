@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { API_DOMAIN_VERSION, AUTH_DOMAIN, notificationSettingKey } from "~/constants";
 import { fetcher } from "~/utils";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
-import { useLoaderData, useRevalidator } from "react-router";
+import { useLoaderData, useLocation, useRevalidator } from "react-router";
 import { Label } from "~/components/ui/Label";
 import { toast } from "sonner";
 
@@ -13,12 +13,15 @@ export const loader = DEFAULT_AUTH_LOADER;
 
 export default function Settings() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>();
+  const [redirectUri, setRedirectUri] = useState<string>();
   const { hasCookie } = useLoaderData<typeof loader>();
   // figure out notificaton permission on client side
   useEffect(() => {
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
     }
+    // temp until i set this up better
+    setRedirectUri(encodeURIComponent(window.location.href))
   }, []);
 
   return (
@@ -102,6 +105,13 @@ export default function Settings() {
           </div>
         </>
       )}
+      <div className={styles.setting}>
+        <Label className={styles.settingsLabel}>Login via Oauth</Label>
+        {/* // redirect uri should be the current url */}
+        <a href={`${AUTH_DOMAIN}/authorize?client_id=123&redirect_uri=${redirectUri}&scope=openid%20profile%20email&response_type=code&state=12345`}>
+          <Button variant='secondary'>Login</Button>
+        </a>
+      </div>
     </main>
   );
 }

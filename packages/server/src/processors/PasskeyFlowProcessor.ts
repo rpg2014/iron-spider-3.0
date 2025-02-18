@@ -47,8 +47,8 @@ const processor: PasskeyFlowProcessor = {
         email,
         displayName,
         // credentials: [],
-        apiAccess: ["all"],
-        siteAccess: ["all"],
+        apiAccess: ["general"],
+        siteAccess: ["remix"],
         domainAccess: false,
       });
       throw new NeedDomainAccessError({ message: "Need access, talk to Parker" });
@@ -68,7 +68,6 @@ const processor: PasskeyFlowProcessor = {
     await userAccessor.saveChallenge(user.id, verificationCode);
 
     // send email to user with magic link using ses
-    // console.log(`Not sending email currently. verification code: ${verificationCode}; email: ${email}`);
     console.log("Sending Email");
     await getSESAccessor().sendVerificationEmail(email, verificationCode);
 

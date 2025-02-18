@@ -20,7 +20,8 @@
     "deploy": "cdk deploy --profile personal --all",
     "deploy:authorizer": "cdk deploy --profile personal IronSpiderAuthorizer",
     "deploy:domain-auth": "cdk deploy --profile personal DomainAuth",
-    "deploy:service": "cdk deploy --profile personal IronSpiderService"
+    "deploy:service": "cdk deploy --profile personal IronSpiderService",
+    "deploy:remix-site": "cdk deploy --profile personal RemixApp"
   },
   "devDependencies": {
     "@aws-sdk/protocol-http": "^3.374.0",

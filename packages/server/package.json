@@ -45,6 +45,7 @@
     "iron-spider-ssdk": "workspace:^",
     "jsonwebtoken": "^9.0.1",
     "jwt-lib": "workspace:^",
+    "oidc-provider": "^8.6.0",
     "re2-wasm": "1.0.2",
     "uuid": "^9.0.0"
   },
@@ -55,6 +56,7 @@
     "@types/jest": "^29.5.13",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^18.11.18",
+    "@types/oidc-provider": "^8",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "authorizer": "workspace:^",

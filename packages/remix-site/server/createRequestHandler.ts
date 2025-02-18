@@ -35,7 +35,6 @@ export function createRequestHandler({
   return (async (event, context) => {
     // start timings
     const startTime = Date.now();
-
     const request = createRemixRequest(event);
     console.log(`Got Request for path: ${request.url}`);
     let loadContext = typeof getLoadContext === "function" ? getLoadContext(event) : undefined;
@@ -75,10 +74,10 @@ export function createRequestHandler({
 
     const response = await (ns && segment
       ? ns.runPromise<Response>(() => {
-          AWSXRay.setSegment(segment);
-          const res = handleRequest(request as unknown as Request, loadContext);
-          return res;
-        })
+        AWSXRay.setSegment(segment);
+        const res = handleRequest(request as unknown as Request, loadContext);
+        return res;
+      })
       : handleRequest(request as unknown as Request, loadContext));
     // await AWSXRay.captureAsyncFunc('EdgeHandler', async (subsegment) => {
     //   try {
@@ -98,14 +97,16 @@ export function createRequestHandler({
     //   }
     // }, segment);
 
-    if (response.status > 300) {
+    if (response.status > 400) {
       console.log(`Error: ${response.status} - ${response.statusText}`);
       segment?.addError(`Error: ${response.status} - ${response.statusText}`);
     }
     // convert Request to http.IncomingRequest
-    const { req, res } = convertFetchToHttp(request, response);
-    AWSXRay.middleware.traceRequestResponseCycle(req, res).close();
+    // this was breaking things, causing a 503 from the lambda, due to passing a stream where something else should be
+    // const { req, res } = convertFetchToHttp(request, response);
+    // AWSXRay.middleware.traceRequestResponseCycle(req, res).close();
     segment?.close();
+    // res.end();
     // until here =================================================================================
     console.log(`Returning Response for path: ${request.url} with status: ${response.status}`);
     const cloudfrontHeaders = createCloudFrontHeaders(response.headers);

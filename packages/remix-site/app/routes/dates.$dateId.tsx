@@ -182,7 +182,7 @@ function DeleteDateconfirmationContentComponent(props: {
         <Button className="" variant="outline" onClick={() => props.setShowDeleteConfirm(false)} disabled={props.navigation.state !== "idle"}>
           Cancel
         </Button>
-        <Form method="post">
+        <Form method="delete">
           <Button className="w-[100%]" variant="destructive" type="submit" disabled={props.navigation.state !== "idle"}>
             Delete
           </Button>

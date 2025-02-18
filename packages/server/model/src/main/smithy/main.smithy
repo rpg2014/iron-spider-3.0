@@ -9,6 +9,7 @@ use com.rpg2014.cloud.date_tracker#DateOuting
 use com.rpg2014.cloud.date_tracker#GetLocationByPlaceId
 use com.rpg2014.cloud.date_tracker#SearchForLocation
 use com.rpg2014.cloud.date_tracker#GetConnectedUsers
+use com.rpg2014.cloud.oauth#GetOAuthDetails
 
 @title("Various API's to support services")
 
@@ -49,6 +50,13 @@ service IronSpider {
         GetPublicKeys,
         GetJwks,
         Logout,
+        // //odic
+        // ODICGet,
+        // ODICPost,
+        // ODICDelete,
+        // ODICPut,
+        // Oauth
+        GetOAuthDetails,
 
         // support the date trackerW
         SearchForLocation, 

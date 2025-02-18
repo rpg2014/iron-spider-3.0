@@ -3,6 +3,7 @@ import { AUTH_OPTIONS, AUTH_VERIFICATION, USER_ID_TOKEN_KEY } from "../constants
 import { fetcher, isSSR } from "../util";
 import { startAuthentication, browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
 import { GenerateAuthenticationOptionsCommandOutput, VerifyAuthenticationCommandOutput } from "iron-spider-client";
+import { useNavigate } from "react-router-dom";
 
 export function getRedirectURL(): string | undefined {
   if (isSSR) {
@@ -13,10 +14,16 @@ export function getRedirectURL(): string | undefined {
   if (return_url) {
     console.log(`Got return url: ${return_url}`);
     console.log(`decoded url = ${decodeURIComponent(return_url)}`);
-    const url = new URL(return_url);
-    // if the url is from parkergiven.com or any subdomain, set state
-    if (url.hostname.endsWith("parkergiven.com")) {
-      return return_url;
+    try {
+      const url = new URL(return_url);
+      // if the url is from parkergiven.com or any subdomain, set state
+      if (url.hostname.endsWith("parkergiven.com")) {
+        return return_url;
+      }
+    } catch (e) {
+      if (return_url.startsWith("/")) {
+        return return_url;
+      }
     }
   }
 }
@@ -60,6 +67,7 @@ export function useLogin(initialGenAuthData?: GenerateAuthOptionsResults) {
   const [user, setUser] = useState<undefined | { displayName?: string; siteAccess?: string[]; userId: string }>();
   const [userId, setUserId] = useState(initialGenAuthData?.userId);
   const [redirectUrl, setRedirectUrl] = useState<string | null>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const func = async () => {
@@ -130,10 +138,15 @@ export function useLogin(initialGenAuthData?: GenerateAuthOptionsResults) {
         const urlFromQueryParams = getRedirectURL();
         if (urlFromQueryParams) {
           setState("REDIRECTING");
+          // if redirect url doens't have a domain / is a relative url, then use navigate
           setTimeout(() => {
             const decodedUrl = decodeURIComponent(urlFromQueryParams);
             console.log(`Redirecting to ${decodedUrl}`);
-            window.location.replace(decodedUrl);
+            if (decodedUrl.startsWith("/")) {
+              navigate(decodedUrl);
+            } else {
+              window.location.replace(decodedUrl);
+            }
           }, 50);
         }
       }

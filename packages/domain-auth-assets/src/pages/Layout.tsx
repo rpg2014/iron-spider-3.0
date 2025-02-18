@@ -16,6 +16,7 @@ export default function Layout() {
   const [userData, setUserData] = useState<AccountData | null>(null);
   const [state, setState] = useState<"INIT" | "AUTO_FETCH_OPTS" | "GEN_OPTS" | "AUTHING" | "VERIFY" | "ERROR" | "DONE" | "REDIRECTING">("INIT");
 
+  //TODO: need to retrigger this when the useLoginContext logs in the user / state updates
   useEffect(() => {
     const func = async () => {
       const results = await fetcher<AccountData>(
