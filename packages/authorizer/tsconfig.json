@@ -23,6 +23,7 @@
     "experimentalDecorators": true,
     "preserveSymlinks": true,
     "strictPropertyInitialization": false,
+    "resolveJsonModule": true,
     "typeRoots": [
       "./node_modules/@types"
     ]

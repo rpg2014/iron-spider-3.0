@@ -2,10 +2,16 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { JWTProcessor as jwtlib } from 'jwt-lib';
 import * as AuthDynamoWrapper from '../AuthDynamoWrapper';
 import { AUTH_CONFIG } from '../config/authConfig';
+import { FileOIDCClientAccessor } from "../DAO/OIDCClientDAO";
+import { FakeAccessTokenValidator } from "../DAO/AccessTokenDAO";
 
 export interface AuthenticationResult {
     isAuthenticated: boolean;
     userId?: string;
+    oauth?: {
+        clientId?: string;
+        scopes?: string[];
+    }
     displayName?: string;
     siteAccess?: string[];
     apiAccess?: string[];
@@ -108,4 +114,73 @@ export class AuthenticationService {
             };
         }
     }
+    async authenticateByClientIdAndSecret(clientId: string, clientSecret: string): Promise<AuthenticationResult> {
+        try {
+            const client = await FileOIDCClientAccessor.getInstance().getClient(clientId);
+            if (!client || client.clientSecret !== clientSecret) {
+                return {
+                    isAuthenticated: false,
+                    message: "Invalid API key"
+                };
+            }
+            return {
+                isAuthenticated: true,
+                oauth: {
+                    clientId: client.clientId,
+                },
+                displayName: client.clientName
+            };
+        } catch (error) {
+            console.error("API key authentication failed:", error);
+            return {
+                isAuthenticated: false,
+                message: "API key authentication failed"
+            };
+        }
+    }
+    async authenticateByBearerToken(token: string): Promise<AuthenticationResult> {
+        const validator = FakeAccessTokenValidator.getInstance();
+        try {
+            const result = await validator.checkToken(token);
+            if (!result) {
+                return {
+                    isAuthenticated: false,
+                    message: "Invalid token"
+                };
+            }
+            return {
+                isAuthenticated: true,
+                oauth: {
+                    clientId: result.clientId,
+                    scopes: result.scopes
+                },
+                displayName: result.userId,//todo fix-
+                userId: result.userId,
+            
+            };
+
+        }catch (error) {
+            console.error("Bearer token authentication failed:", error);
+            return {
+                isAuthenticated: false,
+                message: "Bearer token authentication failed"
+            };
+        }
+    }
+    async authenticateByAPIKey(token: string): Promise<AuthenticationResult> {
+        try {
+            const client = await FileOIDCClientAccessor.getInstance().getClientByApiKey(token)
+            return {
+                isAuthenticated: true,
+                oauth: {
+                    clientId: client.clientId
+                },
+                displayName:client.clientName
+            }
+        }catch {
+        return {
+            isAuthenticated: false,
+            message: "API key authentication not implemented"
+        }
+        }}
 }

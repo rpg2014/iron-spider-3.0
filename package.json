@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "A yarn project for the iron spider monorepo",
   "packageManager": "yarn@4.5.3",
-  "author": "",
+  "author": "me",
   "license": "Apache-2.0",
   "private": true,
   "bin": {
@@ -21,6 +21,7 @@
     "deploy:authorizer": "cdk deploy --profile personal IronSpiderAuthorizer",
     "deploy:domain-auth": "cdk deploy --profile personal DomainAuth",
     "deploy:service": "cdk deploy --profile personal IronSpiderService",
+    "synth:service": "cdk synth --profile personal IronSpiderService > template.yaml",
     "deploy:remix-site": "cdk deploy --profile personal RemixApp"
   },
   "devDependencies": {
@@ -32,7 +33,7 @@
     "aws-cdk-lib": "^2.160.0",
     "constructs": "^10.3.0",
     "domain-auth-assets": "workspace:^",
-    "esbuild": "0.22.0",
+    "esbuild": "^0.25.0",
     "homelab-aws-infra": "workspace:^",
     "iron-spider": "workspace:^",
     "remix-site": "workspace:^",

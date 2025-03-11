@@ -12,3 +12,5 @@
 .secrets.ts
 .keypair.json
 .smithy.lsp.log
+
+.api_keys.json

@@ -1,3 +1,5 @@
+import { IronSpiderService } from "iron-spider-ssdk"
+
 export interface event {
     "type": "REQUEST",
     "methodArn": string,
@@ -14,6 +16,8 @@ export interface event {
     },
     "requestContext": {
       "path": string,
+      "operationName": keyof IronSpiderService<any>,
+      "extendedRequestId": string,
       "accountId": string,
       "resourceId": string,
       "stage": string,
@@ -46,4 +50,7 @@ export interface event {
    siteAccess?: string
    apiAccess?: string
    tokenExpiry?: string,
+   oauth?: string;//{
+    // clientId?: string;
+// }
  }
