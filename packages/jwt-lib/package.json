@@ -5,9 +5,9 @@
   "packageManager": "yarn@4.3.1",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/cjs/index.js"
     }
   },
   "main": "./dist/cjs/index.js",
@@ -27,7 +27,7 @@
     "@tsconfig/node20": "^20.1.4",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^20.14.12",
-    "esbuild": "^0.19.0",
+    "esbuild": "^0.25.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.1.6"
   }

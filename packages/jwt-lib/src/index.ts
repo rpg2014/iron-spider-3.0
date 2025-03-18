@@ -2,12 +2,15 @@ import { getSecretKeyAccessor } from "./accessors/AccessorFactory";
 import { KeyPair } from "./accessors/AccessorInterfaces";
 import { JwtPayload, sign, verify } from "jsonwebtoken";
 
+const JWT_ISSUER = `https://auth.${process.env.DOMAIN}`;
+
 let keyPair: KeyPair | null = null;
 interface JwtUserObject {
   userId: string;
   siteAccess: string[];
    apiAccess: string[];
    displayName: string;
+   nonce?: string
 }
 
 /**
@@ -15,13 +18,13 @@ interface JwtUserObject {
  */
 export interface GenerateJWTOptions {
   userId: string, 
-  displayName: string,
+  displayName?: string,
   siteAccess?: string[], 
   apiAccess?: string[],
   expiresIn?: string ,
   issuer?: string,
-   aud?: string | undefined
-   scope?: string,
+  aud?: string | undefined
+  scopes?: string[]
 }
 /**
  * An object containing methods for verifying and generating JSON Web Tokens (JWT).
@@ -35,7 +38,7 @@ export const JWTProcessor = {
    * @param {string | RegExp | (string | RegExp)[] | undefined} [aud] - The audience of the token.
    * @returns {Promise<JwtUserObject>} A promise that resolves with the decoded JWT payload as a JwtUserObject.
    */
-  async verifyToken(token: string, issuer: string | string[] | undefined = `auth.${process.env.DOMAIN}`, aud?: string | RegExp | (string | RegExp)[] | undefined): Promise<JwtUserObject> {
+  async verifyToken(token: string, issuer: string | string[] | undefined = JWT_ISSUER, aud?: string | RegExp | (string | RegExp)[] | undefined): Promise<JwtUserObject> {
     if (!keyPair) {
       keyPair = await getSecretKeyAccessor().getKey();
     }
@@ -66,20 +69,51 @@ export const JWTProcessor = {
       keyPair = await getSecretKeyAccessor().getKey();
     }
     console.log("first and last 2 lines of the keypair" + keyPair.privateKey.slice(0, 30) + "..." + keyPair.privateKey.slice(-30));
-    const { userId, siteAccess, apiAccess, expiresIn, issuer, aud, displayName } = {
+    const { userId, siteAccess, apiAccess, expiresIn, issuer, aud, displayName, scopes } = {
       siteAccess: [],
       apiAccess: [],
       expiresIn: "1h",
-      issuer: `auth.${process.env.DOMAIN}`,
+      issuer: JWT_ISSUER,
       aud: "none",
       ...options
     };
 
-    return sign({ userId, siteAccess, apiAccess, displayName } as JwtUserObject, keyPair.privateKey, {
+    return sign({ userId, siteAccess, apiAccess, displayName, scopes } as JwtUserObject, keyPair.privateKey, {
       expiresIn: expiresIn,
+      keyid: keyPair.keyId ?? "1",
       issuer: issuer,
       algorithm: "RS256",
       audience: aud,
     });
   },
+
+  
+  async generateIdTokenForUser(options: GenerateIdTokenOptions): Promise<string> {
+    if (!keyPair) {
+      keyPair = await getSecretKeyAccessor().getKey();
+    }
+    const { userId,  expiresIn, issuer, aud, displayName, nonce, scopes } = {
+      expiresIn: "10m",
+      issuer: JWT_ISSUER,
+      aud: "none",
+      ...options
+    };
+
+    return sign({ sub: userId, preferred_username: displayName, nonce, scopes: scopes } as IdTokenClaims, keyPair.privateKey, {
+      expiresIn: expiresIn,
+      keyid: keyPair.keyId ?? "1",
+      issuer: issuer,
+      algorithm: "RS256",
+      audience: aud,
+    });
+  }
 };
+export type GenerateIdTokenOptions = GenerateJWTOptions &{
+  nonce?: string
+}
+// openid connect id token claims
+type IdTokenClaims = {
+  sub: string,
+  preferred_username: string,
+
+}
