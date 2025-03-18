@@ -1,3 +1,8 @@
+interface APIError {
+  message: string;
+  status: number;
+}
+
 export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, includeContentType: boolean = true): Promise<T> => {
   let headers: any = {
     ...init?.headers,
@@ -15,7 +20,10 @@ export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, i
   const data = await res.json();
   if (res.status >= 400) {
     console.error(`Got ${res.status} error from backend`);
-    throw new Error(data.message);
+    throw {
+      message: data.message,
+      status: res.status
+    } as APIError;
   }
   return data as T;
 };

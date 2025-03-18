@@ -9,6 +9,7 @@ import {
   FunctionEventType,
   HttpVersion,
   PriceClass,
+  ResponseHeadersPolicy,
   SecurityPolicyProtocol,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
@@ -77,13 +78,28 @@ export class DomainAuthAssetsStack extends Stack {
 
     // Cloudfront function that will attach a .html to the end of paths in order to serve the ssr version of it
     // when that occurs remove the /index.html error response from the 403 error.
-    // (try removing the default object first too.)? why did I write this?
     const pathRewriteFunction = new Function(this, "PathRewriteFunction", {
       code: FunctionCode.fromFile({
         filePath: path.resolve(__dirname, "../cloudfrontFunction.js"),
       }),
     });
-
+    const contentTypeAddingFunction = new Function(this, "ContentTypeAddingFunction", {
+      code: FunctionCode.fromFile({
+        filePath: path.resolve(__dirname, "../cloudfrontResponseFunction.js"),
+      }),
+    });
+    // TODO: below
+    //Should remove this at some point, initially was just for the openId connect response
+    const policy = new ResponseHeadersPolicy(this, "SiteReponseHeadersPolicy", {
+      corsBehavior: {
+        accessControlAllowCredentials: false,
+        accessControlAllowHeaders: ["*"],
+        accessControlAllowMethods: ["GET", "OPTIONS"],
+        accessControlAllowOrigins: ["*"],
+        accessControlExposeHeaders: ["*"],
+        originOverride: true,
+      },
+    })
     // CloudFront distribution
     const distribution = new Distribution(this, name + "SiteDistribution", {
       certificate: Certificate.fromCertificateArn(this, "certArn", props.certificateArn),
@@ -112,11 +128,18 @@ export class DomainAuthAssetsStack extends Stack {
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        responseHeadersPolicy:{
+          responseHeadersPolicyId: policy.responseHeadersPolicyId
+        },
         functionAssociations: [
           {
             function: pathRewriteFunction,
             eventType: FunctionEventType.VIEWER_REQUEST,
           },
+          {
+            function: contentTypeAddingFunction,
+            eventType: FunctionEventType.VIEWER_RESPONSE,
+          }
         ],
       },
     });
