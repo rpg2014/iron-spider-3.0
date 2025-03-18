@@ -13,15 +13,16 @@ export const loader = DEFAULT_AUTH_LOADER;
 
 export default function Settings() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>();
-  const [redirectUri, setRedirectUri] = useState<string>();
-  const { hasCookie } = useLoaderData<typeof loader>();
+  const { hasCookie, currentUrl } = useLoaderData<typeof loader>();
+  const url = new URL(currentUrl)
+  const [redirectUri, setRedirectUri] = useState<string>(`${url.protocol}//${url.hostname}/oauth/callback`);
   // figure out notificaton permission on client side
   useEffect(() => {
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
     }
-    // temp until i set this up better
-    setRedirectUri(encodeURIComponent(window.location.href))
+    // domain + /oauth/callback
+    setRedirectUri(encodeURIComponent(`${window.location.protocol}//${window.location.hostname}/oauth/callback`));
   }, []);
 
   return (
@@ -99,8 +100,13 @@ export default function Settings() {
               <Button variant="secondary">Auth Site</Button>
             </a>
           </div>
+          {/* TODO: get this to work via an action to remove the session */}
+          {/* <div className={styles.setting}>
+            <Label className={styles.settingsLabel}>Sign out of this site</Label>
+            <LogoutButton />
+          </div> */}
           <div className={styles.setting}>
-            <Label className={styles.settingsLabel}>Sign out</Label>
+            <Label className={styles.settingsLabel}>Sign out of all sites</Label>
             <LogoutButton />
           </div>
         </>
@@ -108,8 +114,8 @@ export default function Settings() {
       <div className={styles.setting}>
         <Label className={styles.settingsLabel}>Login via Oauth</Label>
         {/* // redirect uri should be the current url */}
-        <a href={`${AUTH_DOMAIN}/authorize?client_id=123&redirect_uri=${redirectUri}&scope=openid%20profile%20email&response_type=code&state=12345`}>
-          <Button variant='secondary'>Login</Button>
+        <a href={`${AUTH_DOMAIN}/authorize?client_id=123456789&redirect_uri=${redirectUri}&scope=openid%20profile%20email&response_type=code&state=12345`}>
+          <Button variant="secondary">Login</Button>
         </a>
       </div>
     </main>

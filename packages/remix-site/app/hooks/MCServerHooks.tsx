@@ -4,6 +4,7 @@ import { fetcher } from "~/utils";
 import type { IServerState } from "~/service/MCServerService";
 import { MCServerApi, ServerStatus } from "~/service/MCServerService";
 type ServerActions = {
+  refreshStatus: () => Promise<void>;
   start: () => Promise<void>;
   stop: () => Promise<void>;
   // needed?
@@ -28,6 +29,7 @@ const minecraftInitalState: IServerContextState = {
     start: async () => {},
     stop: async () => {},
     status: async () => {},
+    refreshStatus: async () => {},
     details: async () => {},
   },
 };
@@ -51,14 +53,6 @@ export const ServerProvider = ({ children, initialState }: { children: React.Rea
     }
   }, []);
 
-  const call = async <T,>(fn: () => T, setStateFn: (e: T) => void, setLoadingFunction: (b: boolean) => void) => {
-    setLoadingFunction(true);
-    const status: T = await fn();
-    setStateFn(status);
-    setRunning(status !== "Terminated");
-    setLoadingFunction(false);
-  };
-
   const wrapWithErrorLogic = (fn: () => Promise<void>, setLoadingState: (b: boolean) => void) => {
     return async () => {
       try {
@@ -77,6 +71,12 @@ export const ServerProvider = ({ children, initialState }: { children: React.Rea
   const actions = {
     // don't need to pass auth cookie through here as these will come from the UI.
     // todo: add use callback?
+    refreshStatus: wrapWithErrorLogic(async () => {
+      const status = await MCServerApi.getStatus(null, { skipCache: true });
+      setStatus(status);
+      setRunning(status !== "Terminated");
+      false;
+    }, setGetLoading),
     status: wrapWithErrorLogic(async () => {
       const status = await MCServerApi.getStatus();
       setStatus(status);

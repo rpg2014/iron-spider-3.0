@@ -16,23 +16,35 @@ const isServer = typeof window === "undefined";
 export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, includeContentType?: boolean): Promise<T> => {
   const headers: any = {
     ...init?.headers,
-    "spider-access-token": "no-token",
+    // if the spider-accesstoken header already exists don't overwrite it
+    "spider-access-token": (init?.headers as Record<string, string>)?.["spider-access-token"] ?? "no-token",
     origin: `https://remix.parkergiven.com`,
   };
-  if (includeContentType) {
+  if (includeContentType && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
   if (isServer) {
     headers["user-agent"] = "IronSpiderRemixFn";
+  } else {
+    // add bearer auth header if request is going to the same domain, with accesstoken from local-storage
+    // only run this on client since localStorage
+    // TODO: pass this access token around better, can I keep it internal to remix via sessions?
+    const requestedURL = new URL(input.toString());
+    if (requestedURL.hostname === "ai.i.parkergiven.com" || requestedURL.hostname === "api.parkergiven.com") {
+      const accessToken = localStorage.getItem("x-pg-access-token");
+      if (accessToken) {
+        headers["Authorization"] = `Bearer ${accessToken}`;
+      }
+    }
   }
-  //                                                                                    this might need to be ===
-  if ((init?.body || init?.method === "POST") && !input.toString().includes("server") && includeContentType !== undefined) {
+  if ((init?.body || init?.method === "POST") && !input.toString().includes("server") && includeContentType !== undefined && !headers["Content-Type"]) {
     console.log(`Adding content-type header for input ${input.toString()}`);
     headers["Content-Type"] = "application/json";
   }
   if (includeContentType === false) {
     delete headers["Content-Type"];
   }
+
   console.log(`Making request to ${input.toString()} with body ${init?.body?.toString()} and headers ${JSON.stringify(headers, null, 2)}`); //
   try {
     const res = await fetch(input, {
@@ -50,8 +62,8 @@ export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, i
     console.log(`Got Data: ${JSON.stringify(data, null, 2)}`);
     return data as T;
   } catch (e: any) {
-    console.error(`Error parsing response ${e}: message: ${e.message}`, e);
-    throw new Error(e.message);
+    console.error(`Error caught when fetching response ${e}: message: ${e.message}`, e);
+    throw e;
   }
 };
 

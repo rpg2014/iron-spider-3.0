@@ -1,4 +1,3 @@
-import { InternalServerError } from "iron-spider-client";
 import { SERVER_PATH } from "~/constants";
 import { fetcher } from "~/utils";
 
@@ -30,6 +29,10 @@ export interface IServerState {
   domainName?: string;
 }
 
+interface MCServerStatusCacheContext {
+  skipCache?: boolean;
+  traceId?: string;
+}
 /**
  * Caching service for MC Server status with background refresh
  */
@@ -53,14 +56,14 @@ class MCServerStatusCache {
     return MCServerStatusCache.instance;
   }
 
-  public refresh(headers?: Headers, ctx?: any) {
+  public refresh(headers?: Headers, ctx?: MCServerStatusCacheContext) {
     console.log("[MCServerStatusCache] Manual refresh triggered");
     this.backgroundRefresh(headers, ctx);
   }
 
-  public async getStatus(headers?: any, ctx?: any): Promise<ServerStatus> {
+  public async getStatus(headers?: any, ctx?: MCServerStatusCacheContext): Promise<ServerStatus> {
     // If no cached status or cache has expired, fetch synchronously
-    if (!this.cachedStatus || this.isCacheExpired()) {
+    if (!this.cachedStatus || this.isCacheExpired() || ctx?.skipCache) {
       console.log("[MCServerStatusCache] Cache miss or expired. Fetching fresh status.");
       this.cachedStatus = await this.fetchStatusFromAPI(headers, ctx);
       this.lastFetchTime = Date.now();
@@ -83,28 +86,26 @@ class MCServerStatusCache {
     return this.cachedStatus;
   }
 
-  private async fetchStatusFromAPI(headers?: any, ctx?: any): Promise<ServerStatus> {
-    console.log("[MCServerStatusCache] Fetching server status from API", {
-      hasTraceId: !!ctx?.traceId,
-    });
+  private async fetchStatusFromAPI(headers?: any, ctx?: MCServerStatusCacheContext): Promise<ServerStatus> {
+    try {
+      const response: { status: ServerStatus } = await fetcher(`${SERVER_PATH}/status`, {
+        mode: "cors",
+        headers: headers,
+        credentials: "include",
+      });
 
-    if (ctx && ctx.traceId) {
-      headers = { ...headers, "X-Amzn-Trace-Id": ctx.traceId };
+      console.log("[MCServerStatusCache] API status fetch successful", {
+        status: response.status,
+      });
+
+      return response.status;
+    } catch (error) {
+      console.error("[MCServerStatusCache] API status fetch failed", error);
+      throw new Error("Failed to fetch server status from API");
     }
-    const response: { status: ServerStatus } = await fetcher(`${SERVER_PATH}/status`, {
-      mode: "cors",
-      headers: headers,
-      credentials: "include",
-    });
-
-    console.log("[MCServerStatusCache] API status fetch successful", {
-      status: response.status,
-    });
-
-    return response.status;
   }
 
-  private async backgroundRefresh(headers?: any, ctx?: any): Promise<void> {
+  private async backgroundRefresh(headers?: any, ctx?: MCServerStatusCacheContext): Promise<void> {
     console.log("[MCServerStatusCache] Background refresh initiated");
     setTimeout(async () => {
       try {
@@ -143,7 +144,7 @@ class MCServerStatusCache {
  * on the server
  */
 export const MCServerApi = {
-  getStatus: async (headers?: any, ctx?: any) => {
+  getStatus: async (headers?: any, ctx?: MCServerStatusCacheContext) => {
     const cache = MCServerStatusCache.getInstance();
     return cache.getStatus(headers, ctx);
   },

@@ -35,7 +35,7 @@ export async function* parseEventStream(eventByteStream: ReadableStream2<Uint8Ar
         // should mainly be data b/c we are using dispatchMessage on the eventtarget
         case "data":
           // Appends the value to the data string, creating a new line if data already exists, otherwise assigns the value to data
-          data = data === undefined ? value ?? "" : `${data}\n${value}`;
+          data = data === undefined ? (value ?? "") : `${data}\n${value}`;
           break;
       }
       // We only emit message-type events for now (and assume JSON)

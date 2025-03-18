@@ -74,10 +74,10 @@ export function createRequestHandler({
 
     const response = await (ns && segment
       ? ns.runPromise<Response>(() => {
-        AWSXRay.setSegment(segment);
-        const res = handleRequest(request as unknown as Request, loadContext);
-        return res;
-      })
+          AWSXRay.setSegment(segment);
+          const res = handleRequest(request as unknown as Request, loadContext);
+          return res;
+        })
       : handleRequest(request as unknown as Request, loadContext));
     // await AWSXRay.captureAsyncFunc('EdgeHandler', async (subsegment) => {
     //   try {

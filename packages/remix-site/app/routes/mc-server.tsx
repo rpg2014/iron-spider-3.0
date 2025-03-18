@@ -47,7 +47,7 @@ export default function Server() {
   const currentStatus = status;
   //Quick refresh button
   const RefreshButton = () => (
-    <span onClick={() => actions.status()} className={"m-2 flex cursor-pointer items-center justify-center align-middle"}>
+    <span onClick={() => actions.refreshStatus()} className={"m-2 flex cursor-pointer items-center justify-center align-middle"}>
       <RefreshCwIcon className={getLoading ? "animate-spin" : ""} />
     </span>
   );

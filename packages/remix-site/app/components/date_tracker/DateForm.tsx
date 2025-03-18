@@ -71,8 +71,8 @@ export const NewDateFormV2 = ({
             {place?.coordinates
               ? `Lat: ${place.coordinates.lat}, Long: ${place.coordinates.long}, Alt: ${place.coordinates.alt ?? 0}`
               : date?.coordinates
-              ? `Lat: ${date.coordinates.lat}, Long: ${date.coordinates.long}, Alt: ${date.coordinates.alt ?? 0}`
-              : "No coordinates available"}
+                ? `Lat: ${date.coordinates.lat}, Long: ${date.coordinates.long}, Alt: ${date.coordinates.alt ?? 0}`
+                : "No coordinates available"}
           </p>
         </div>
         <div>

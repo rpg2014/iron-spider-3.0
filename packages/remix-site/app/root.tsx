@@ -13,6 +13,7 @@ import { getHeaders } from "./utils";
 import { Route } from "./+types/root";
 import { Suspense } from "react";
 import { Toaster } from "./components/ui/Sonner";
+import { getSession } from "./sessions.server";
 
 export const links: LinksFunction = () => {
   return [
@@ -35,8 +36,23 @@ export const meta: MetaFunction = () => [
 ];
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  const initialStatus = await MCServerApi.getStatus(getHeaders(request), context);
-  return { initialStatus };
+  try {
+    try {
+      const session = await getSession(request.headers.get("Cookie"));
+      if (session.has("oauthTokens")) {
+        console.log("Found OauthInfo", session.get("oauthTokens"));
+      } else {
+        console.log("No OauthInfo found");
+      }
+    } catch (error) {
+      console.error("Error parsing oauth cookie", error);
+    }
+    const initialStatus = await MCServerApi.getStatus(getHeaders(request), context);
+    return { initialStatus };
+  } catch (error) {
+    console.error("Error fetching initial status:", error);
+    return { initialStatus: undefined };
+  }
 };
 
 // export const headers: Route.HeadersFunction = () => ({

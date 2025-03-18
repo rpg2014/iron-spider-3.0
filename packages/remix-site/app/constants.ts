@@ -19,3 +19,5 @@ export const AGENT_URL = "https://ai.i.parkergiven.com";
 export const AGENT_CHATS_PATH = AGENT_URL + "/v1/chats";
 export const AGENT_STREAMING_SUFFIX = `/agent`;
 export const AGENT_INVOKE_SUFFIX = "/agent/invoke";
+
+export const OAUTH_TOKEN_ENDPOINT = `${API_DOMAIN_VERSION}/oauth/tokens`;

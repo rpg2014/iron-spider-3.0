@@ -3,7 +3,7 @@ import fs from "fs";
 import esbuild from "esbuild";
 
 /**
- * 
+ *
  * NOT USED YET
  * Builds the service worker and copies public files to the build directory. NOT USED YET
  *

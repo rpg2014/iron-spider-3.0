@@ -2,15 +2,18 @@ import { Link, useLocation } from "react-router";
 import {
   NavigationMenu,
   NavigationMenuContent,
+  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
+  NavigationMenuViewport,
 } from "../ui/NavigationMenu";
 import { ServerNavMenuItem } from "./ServerNavMenuItem";
 import { navLinkConfig } from "./navLinkConfig";
 import { cva } from "class-variance-authority";
+import styles from "./styles.module.scss";
 
 const NavLink = ({ to, ...props }: { to: string } & any) => {
   const pathname = useLocation().pathname;
@@ -53,11 +56,18 @@ export const NavMenu = () => {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
+          <NavLink prefetch={"render"} to={"/cookies"} className={navigationMenuTriggerStyle()}>
+            Cookies
+          </NavLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
           <NavLink prefetch={"render"} to={"/settings"} className={navigationMenuTriggerStyle()}>
             Settings
           </NavLink>
         </NavigationMenuItem>
       </NavigationMenuList>
+      {/* Little tab under the item that triggers the dropdown, rendered in the viewport hidden in the main menu level */}
+      <NavigationMenuIndicator className={`${styles.NavigationMenuIndicator} invisible sm:visible `} />
     </NavigationMenu>
   );
 };
