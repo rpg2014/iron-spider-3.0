@@ -1,7 +1,5 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { KeyPair } from "../accessors/AccessorInterfaces";
 import { JWT_AUDIENCE_EMAIL, JWT_ISSUER, JWT_ISSUER_EMAIL } from "../constants/passkeyConst";
-import { getSecretKeyAccessor } from "../accessors/AccessorFactory";
 import { JWTProcessor as jwtlib } from "jwt-lib";
 import { UserModel } from "src/model/Auth/authModels";
 let keyPair: KeyPair | null = null;
@@ -24,7 +22,6 @@ export const JWTProcessor = {
   async generateTokenForCookie(user: UserModel, scope: string = "none", expiresIn: string = "1h"): Promise<string> {
     return await jwtlib.generateTokenForUser({
       userId: user.id,
-      scope,
       displayName: user.displayName,
       siteAccess: user.siteAccess,
       apiAccess: user.apiAccess,

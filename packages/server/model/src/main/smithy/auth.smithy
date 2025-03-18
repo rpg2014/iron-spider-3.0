@@ -3,22 +3,25 @@ $version: "2"
 namespace com.rpg2014.cloud
 
 use smithy.framework#ValidationException
-use com.rpg2014.cloud.common#ValidatedOperation
+use com.rpg2014.cloud.common#CommonErrors
 use com.rpg2014.cloud.common#CommonHeaders
 
 @http(code:200, method: "POST", uri: "/v1/registration/create")
+@optionalAuth
 operation CreateUser {
     input: CreateUserInput,
     output: CreateUserOutput,
     errors: [ValidationException, InternalServerError, NeedDomainAccessError]
 }
 @http(code: 200, method: "POST", uri: "/v1/registration/options")
+@optionalAuth
 operation GenerateRegistrationOptions {
     input: GenerateRegistrationOptionsInput,
     output: GenerateRegistrationOptionsOutput,
     errors: [ValidationException, InternalServerError, BadRequestError],
 }
 @http(code:200, method: "POST", uri: "/v1/registration/verification")
+@optionalAuth
 operation VerifyRegistration {
     input: VerifyRegistrationInput,
     output: VerifyRegistrationOutput,
@@ -26,18 +29,21 @@ operation VerifyRegistration {
 }
  @http(code: 200, method: "GET", uri: "/v1/authentication/options")
  @readonly
+ @optionalAuth
  operation GenerateAuthenticationOptions {
     input: GenerateAuthenticationOptionsInput,
     output: GenerateAuthenticationOptionsOutput,
     errors: [InternalServerError, BadRequestError, ValidationException]
  }
 @http(code: 200, method: "POST", uri: "/v1/authentication/verification")
+@optionalAuth
 operation VerifyAuthentication {
     input: VerifyAuthenticationInput,
     output: VerifyAuthenticationOutput,
     errors: [InternalServerError, BadRequestError, ValidationException]
 }
 @http(code: 200, method: "GET", uri: "/v1/userInfo")
+@optionalAuth
 @readonly
 operation UserInfo {
     output: UserInfoOutput,
@@ -59,51 +65,9 @@ operation GetPublicKeys {
 
 @readonly
 @http(method: "GET", uri: "/.well-known/jwks.json")
-operation GetJwks  with [ValidatedOperation] {
+operation GetJwks  with [CommonErrors] {
     output: GetJwksOutput
 }
-
-// @http(method: "GET", uri: "/odic/{path+}")
-// operation ODICGet with [ValidatedOperation] {
-//     input: ODICGetInput
-//     output: ODICOutput
-// }
-// @http(method: "DELETE", uri: "/odic/{path+}")
-// operation ODICDelete with [ValidatedOperation]{
-//     input: ODICGetInput
-//     output: ODICOutput
-    
-// }
-// @http(method: "POST", uri: "/odic/{path+}")
-// operation ODICPost with [ValidatedOperation]{
-//     input: ODICPostInput
-//     output: ODICOutput
-    
-// }
-// @http(method: "PUT", uri: "/odic/{path+}")
-// operation ODICPut with [ValidatedOperation]{
-//     input: ODICPostInput
-//     output: ODICOutput
-    
-// }
-
-// structure ODICPostInput {
-//     @httpPayload
-//     thing: String
-//     @httpLabel()
-//     @required
-//     path: String
-// }
-
-// structure ODICGetInput {
-//     @httpLabel()
-//     @required
-//     path: String
-// }
-// structure ODICOutput {
-//     @httpPayload
-//     body: String
-// }
 
 
 

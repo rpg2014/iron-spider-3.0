@@ -2,7 +2,7 @@ $version: "2"
 
 namespace com.rpg2014.cloud
 
-use com.rpg2014.cloud.common#ValidatedOperation
+use com.rpg2014.cloud.common#CommonErrors
 use com.rpg2014.cloud.common#CommonHeaders
 use com.rpg2014.cloud#InternalServerError
 use com.rpg2014.cloud#BadRequestError
@@ -11,7 +11,7 @@ use smithy.framework#ValidationException
 
 @readonly
 @http(code: 200, method: "GET", uri: "/server/status")
-operation ServerStatus with [ValidatedOperation] {
+operation ServerStatus with [CommonErrors] {
     output: ServerStatusOutput ,
     errors: [InternalServerError],
 }

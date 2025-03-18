@@ -4,10 +4,11 @@ namespace com.rpg2014.cloud.common
 use smithy.framework#ValidationException
 use com.rpg2014.cloud#NotFoundError
 use com.rpg2014.cloud#BadRequestError
+use com.rpg2014.cloud#InternalServerError
 
 @mixin
-operation ValidatedOperation {
-    errors: [ValidationException, BadRequestError, NotFoundError]
+operation CommonErrors {
+    errors: [ValidationException, BadRequestError, NotFoundError, InternalServerError]
 }
 
 

@@ -16,6 +16,8 @@ use com.rpg2014.cloud.date_tracker#DeletePicture
 use com.rpg2014.cloud.date_tracker#SearchForLocation
 use com.rpg2014.cloud.date_tracker#GetLocationByPlaceId
 use com.rpg2014.cloud.date_tracker#GetConnectedUsers
+use com.rpg2014.cloud.oauth#GetOAuthDetails
+use com.rpg2014.cloud.oauth#ApproveOAuth
 
 // All of the http methods MUST be POST, b/c thats how APIG has to call lambda as part of that integration.
 apply ServerStatus @aws.apigateway#integration(
@@ -160,7 +162,14 @@ apply GetOAuthDetails @aws.apigateway#integration(
 )
 
 
+apply ApproveOAuth @aws.apigateway#integration(
+    type: "aws_proxy",
+    httpMethod: "POST",
+    uri: ""
+)
 
+
+// This should handle most new api's unless they have their own 
 apply IronSpider @aws.apigateway#integration(
     type: "aws_proxy",
     httpMethod: "POST",
@@ -172,7 +181,8 @@ apply IronSpider @authorizers(
     "iron-auth": {
         scheme: httpApiKeyAuth,
         type: "request",
-        identitySource: "method.request.header.spider-access-token",
+        // might be able to remove the below identity source, without this header, APIG throws a 401
+        // identitySource: "method.request.header.spider-access-token",
         //lambda authorizor ARN, will be created later, in cdk
         uri: "{{AUTH_FUNCTION_ARN}}",
         // Need to put the IAM role that the APIG can assume to call the auth function. 

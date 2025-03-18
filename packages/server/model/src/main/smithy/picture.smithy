@@ -2,7 +2,7 @@ $version: "2"
 namespace com.rpg2014.cloud.date_tracker
 
 use aws.protocols#restJson1
-use com.rpg2014.cloud.common#ValidatedOperation
+use com.rpg2014.cloud.common#CommonErrors
 
 resource Picture {
     identifiers: {
@@ -17,7 +17,7 @@ resource Picture {
 }
 
 @http(method: "POST", uri: "/v1/dates/{dateId}/pictures")
-operation CreatePicture with [ValidatedOperation] {
+operation CreatePicture with [CommonErrors] {
     input: CreatePictureInput
     output: CreatePictureOutput
 }
@@ -41,7 +41,7 @@ structure CreatePictureOutput for CreatePicture {
 
 @http(method: "GET", uri: "/v1/dates/{dateId}/pictures/{pictureId}")
 @readonly
-operation GetPicture with [ValidatedOperation] {
+operation GetPicture with [CommonErrors] {
     input: GetPictureInput
     output: GetPictureOutput
 }
@@ -63,7 +63,7 @@ structure GetPictureOutput for GetPicture {
 }
 
 // @http(method: "PUT", uri: "/pictures/{id}")
-// operation UpdatePicture with [ValidatedOperation] {
+// operation UpdatePicture with [CommonErrors] {
 //     input: UpdatePictureInput
 //     output: UpdatePictureOutput
 // }
@@ -84,7 +84,7 @@ structure GetPictureOutput for GetPicture {
 
 @http(method: "DELETE", uri: "/v1/dates/{dateId}/pictures/{pictureId}")
 @idempotent
-operation DeletePicture with [ValidatedOperation] {
+operation DeletePicture with [CommonErrors] {
     input: DeletePictureInput
     output: DeletePictureOutput
 }
@@ -105,7 +105,7 @@ structure DeletePictureOutput for DeletePicture {
 }
 
 // @http(method: "GET", uri: "/pictures")
-// operation ListPictures with [ValidatedOperation] {
+// operation ListPictures with [CommonErrors] {
 //     input: ListPicturesInput
 //     output: ListPicturesOutput
 // }

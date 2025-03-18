@@ -10,6 +10,9 @@ use com.rpg2014.cloud.date_tracker#GetLocationByPlaceId
 use com.rpg2014.cloud.date_tracker#SearchForLocation
 use com.rpg2014.cloud.date_tracker#GetConnectedUsers
 use com.rpg2014.cloud.oauth#GetOAuthDetails
+use com.rpg2014.cloud.oauth#ApproveOAuth
+use com.rpg2014.cloud.oauth#GetOAuthTokens
+use com.rpg2014.cloud.oauth#GetOIDCDiscovery
 
 @title("Various API's to support services")
 
@@ -29,6 +32,7 @@ use com.rpg2014.cloud.oauth#GetOAuthDetails
     name: "spider-access-token",
     in: "header"
 )
+@httpBearerAuth
 // need to remove the ui's content type header for inputs with no body, so all of them.  
 service IronSpider {
     version: "2018-05-10",
@@ -57,7 +61,9 @@ service IronSpider {
         // ODICPut,
         // Oauth
         GetOAuthDetails,
-
+        ApproveOAuth,
+        GetOAuthTokens,
+        GetOIDCDiscovery,
         // support the date trackerW
         SearchForLocation, 
         GetLocationByPlaceId,

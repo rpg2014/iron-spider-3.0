@@ -1,6 +1,6 @@
 $version: "2"
 namespace com.rpg2014.cloud.date_tracker
-use com.rpg2014.cloud.common#ValidatedOperation
+use com.rpg2014.cloud.common#CommonErrors
 use com.rpg2014.cloud.common#CommonHeaders
 use com.rpg2014.cloud.date_tracker#Picture
 
@@ -73,7 +73,7 @@ structure Coordinates {
 // CRUD Operations
 @readonly
 @http(method: "GET", uri: "/v1/dates/{dateId}")
-operation GetDate with [ValidatedOperation] {
+operation GetDate with [CommonErrors] {
     input: GetDateInput,
     output: GetDateOutput,
 }
@@ -94,7 +94,7 @@ structure GetDateOutput for DateOuting with [CommonHeaders] {
 
 @idempotent
 @http(method: "POST", uri: "/v1/dates")
-operation CreateDate with [ValidatedOperation] {
+operation CreateDate with [CommonErrors] {
     input: CreateDateInput,
     output: CreateDateOutput,
     
@@ -124,7 +124,7 @@ structure CreateDateOutput with [CommonHeaders] {
 
 @idempotent
 @http(method: "PUT", uri: "/v1/dates/{dateId}")
-operation UpdateDate with [ValidatedOperation] {
+operation UpdateDate with [CommonErrors] {
     input: UpdateDateInput,
     output: UpdateDateOutput,
     
@@ -151,7 +151,7 @@ structure UpdateDateOutput with [CommonHeaders] {
 
 @idempotent
 @http(method: "DELETE", uri: "/v1/dates/{dateId}")
-operation DeleteDate with [ValidatedOperation]{
+operation DeleteDate with [CommonErrors]{
     input: DeleteDateInput,
     output: DeleteDateOutput,
 
@@ -171,7 +171,7 @@ structure DeleteDateOutput {
 @readonly
 @paginated(inputToken: "nextToken", outputToken: "nextToken", pageSize: "pageSize")
 @http(method: "GET", uri: "/v1/dates")
-operation ListDates with [ValidatedOperation] {
+operation ListDates with [CommonErrors] {
     input: ListDatesInput,
     output: ListDatesOutput,
 }
@@ -194,7 +194,8 @@ list DateList {
 }
 
 @http(method: "GET", uri: "/v1/connected-users")
-operation GetConnectedUsers with [ValidatedOperation] {
+@readonly
+operation GetConnectedUsers with [CommonErrors] {
     // input: GetConnectedUsersInput,
     output: GetConnectedUsersOutput
 }
@@ -220,7 +221,7 @@ structure ConnectedUser {
 }
 
 @http(method: "POST", uri: "/v1/locations")
-operation SearchForLocation with [ValidatedOperation] {
+operation SearchForLocation with [CommonErrors] {
     input: SearchForLocationInput
     output: SearchForLocationOutput
 }
@@ -247,7 +248,7 @@ structure SearchResult {
 
 @readonly
 @http(method: "GET", uri: "/v1/locations/{placeId}")
-operation GetLocationByPlaceId with [ValidatedOperation]{
+operation GetLocationByPlaceId with [CommonErrors]{
     input: GetLocationByPlaceIdInput
     output: GetLocationByPlaceIdOutput
     

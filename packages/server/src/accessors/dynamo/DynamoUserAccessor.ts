@@ -44,7 +44,7 @@ export class DynamoUserAccessor extends UserAccessor {
         new PutCommand({
           TableName: this.TABLE_NAME,
           Item: user,
-        })
+        }),
         // new UpdateCommand({
         //   TableName: this.TABLE_NAME,
         //   Key: {
@@ -69,7 +69,7 @@ export class DynamoUserAccessor extends UserAccessor {
         Key: {
           id: id,
         },
-      })
+      }),
     );
     return output.Item as UserModel;
   }
@@ -90,7 +90,7 @@ export class DynamoUserAccessor extends UserAccessor {
         ExpressionAttributeValues: {
           ":email": email,
         },
-      })
+      }),
     );
     if (!result.Items || result.Items.length === 0) {
       return null;
@@ -125,7 +125,7 @@ export class DynamoUserAccessor extends UserAccessor {
             Value: challenge,
           },
         },
-      })
+      }),
     );
   }
 

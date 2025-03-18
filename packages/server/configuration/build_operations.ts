@@ -3,13 +3,8 @@ import fs from "fs";
 //@ts-ignore
 import buildUtils from "../../../configuration/buildUtils";
 
-// const fs = require('fs');
-// const { getOperationsAsJson } = require('./operationsConfig');
 
-// const operationsJson = getOperationsAsJson();
-
-// fs.writeFileSync('operations.json', operationsJson, 'utf8');
-// console.log('Operations JSON written to operations.json');
+console.log("Reading Operations Data")
 const operationsConfig = require(path.join(__dirname, "../lib/operationsConfig.ts"));
 const operationData = operationsConfig.getOperationsAsFlatObject();
 const handlersDir = path.join(__dirname, "../src/handlers");
@@ -96,7 +91,7 @@ const build = async () => {
       entryPoint: path.join(handlersDir, `${opData.handlerFile}.ts`),
     });
   }
-  //build cors handler
+  //build cors handler - is deduped via cache.
   await buildOperationHandler({
     opName: "cors",
     outFile: "cors.js",

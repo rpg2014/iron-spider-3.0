@@ -1,5 +1,6 @@
-import { HandlerContext } from "authorizer/src/model/models";
 import {
+  ApproveOAuthInput,
+  ApproveOAuthOutput,
   CreateDateInput,
   CreateDateOutput,
   CreatePictureInput,
@@ -22,6 +23,12 @@ import {
   GetJwksServerOutput,
   GetLocationByPlaceIdInput,
   GetLocationByPlaceIdOutput,
+  GetOAuthDetailsInput,
+  GetOAuthDetailsOutput,
+  GetOAuthTokensInput,
+  GetOAuthTokensOutput,
+  GetOIDCDiscoveryOutput,
+  GetOIDCDiscoveryServerInput,
   GetPictureInput,
   GetPictureOutput,
   GetPublicKeysServerInput,
@@ -32,9 +39,6 @@ import {
   ListDatesOutput,
   LogoutServerInput,
   LogoutServerOutput,
-  ODICGetInput,
-  ODICOutput,
-  ODICPostInput,
   SearchForLocationInput,
   SearchForLocationOutput,
   ServerDetailsServerInput,
@@ -54,6 +58,7 @@ import {
   VerifyRegistrationServerInput,
   VerifyRegistrationServerOutput,
 } from "iron-spider-ssdk";
+import { HandlerContext } from "src/model/common";
 
 // for (const s: string in IronSpiderServiceOperat)
 
@@ -64,13 +69,13 @@ export const getNoOpFunctions = (): IronSpiderService<HandlerContext> => {
     },
     GenerateAuthenticationOptions: function (
       input: GenerateAuthenticationOptionsServerInput,
-      context: HandlerContext
+      context: HandlerContext,
     ): Promise<GenerateAuthenticationOptionsServerOutput> {
       throw new InternalServerError({ message: "Function not implemented." });
     },
     GenerateRegistrationOptions: function (
       input: GenerateRegistrationOptionsServerInput,
-      context: HandlerContext
+      context: HandlerContext,
     ): Promise<GenerateRegistrationOptionsServerOutput> {
       throw new InternalServerError({ message: "Function not implemented." });
     },
@@ -138,18 +143,17 @@ export const getNoOpFunctions = (): IronSpiderService<HandlerContext> => {
     GetJwks: function (input: GetJwksServerInput, context: HandlerContext): Promise<GetJwksServerOutput> {
       throw new InternalServerError({ message: "Function not implemented." });
     },
-    // //odic
-    // ODICGet: function (input: ODICGetInput, context: HandlerContext): Promise<ODICOutput> {
-    //   throw new InternalServerError({ message: "Function not implemented." });
-    // },
-    // ODICPost: function (input: ODICPostInput, context: HandlerContext): Promise<ODICOutput> {
-    //   throw new InternalServerError({ message: "Function not implemented." });
-    // },
-    // ODICDelete: function (input: ODICGetInput, context: HandlerContext): Promise<ODICOutput> {
-    //   throw new InternalServerError({ message: "Function not implemented." });
-    // },
-    // ODICPut: function (input: ODICPostInput, context: HandlerContext): Promise<ODICOutput> {
-    //   throw new InternalServerError({ message: "Function not implemented." });
-    // },
+    GetOAuthDetails: (input: GetOAuthDetailsInput, context: HandlerContext): Promise<GetOAuthDetailsOutput> => {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    ApproveOAuth: (input: ApproveOAuthInput, context: HandlerContext): Promise<ApproveOAuthOutput> => {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    GetOAuthTokens: function (input: GetOAuthTokensInput, context: HandlerContext): Promise<GetOAuthTokensOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    GetOIDCDiscovery: function (input: GetOIDCDiscoveryServerInput, context: HandlerContext): Promise<GetOIDCDiscoveryOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
   };
 };

@@ -7,7 +7,7 @@ export class AWSLocationAccessor implements LocationAccessor {
   constructor() {
     this.locationClient = new LocationClient();
   }
-  async getPlaceDetails(placeId: string): Promise<Place | null> {
+  async getPlaceDetails(placeId: string): Promise<Place | undefined> {
     let command: GetPlaceCommand = new GetPlaceCommand({
       IndexName: process.env.PLACE_INDEX_NAME || "",
       PlaceId: placeId,
@@ -16,7 +16,7 @@ export class AWSLocationAccessor implements LocationAccessor {
     const result = await this.locationClient.send(command);
 
     if (!result.Place) {
-      return null;
+      return undefined;
     }
     const coordsArray = result.Place.Geometry?.Point;
     return {

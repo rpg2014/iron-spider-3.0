@@ -156,7 +156,7 @@ export class DynamoDateAccessor extends DateAccessor {
       const userIds = response.Item?.connectedUsers as string[];
       const userAccessor = getUserAccessor();
       const users = await Promise.all(userIds.map(async id => userAccessor.getUser(id)));
-      const connectedUsers = users.map(user => ({ userId: user.id, displayName: user.displayName } as ConnectedUser));
+      const connectedUsers = users.map(user => ({ userId: user.id, displayName: user.displayName }) as ConnectedUser);
       console.log("Connected users from DDB:", connectedUsers);
       return connectedUsers;
     } catch (e) {

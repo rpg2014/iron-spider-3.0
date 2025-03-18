@@ -102,9 +102,7 @@ const processor: PasskeyFlowProcessor = {
           residentKey: "required",
           userVerification: "preferred",
         },
-        excludeCredentials: (
-          await getCredentialsAccessor().getCredentialsForUser(decoded.userId)
-        )?.map(credential => ({
+        excludeCredentials: (await getCredentialsAccessor().getCredentialsForUser(decoded.userId))?.map(credential => ({
           id: new Uint8Array(Buffer.from(credential.credentialID, "base64url")),
           type: "public-key",
           // Optional
@@ -263,7 +261,7 @@ const processor: PasskeyFlowProcessor = {
         try {
           if (credential.counter >= verification.authenticationInfo.newCounter) {
             console.warn(
-              `New counter value is less than or equal to the old counter.  New: ${verification.authenticationInfo.newCounter}, Old: ${credential.counter} `
+              `New counter value is less than or equal to the old counter.  New: ${verification.authenticationInfo.newCounter}, Old: ${credential.counter} `,
             );
           }
           await getCredentialsAccessor().updateCounter(credential.credentialID, verification.authenticationInfo.newCounter);

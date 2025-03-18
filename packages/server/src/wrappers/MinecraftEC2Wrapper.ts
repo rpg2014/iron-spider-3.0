@@ -90,7 +90,9 @@ export class MinecraftEC2Wrapper {
         startInstanceResponse = await MinecraftEC2Wrapper.EC2_CLIENT.send(new StartInstancesCommand({ InstanceIds: [instanceId] }));
       } catch (e) {
         console.error(`Threw error ${JSON.stringify(e)} with input ${JSON.stringify(instanceId)}`);
-        throw new InternalServerError({ message: `Running the instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(instanceId)}` });
+        throw new InternalServerError({
+          message: `Running the instance threw error ${JSON.stringify(e)} with input ${JSON.stringify(instanceId)}`,
+        });
       }
       console.log(`Start Instance response Number of instances returned: ${startInstanceResponse.StartingInstances?.length}`);
 
@@ -433,7 +435,9 @@ export class MinecraftEC2Wrapper {
       } else {
         //Cant find the reservation or instance, throw error
         console.error("Cant find the reservation or instance when trying to get status");
-        throw new InternalServerError({ message: "unable to get the instance status, reservation, instance or code is undefined" });
+        throw new InternalServerError({
+          message: "unable to get the instance status, reservation, instance or code is undefined",
+        });
       }
     } catch (error: any) {
       if (error instanceof EC2ServiceException && error.name === "InvalidInstanceID.NotFound") {
@@ -460,7 +464,9 @@ export class MinecraftEC2Wrapper {
           await this.sleep(5000);
         } catch (e) {
           console.error(e);
-          throw new InternalServerError({ message: `Error json stringify: ${e} when sleeping, waiting for server to Shutdown` });
+          throw new InternalServerError({
+            message: `Error json stringify: ${e} when sleeping, waiting for server to Shutdown`,
+          });
         }
       } while (await this.isInstanceTerminated());
     } else {
@@ -476,7 +482,9 @@ export class MinecraftEC2Wrapper {
         await this.sleep(5000);
       } catch (e) {
         console.error(e);
-        throw new InternalServerError({ message: `Error json stringify: ${e} when sleeping, waiting for server to stop` });
+        throw new InternalServerError({
+          message: `Error json stringify: ${e} when sleeping, waiting for server to stop`,
+        });
       }
     } while (!(await this.isInstanceStopped()));
   }
@@ -488,7 +496,9 @@ export class MinecraftEC2Wrapper {
           await this.sleep(5000);
         } catch (e) {
           console.error(e);
-          throw new InternalServerError({ message: `Error json stringify: ${e} when sleeping, waiting for server to be up` });
+          throw new InternalServerError({
+            message: `Error json stringify: ${e} when sleeping, waiting for server to be up`,
+          });
         }
       } while (!(await this.isInstanceRunning()));
     } else {

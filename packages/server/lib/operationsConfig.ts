@@ -30,59 +30,23 @@ const minecraftServerOperations: Partial<IEntryPoints> = {
 };
 
 const AuthOperations: Partial<IEntryPoints> = {
-  CreateUser: {
-    handlerFile: "AuthHandler",
-    handlerFunction: "getCreateUser",
-    memorySize: 256,
-  },
-  GenerateRegistrationOptions: {
-    handlerFile: "AuthHandler",
-    handlerFunction: "getRegistrationOptions",
-    memorySize: 256,
-  },
-  VerifyRegistration: {
-    handlerFile: "AuthHandler",
-    handlerFunction: "verifyRegistrationHandler",
-    memorySize: 256,
-  },
-
-  // GenerateAuthenticationOptions: {
-  //   handlerFile: "AuthHandler",
-  //   handlerFunction: "getAuthOptions",
-  //   memorySize: 256,
-  // },
-  // VerifyAuthentication: {
-  //   handlerFile: "AuthHandler",
-  //   handlerFunction: "verifyAuthResponse",
-  //   memorySize: 256,
-  // },
-  // UserInfo: {
-  //   handlerFile: "WebsiteAPIs",
-  //   handlerFunction: "userInfo",
-  //   memorySize: 256,
-  // },
-  // GetPublicKeys: {
-  //   handlerFile: "WebsiteAPIs",
-  //   handlerFunction: "getPublicKeys",
-  //   memorySize: 256,
-  // },
+  CreateUser: null,
+  GenerateRegistrationOptions: null,
+  VerifyRegistration: null,
   GenerateAuthenticationOptions: null,
   VerifyAuthentication: null,
   UserInfo: null,
   GetPublicKeys: null,
   GetJwks: null,
-//   ODICGet: null,
-//   ODICPost: null,
-//   ODICDelete: null,
-//   ODICPut: null,
+  // OAuth
+  GetOAuthDetails: null,
+  ApproveOAuth: null,
+  GetOAuthTokens: null,
+  GetOIDCDiscovery: null
 };
 
 const LightweightAPIs: Partial<IEntryPoints> = {
-  Logout: {
-    handlerFile: "LightweightAPIs",
-    handlerFunction: "logout",
-    memorySize: 256,
-  },
+  Logout: null,
 };
 
 const DateAPIs: Partial<IEntryPoints> = {

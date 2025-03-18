@@ -47,6 +47,7 @@
     "jwt-lib": "workspace:^",
     "oidc-provider": "^8.6.0",
     "re2-wasm": "1.0.2",
+    "temporal-polyfill": "^0.2.5",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
@@ -62,7 +63,7 @@
     "authorizer": "workspace:^",
     "aws-cdk-lib": "^2.160.0",
     "constructs": "^10.3.0",
-    "esbuild": "^0.19.6",
+    "esbuild": "^0.25.0",
     "eslint": "^8.48.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-prettier": "3.4.1",
@@ -71,7 +72,7 @@
     "husky": "^7.0.4",
     "jest": "^29.6.2",
     "lint-staged": "^12.1.2",
-    "prettier": "2.3.0",
+    "prettier": "^3.5.1",
     "rimraf": "^3.0.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",

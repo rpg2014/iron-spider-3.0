@@ -1,8 +1,8 @@
 import { BlockPublicAccess, Bucket, BucketEncryption } from "aws-cdk-lib/aws-s3";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
-import { PhysicalName, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
-import { Table, AttributeType, BillingMode } from "aws-cdk-lib/aws-dynamodb";
+import { CfnResource, PhysicalName, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { Table, AttributeType, BillingMode, ProjectionType } from "aws-cdk-lib/aws-dynamodb";
 import { DataSource, IntendedUse, PlaceIndex } from "@aws-cdk/aws-location-alpha";
 
 type InfraStackProps = {
@@ -38,10 +38,6 @@ export class InfraStack extends Stack {
       versioned: true,
       removalPolicy: RemovalPolicy.DESTROY,
     });
-    props.functionsForAccess.forEach(func => {
-      this.DateDDBTable.grantReadWriteData(func);
-      this.PictureS3Bucket.grantReadWrite(func);
-    });
 
     this.DatePlacesIndex = new PlaceIndex(this, "DatePlacesIndex", {
       dataSource: DataSource.HERE,
@@ -52,6 +48,11 @@ export class InfraStack extends Stack {
     this.ConnectedUsersTable = new Table(this, "ConnectedUsersTable", {
       partitionKey: { name: "userId", type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
+    });
+
+    props.functionsForAccess.forEach(func => {
+      this.DateDDBTable.grantReadWriteData(func);
+      this.PictureS3Bucket.grantReadWrite(func);
     });
   }
 }

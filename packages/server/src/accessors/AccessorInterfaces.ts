@@ -1,6 +1,7 @@
 import { ConnectedUser, Coordinates, DateInfo, Place, SearchResult } from "iron-spider-ssdk";
 import { CredentialModel, UserModel } from "../model/Auth/authModels";
-import { GetPlaceCommand, LocationClient, SearchPlaceIndexForSuggestionsCommand } from "@aws-sdk/client-location";
+import { Authorization, CreateAuthorizationInput } from "src/model/Auth/oauthModels";
+import { OIDCClient } from "./OIDCClientAccessor";
 
 //TODO: figure out dependency injection here.
 export abstract class CredentialsAccessor {
@@ -13,6 +14,7 @@ export abstract class CredentialsAccessor {
 export type KeyPair = {
   publicKey: string;
   privateKey: string;
+  keyId?: string;
 };
 
 export abstract class SecretKeyAccessor {
@@ -60,3 +62,40 @@ export abstract class LocationAccessor {
 // export abstract class PictureAccessor {
 //   abstract createPicture
 // }
+export interface RenewAuthParams {
+  previousAuthId: string;
+  userId: string;
+  code_challenge?: string;
+  code_challenge_method?: string;
+}
+export abstract class AuthorizationAccessor {
+  abstract createAuthorization(input: CreateAuthorizationInput): Promise<Authorization>;
+  abstract getAuthorizationForUserAndClient(userId: string, clientId: string): Promise<Authorization | null>;
+  abstract getAuthorizationById(authorizationId: string, userId: string): Promise<Authorization>;
+  abstract renewAuthorization(params: RenewAuthParams): Promise<Authorization>;
+  /**
+   *
+   * @param code authorization code, but only a partial view, see the GSI for the auth table.
+   */
+  abstract getAuthorizationByCode(code: string): Promise<Partial<Authorization>>;
+  abstract getAuthorizationByRefreshToken(refreshToken: string): Promise<Authorization>;
+  abstract setAuthCodeUsed(authorizationId: string, userId: string): Promise<void>;
+  abstract setAccessAndRefreshToken(params: {
+  authorizationId: string;
+  userId: string;
+  accessToken: string;
+  refreshToken: string;
+  accessTokenInfo: {
+    expiresAt: string;
+    issuedAt: string;
+  },
+  refreshTokenInfo: {
+    expiresAt: string;
+    issuedAt: string;
+  }
+}): Promise<void>;  // abstract deleteAuthorization(clientId: string, userId: string): Promise<void>
+}
+
+export abstract class OIDCClientAccessor {
+  abstract getClient(clientId?: string): Promise<OIDCClient>;
+}

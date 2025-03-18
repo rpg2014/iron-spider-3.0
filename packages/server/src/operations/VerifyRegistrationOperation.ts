@@ -1,7 +1,7 @@
 import { Operation } from "@aws-smithy/server-common";
 import { InternalServerError, VerifyRegistrationInput, VerifyRegistrationOutput } from "iron-spider-ssdk";
-import { HandlerContext } from "authorizer/src/model/models";
 import passkeyFlowProcessor from "../processors/PasskeyFlowProcessor";
+import { HandlerContext } from "src/model/common";
 
 export const VerifyRegistrationOperation: Operation<VerifyRegistrationInput, VerifyRegistrationOutput, HandlerContext> = async (input, context) => {
   //Input check for null

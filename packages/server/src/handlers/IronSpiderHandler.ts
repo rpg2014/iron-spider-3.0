@@ -21,7 +21,7 @@ import {
 } from "../operations/DateOperations";
 import { getNoOpFunctions } from "./handlerUtils";
 import { HandlerContext } from "src/model/common";
-import { GetOAuthDetails } from "src/operations/OAuthOperations";
+import { ApproveOAuth, GetOAuthDetails, GetOAuthTokens, GetOIDCDiscoveryOperation } from "src/operations/OAuthOperations";
 
 //TODO: Finish this. will need to update apig integration
 const service: IronSpiderService<HandlerContext> = {
@@ -49,13 +49,11 @@ const service: IronSpiderService<HandlerContext> = {
   GetConnectedUsers,
   SearchForLocation,
   GetLocationByPlaceId,
-
-  // ODICGet: ODICOperation,
-  // ODICPost: odicHandler,
-  // ODICDelete: odicHandler,
-  // ODICPut: odicHandler,
   // Oauth
-  GetOAuthDetails
+  GetOAuthDetails,
+  ApproveOAuth,
+  GetOAuthTokens,
+  GetOIDCDiscovery: GetOIDCDiscoveryOperation
 };
 
 export const ironSpiderHandler: APIGatewayProxyHandler = getApiGatewayHandler(getIronSpiderServiceHandler(service));

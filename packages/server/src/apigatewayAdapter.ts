@@ -4,11 +4,11 @@ import { ServiceHandler } from "@aws-smithy/server-common";
 import { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
 import { HttpResponse } from "@aws-sdk/protocol-http";
 import { validateCors } from "./cors/CorsProcessor";
-import { HandlerContext } from "./model/common";
+import { HandlerContext, HandlerContextFromAuthorizer } from "./model/common";
 // import Provider from "oidc-provider";
 // import { configuration } from "./odic/handler";
 // import { Http2ServerRequest, Http2ServerResponse } from "http2";
-
+const BYPASS_CORS_PATHS = ["/v1/oauth/tokens", "/.well-known/jwks.json", '/.well-known/openid-configuration', "/v1/userinfo"]
 const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<string, string> => {
   if (!allowed || !allowed.origin || !allowed.headers) {
     throw new Error("Invalid allowed cors");
@@ -37,15 +37,22 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
     // console.log("Got context", context);
     console.log(`Got request for: ${event.httpMethod} ${event.path}`);
     // basic check cors headers
-    const origin = event.headers["origin"];
-    if (!origin || !origin.includes("parkergiven.com")) {
-      // do something?
-      console.warn(`request didn't come from my domain, rejecting. Origin: ${origin}`);
-      return convertVersion1Response(new HttpResponse({ statusCode: 403, body: "Forbidden", headers: { ...addCORSHeaders({ origin: "*", headers: "" }) } }));
-    }
+    const origin = event.headers["origin"] || event.headers['Origin'];
+    // handled by cors validation below
+    // if ((!origin || !origin.includes("parkergiven.com")) && event.path!== '/v1/oauth/tokens') {
+    //   // do something?
+    //   console.warn(`request didn't come from my domain, rejecting. Origin: ${origin}`);
+    //   return convertVersion1Response(
+    //     new HttpResponse({
+    //       statusCode: 403,
+    //       body: "Forbidden",
+    //       headers: { ...addCORSHeaders({ origin: "*", headers: "" }) },
+    //     }),
+    //   );
+    // }
 
     // pull out auth context from the event
-    const authContext: HandlerContext | undefined | null = event.requestContext.authorizer;
+    const authContext: HandlerContextFromAuthorizer | undefined | null = event.requestContext.authorizer;
     // console.log(event.requestContext);
     console.log("Auth context: " + JSON.stringify(authContext));
 
@@ -56,33 +63,53 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
       throw new Error("Request didn't go through authorizer, no username found.");
     }
     // build user context
-    const operationContext = { user: authContext?.user, /*Dont think username is used anymore -> */ username: authContext?.displayName, ...authContext };
+    const operationContext = {
+      user: authContext?.user,
+      /*Dont think username is used anymore -> */ username: authContext?.displayName,
+      ...authContext,
+      oauth: authContext?.oauth ? JSON.parse(authContext.oauth) : undefined,
+    };
 
     // convert event to smithy handler request
     const httpRequest = convertEvent(event);
-    
+
     // console.debug("httpRequest:", httpRequest);
     try {
       // validate cors and get response headers
-      const allowed = validateCors(httpRequest);
-      //handle oidc paths
-      // if(event.path.includes("oidc")){
-      //   console.log("oidc path detected, skipping cors validation");
-      //   const oidc = new Provider("http://localhost:3000", configuration)
-      //   // convert event to res
-      //   const res: Http2ServerRequest = {
-      //     method: event.httpMethod,
-      //     url: event.path,
-      //     headers: event.headers,
-          
-      //   }
-      //   oidc.callback()(res, new Http2ServerResponse())
-      // }
+      let allowed: {
+        origin: string;
+        headers: string;
+    }; 
+      if(BYPASS_CORS_PATHS.includes(event.path)) {
+        allowed = {
+          origin: "*",
+          headers: 'content-type, authorization'
+        }
+      } else {
+        allowed = validateCors(httpRequest)
+
+      }
+      
+
+      // If i want to make the main lambda also handle the preflight requests, I should enable the below code,
+      // and set it up in the cdk correctly.
+      // if it's a preflight request, return the cors headers
+      // if (httpRequest.method === "OPTIONS") {
+      //   return convertVersion1Response(
+      //     new HttpResponse({
+      //       statusCode: 200,
+      //       body: "OK",
+      //       headers: { ...addCORSHeaders(allowed) },
+      //     }),
+      //   );
+      // };
+
       // Perform the operation
       const httpResponse = await handler.handle(httpRequest, operationContext);
       // console.debug("httpResponse: ", httpResponse);
       console.log(`Response: ${httpResponse.statusCode}`);
       if (httpResponse.statusCode >= 400) {
+        console.error(`got status code ${httpResponse.statusCode} for ${event.httpMethod} ${event.path}`);
         console.error(`Error body: ${httpResponse.body}, typeof ${typeof httpResponse.body}`);
         if (typeof httpResponse.body === "string") {
           try {
@@ -134,7 +161,11 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
       console.error("CORS error");
       console.error(e.message);
       return convertVersion1Response(
-        new HttpResponse({ statusCode: 403, body: "Forbidden: CORS", headers: { ...addCORSHeaders({ origin: "*", headers: "" }) } })
+        new HttpResponse({
+          statusCode: 403,
+          body: "Forbidden: CORS",
+          headers: { ...addCORSHeaders({ origin: "*", headers: "" }) },
+        }),
       );
     }
   };

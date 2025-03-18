@@ -1,8 +1,8 @@
 import { Operation } from "@aws-smithy/server-common";
-import { HandlerContext } from "authorizer/src/model/models";
 import { GetJwksOutput, GetPublicKeysOutput, UserInfoOutput } from "iron-spider-ssdk";
 import { createPublicKey } from "node:crypto";
 import { getSecretKeyAccessor, getUserAccessor } from "src/accessors/AccessorFactory";
+import { HandlerContext } from "src/model/common";
 import { base64UrlEncode } from "src/util";
 
 export const UserInfo: Operation<{}, UserInfoOutput, HandlerContext> = async (input, context) => {
@@ -34,21 +34,18 @@ export const GetPublicKeys: Operation<{}, GetPublicKeysOutput, HandlerContext> =
 };
 export const GetJwks: Operation<{}, GetJwksOutput, HandlerContext> = async (input, context) => {
   // convert PEM to JWK
-  const rawPublicKey = (await getSecretKeyAccessor().getKey()).publicKey;
-  const pubKey = createPublicKey(rawPublicKey);
+  const keypair = await getSecretKeyAccessor().getKey();
+  const pubKey = createPublicKey(keypair.publicKey);
   const jwk = pubKey.export({ format: "jwk" });
   // Extract the required components
   const { n, e } = jwk as { n: string; e: string };
-
-  // Generate a Key ID (kid)
-  const kid = base64UrlEncode(Buffer.from(pubKey.export({ format: "der", type: "spki" })).subarray(0, 8));
 
   return {
     keys: [
       {
         kty: "RSA",
         use: "sig",
-        kid,
+        kid: keypair.keyId ?? base64UrlEncode(Buffer.from(pubKey.export({ format: "der", type: "spki" })).subarray(0, 8)),
         n,
         e,
         alg: "RS256", // Assuming RS256 algorithm, adjust if needed

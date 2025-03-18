@@ -11,7 +11,7 @@ export enum LogLevel {
   INFO = 1,
   WARN = 2,
   ERROR = 3,
-  NONE = 4
+  NONE = 4,
 }
 
 export class Logger {
@@ -28,10 +28,10 @@ export class Logger {
 
     const timestamp = new Date().toISOString();
     const levelString = LogLevel[level];
-    const contextPrefix = this.context ? `[${this.context}] ` : '';
+    const contextPrefix = this.context ? `[${this.context}] ` : "";
 
     const formattedMessage = `${timestamp} ${levelString}: ${contextPrefix}${message}`;
-    
+
     switch (level) {
       case LogLevel.DEBUG:
         console.debug(formattedMessage, ...args);

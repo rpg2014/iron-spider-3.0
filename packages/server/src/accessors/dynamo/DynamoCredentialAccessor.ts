@@ -31,7 +31,7 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
         Key: {
           credentialID: credentialId,
         },
-      })
+      }),
     );
     // console.log("Output: " + JSON.stringify(output));
     return output.Item ? (output.Item as CredentialModel) : undefined;
@@ -48,7 +48,7 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
           ExpressionAttributeValues: {
             ":userID": userID,
           },
-        })
+        }),
       );
       return output.Items as CredentialModel[];
     } catch (error: any) {
@@ -62,7 +62,7 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
       new PutCommand({
         TableName: this.TABLE_NAME,
         Item: credential,
-      })
+      }),
     );
     return;
   }
@@ -87,7 +87,7 @@ export class DynamoCredentialsAccessor extends CredentialsAccessor {
           ReturnValues: "UPDATED_NEW",
           ConditionExpression: "attribute_exists(credentialID)",
           ReturnConsumedCapacity: "TOTAL",
-        })
+        }),
       );
       console.log("Update counter output: " + JSON.stringify(output));
     } catch (e: any) {
