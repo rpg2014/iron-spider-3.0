@@ -21,6 +21,7 @@ import { getTokenProcessor } from "src/processors/OAuthTokenProcessor";
 import { Temporal } from "temporal-polyfill";
 import { OIDCClient } from "src/accessors/OIDCClientAccessor";
 
+const secondsIn60Days = 60 * 24 * 60 * 60;
 /**
  * Operations
  * 1. get client based on clientid
@@ -92,7 +93,9 @@ export const ApproveOAuth: Operation<ApproveOAuthInput, ApproveOAuthOutput, Hand
     console.log(`Error getting previous authorization: ${error}`);
   }
   try {
+    
     if (previousAuth && previousAuth.authorizationId) {
+      
       console.log("Found previous authorization, generating new auth code for id ", previousAuth.authorizationId);
       const newAuth = await authorizationAccessor.renewAuthorization({
         previousAuthId: previousAuth.authorizationId,
@@ -190,13 +193,57 @@ export const GetOAuthTokens: Operation<GetOAuthTokensInput, GetOAuthTokensOutput
 };
 
 const refreshTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDCClient) => {
+  console.log(`[OAuthOperations.refreshTokens] Starting refresh token flow`);
   const authorizationAccessor = getAuthorizationAccessor();
   if (!tokenInput?.refresh_token) {
+    console.log(`[OAuthOperations.refreshTokens] No refresh token provided`);
     throw new OAuthError({ message: "Invalid refresh_token", error: "invalid_grant", error_description: "Invalid refresh_token" });
   }
-  const { clientId, userId, scopes, authorizationId } = await authorizationAccessor.getAuthorizationByRefreshToken(tokenInput.refresh_token);
-  // TODO Finish this
-  throw new Error("Method not implemented.");
+  console.log(`[OAuthOperations.refreshTokens] Getting authorization by refresh token`);
+  const { clientId, userId, scopes, authorizationId, refreshTokenInfo, refreshToken } = await authorizationAccessor.getAuthorizationByRefreshToken(tokenInput.refresh_token);
+  // Generate new Access and Refresh token and set them
+  if (!clientId || !userId || !authorizationId || !refreshTokenInfo || !refreshToken) {
+    const missingField = !clientId ? "clientId" : !userId ? "userId" : !authorizationId ? "authorizationId" : !refreshTokenInfo ? "refreshTokenInfo" : "refreshToken";
+    console.log(`[OAuthOperations.refreshTokens] Invalid or missing authorization data, missing field: ${missingField}`);
+    throw new OAuthError({ message: `missing field ${missingField}` , error: "invalid_grant", error_description: "Invalid refresh_token" });
+  }
+  if(refreshTokenInfo.expiresAt && Temporal.Instant.compare(Temporal.Now.instant(), Temporal.Instant.from(refreshTokenInfo.expiresAt)) > 0) {
+    throw new OAuthError({ message: "Refresh token expired", error: "invalid_grant", error_description: "Refresh token expired" });
+  }
+  console.log(`[OAuthOperations.refreshTokens] Generating new access and refresh tokens for user ${userId}`);
+  const tokenProcessor = getTokenProcessor();
+  const accessToken = await tokenProcessor.generateAccessToken(authorizationId, clientId, userId, scopes);
+  const newRefreshToken = await tokenProcessor.generateRefreshToken(authorizationId, clientId, userId, scopes);
+  console.log(`[OAuthOperations.refreshTokens] Setting new tokens in authorization`);
+  await authorizationAccessor.setAccessAndRefreshToken({
+    authorizationId,
+    userId,
+    accessToken: accessToken,
+    refreshToken: newRefreshToken,
+    accessTokenInfo: {
+      issuedAt: Temporal.Now.instant().toString(),
+      expiresAt: Temporal.Now.instant().add({ hours: 1 }).toString(),
+    },
+    refreshTokenInfo: {
+      issuedAt: Temporal.Now.instant().toString(),
+      expiresAt: Temporal.Now.instant().add({ seconds: secondsIn60Days }).toString(),
+    },
+  });
+  console.log(`[OAuthOperations.refreshTokens] Getting user details`);
+  const { displayName } = await getUserAccessor().getUser(userId);
+  const expiresIn = 3600; // 1 hour
+  const tokenType = "Bearer";
+  console.log(`[OAuthOperations.refreshTokens] Generating ID token`);
+  const idToken = await getTokenProcessor().generateIdToken(userId, clientId, displayName, scopes);
+  console.log(`[OAuthOperations.refreshTokens] Successfully completed refresh token flow`);
+  return {
+    access_token: accessToken,
+    refresh_token: newRefreshToken,
+    expires_in: expiresIn,
+    token_type: tokenType,
+    scope: scopes?.join(" "),
+    id_token: idToken,
+  };
 };
 const generateTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDCClient) => {
   const authorizationAccessor = getAuthorizationAccessor();
@@ -255,12 +302,12 @@ const generateTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDC
     await authorizationAccessor.setAccessAndRefreshToken({
       authorizationId, userId, accessToken, refreshToken,
       accessTokenInfo:{
-        issuedAt: Temporal.Now.plainDateTimeISO().toString(),
-        expiresAt: Temporal.Now.plainDateTimeISO().add({ hours: 1 }).toString(),
+        issuedAt: Temporal.Now.instant().toString(),
+        expiresAt: Temporal.Now.instant().add({ hours: 1 }).toString(),
       },
       refreshTokenInfo: {
-        issuedAt: Temporal.Now.plainDateTimeISO().toString(),
-        expiresAt: Temporal.Now.plainDateTimeISO().add({ weeks: 1 }).toString(),
+        issuedAt: Temporal.Now.instant().toString(),
+        expiresAt: Temporal.Now.instant().add({ seconds: secondsIn60Days }).toString(),
       }
     }
     );

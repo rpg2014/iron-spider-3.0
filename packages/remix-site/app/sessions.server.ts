@@ -1,14 +1,15 @@
 import { createCookieSessionStorage } from "react-router";
-import { authSessionCookie } from "./cookies.server";
+import { authSessionCookie, oauthStateCookie } from "./cookies.server";
+import { JwtPayload } from "./utils.server";
 
-type SessionData = {
+export type SessionData = {
   userId?: string;
-  displayName?: string;
-  userData?: any;
-  scopes?: string;
-  oauthTokens?: {
+  userData?: JwtPayload;
+  scopes: string[];
+  oauthTokens: {
     accessToken: string;
     refreshToken: string;
+    idToken: string;
     expiresAt: string;
   };
 };
@@ -23,3 +24,18 @@ const { getSession, commitSession, destroySession } = createCookieSessionStorage
 });
 
 export { getSession, commitSession, destroySession };
+
+export type OauthStateSession = {
+  state: string;
+  codeVerifier: string;
+  returnUrl: string;
+};
+const {
+  getSession: getOauthStateSession,
+  commitSession: commitOauthStateSession,
+  destroySession: destroyOauthStateSession,
+} = createCookieSessionStorage<OauthStateSession>({
+  // a Cookie from `createCookie` or the CookieOptions to create one
+  cookie: oauthStateCookie,
+});
+export { getOauthStateSession, commitOauthStateSession, destroyOauthStateSession };

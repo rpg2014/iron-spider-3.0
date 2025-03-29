@@ -15,11 +15,12 @@ import {
   data,
   redirectDocument,
 } from "react-router";
+import { Suspense } from "react";
 import type { ClientLoaderFunctionArgs, Navigation, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import DateCard from "~/components/date_tracker/DateCard";
 import { DateService, getDateService } from "~/service/DateService";
 import { getHeaders, getLoginRedirect } from "~/utils";
-import { checkCookieAuth } from "~/utils.server";
+import { checkCookieAuth, checkIdTokenAuth } from "~/utils.server";
 import * as EB from "~/components/ErrorBoundary";
 import type { DateInfo } from "iron-spider-client";
 import { SetStateAction, useEffect, useMemo, useState } from "react";
@@ -29,24 +30,39 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "~/components/ui/Drawer.client";
 import { useMediaQueryV2 } from "~/hooks/useMediaQuery";
 import { Route } from "./+types/dates.$dateId";
+import { commitSession, getSession } from "~/sessions.server";
 
-export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { hasCookie, userData } = await checkCookieAuth(request);
-  if (!hasCookie && import.meta.env.PROD) {
-    console.log("redirecting to " + request.url);
-    return redirectDocument(getLoginRedirect(request.url));
-  }
-  if (!params.dateId) {
-    return redirect(`/dates`, 303);
-  }
+export const loader = async ({ request, params }: Route.LoaderArgs) => {
   try {
-    const dateService = getDateService();
-    const date = await dateService.getDate({
-      id: params.dateId,
-      headers: getHeaders(request),
-    });
-    const connectedUsers = await dateService.getConnectedUsers({ headers: getHeaders(request) });
-    return { date, userData, connectedUsers: connectedUsers.users };
+    const { verified, userData, oauthDetails } = await checkIdTokenAuth(request);
+    const session = await getSession(request.headers.get("Cookie"));
+    // set oauthDetails
+    if (oauthDetails) {
+      session.set("oauthTokens", oauthDetails);
+    }
+    if (!verified && import.meta.env.PROD) {
+      console.log("redirecting to " + request.url);
+      return redirectDocument(getLoginRedirect(request.url));
+    }
+    if (!params.dateId) {
+      return redirect(`/dates`,  {headers: { "Set-Cookie": await commitSession(session) }, status: 303});
+    }
+    try {
+      // if dev, return fake date
+      if (import.meta.env.DEV) {
+        return { date: { date: new Date(), dateThrower: "Fake User", location: "Fake Location", userId: "fake-user-id" }, userData, connectedUsers: [] };
+      }
+      const dateService = getDateService();
+      const date = await dateService.getDate({
+        id: params.dateId,
+        headers: getHeaders(request,  { accessToken: session.get("oauthTokens")?.accessToken }),
+      });
+      const connectedUsers = await dateService.getConnectedUsers({ headers: getHeaders(request,  { accessToken: session.get("oauthTokens")?.accessToken }) });
+      return data({ date, userData, connectedUsers: connectedUsers.users }, {headers: { "Set-Cookie": await commitSession(session) }});
+    } catch (e: any) {
+      console.error(e);
+      throw data(JSON.stringify({ message: e.message }), { status: 500, headers: { "Set-Cookie": await commitSession(session) } });
+    }
   } catch (e: any) {
     console.error(e);
     throw data(JSON.stringify({ message: e.message }), { status: 500 });
@@ -55,12 +71,13 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { dateId } = params;
+  const session = await getSession(request.headers.get("Cookie"));
   if (!dateId) {
     return { error: "No date id provided", status: 400 };
   }
 
   try {
-    const { success } = await getDateService().delete({ id: dateId, headers: getHeaders(request) });
+    const { success } = await getDateService().delete({ id: dateId, headers: getHeaders(request,  { accessToken: session.get("oauthTokens")?.accessToken }) });
     if (success) {
       return redirect("/dates");
     } else {
@@ -72,16 +89,9 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function DateDetails() {
-  const { dateId } = useParams(); // pinning type until react-router typeing works better
-  const { date, userData, connectedUsers } = useLoaderData<typeof loader>() as {
-    date: DateInfo;
-    userData: { userId: string; displayName: string };
-    connectedUsers: { userId: string; displayName: string }[];
-  };
-  const [editMode, setEditMode] = useState(false);
+  const { date, userData, connectedUsers } = useLoaderData<typeof loader>();
 
   const actionData = useActionData<typeof action>();
-  const navigation = useNavigation();
 
   // Create a memoized lookup map for users
   const userMap = useMemo(() => {
@@ -104,7 +114,9 @@ export default function DateDetails() {
 
   return (
     <div className="">
-      {userData && date && userData.userId === date.userId && <ActionButtons />}
+      {/* {userData && date && userData.userId === date.userId && ( */}
+      <ActionButtons />
+      {/* )} */}
       <Outlet context={{ date, connectedUsers }} />
       {/* TODO: Need to move this stuff to the index, the date card + error + action stuff.  */}
       {date && <DateCard date={convertedDate as DateInfo} />}
@@ -151,17 +163,19 @@ const ActionButtons = () => {
           </DialogContent>
         </Dialog>
       ) : (
-        <Drawer open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>Delete Date</DrawerTitle>
-              <DrawerDescription>This will permanently delete this date entry.</DrawerDescription>
-            </DrawerHeader>
-            <div className="px-4">
-              <DeleteConfirmationContent />
-            </div>
-          </DrawerContent>
-        </Drawer>
+        <Suspense fallback={null}>
+          <Drawer open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Delete Date</DrawerTitle>
+                <DrawerDescription>This will permanently delete this date entry.</DrawerDescription>
+              </DrawerHeader>
+              <div className="px-4">
+                <DeleteConfirmationContent />
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </Suspense>
       )}
     </div>
   );

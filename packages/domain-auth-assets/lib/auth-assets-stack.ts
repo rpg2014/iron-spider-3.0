@@ -99,7 +99,7 @@ export class DomainAuthAssetsStack extends Stack {
         accessControlExposeHeaders: ["*"],
         originOverride: true,
       },
-    })
+    });
     // CloudFront distribution
     const distribution = new Distribution(this, name + "SiteDistribution", {
       certificate: Certificate.fromCertificateArn(this, "certArn", props.certificateArn),
@@ -128,8 +128,8 @@ export class DomainAuthAssetsStack extends Stack {
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        responseHeadersPolicy:{
-          responseHeadersPolicyId: policy.responseHeadersPolicyId
+        responseHeadersPolicy: {
+          responseHeadersPolicyId: policy.responseHeadersPolicyId,
         },
         functionAssociations: [
           {
@@ -139,7 +139,7 @@ export class DomainAuthAssetsStack extends Stack {
           {
             function: contentTypeAddingFunction,
             eventType: FunctionEventType.VIEWER_RESPONSE,
-          }
+          },
         ],
       },
     });

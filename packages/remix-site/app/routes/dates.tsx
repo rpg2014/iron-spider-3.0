@@ -12,11 +12,11 @@ export const meta: MetaFunction = () => [
 export const loader = DEFAULT_AUTH_LOADER;
 
 export default function DatesLayout() {
-  const { hasCookie, currentUrl } = useLoaderData<typeof loader>();
-  if (!hasCookie && import.meta.env.PROD) {
+  const { verified, currentUrlObj } = useLoaderData<typeof loader>();
+  if (!verified && import.meta.env.PROD) {
     return (
       <div className="container">
-        <AuthGate currentUrl={window?.location?.href ?? currentUrl} />
+        <AuthGate currentUrlObj={currentUrlObj} />
       </div>
     );
   }

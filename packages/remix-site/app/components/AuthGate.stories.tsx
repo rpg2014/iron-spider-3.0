@@ -15,13 +15,13 @@ type Story = StoryObj<typeof AuthGate>;
 
 export const Default: Story = {
   args: {
-    currentUrl: "/",
+    currentUrlObj: new URL("/", window.location.origin),
   },
 };
 
 export const CustomReturnUrl: Story = {
   args: {
-    currentUrl: "https://example.com/custom-page",
+    currentUrlObj: new URL("https://example.com/custom-page"),
   },
   parameters: {
     mockLocation: {
@@ -32,7 +32,7 @@ export const CustomReturnUrl: Story = {
 
 export const CustomMessage: Story = {
   args: {
-    currentUrl: "https://example.com",
+    currentUrlObj: new URL("https://example.com"),
   },
   parameters: {
     mockLocation: {

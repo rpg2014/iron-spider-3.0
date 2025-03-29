@@ -108,12 +108,12 @@ export const JWTProcessor = {
     });
   }
 };
+
 export type GenerateIdTokenOptions = GenerateJWTOptions &{
   nonce?: string
 }
 // openid connect id token claims
-type IdTokenClaims = {
+export type IdTokenClaims = {
   sub: string,
   preferred_username: string,
-
 }

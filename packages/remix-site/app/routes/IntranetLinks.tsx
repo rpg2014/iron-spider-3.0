@@ -31,7 +31,7 @@ export default function IntranetLinks() {
   const [ipAddress, setIpAddress] = useState<string | null>(null);
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
   const [isHighlightingComplete, setIsHighlightingComplete] = useState(false);
-  const { hasCookie, currentUrl } = useLoaderData<typeof loader>();
+  const { verified, currentUrlObj } = useLoaderData<typeof loader>();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -45,8 +45,8 @@ export default function IntranetLinks() {
     return () => intervalId && clearInterval(intervalId);
   }, []);
 
-  if (!hasCookie) {
-    return <AuthGate currentUrl={window?.location?.href ?? currentUrl} />;
+  if (!verified) {
+    return <AuthGate currentUrlObj={window?.location?.href ? new URL(window.location.href) : new URL(currentUrlObj)} />;
   }
   return (
     <div className="row translucent-bg d-flex flex-column width-control mx-auto rounded">

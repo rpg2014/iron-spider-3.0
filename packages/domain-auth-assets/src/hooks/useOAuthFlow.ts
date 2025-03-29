@@ -21,14 +21,35 @@ export interface OAuthParams {
   id_token_hint?: string;
 }
 interface OAuthFlow {
+  /** The OAuth parameters parsed from URL search params */
   oauthParams: OAuthParams | null;
+  /** Details about the OAuth client application */
   clientDetails: any;
+  /** Callback function to approve the OAuth request */
   onAccept: () => void;
+  /** Indicates if an OAuth Approve operation is in progress */
   isLoading: boolean;
+  /** Error object if any OAuth operation fails */
   error: { message: string } | null;
+  /** Authorization code and redirect URI after approval */
   authDetails: { code: string; redirect_uri: string } | null;
 }
 
+/**
+ * Custom hook to handle OAuth flow logic
+ *
+ * Manages OAuth parameters, client details, authentication state and handles
+ * the OAuth approval flow. Automatically validates required parameters and
+ * handles redirects for unauthenticated users.
+ *
+ * @returns {OAuthFlow} Object containing:
+ *   - oauthParams: The parsed OAuth parameters from URL search params
+ *   - clientDetails: Details about the OAuth client application
+ *   - onAccept: Callback function to approve the OAuth request
+ *   - isLoading: Boolean indicating if an OAuth operation is in progress
+ *   - authDetails: Object containing the authorization code and redirect URI after approval
+ *   - error: Error object if any OAuth operation fails
+ */
 export const useOAuthFlow = (): OAuthFlow => {
   const [searchParams] = useSearchParams();
   const [oauthParams, setOauthParams] = useState<OAuthParams | null>(null);
@@ -70,16 +91,17 @@ export const useOAuthFlow = (): OAuthFlow => {
       });
       setClientDetails(response);
       setError(null);
-    } catch (e:any) {
+    } catch (e: any) {
       console.error(e);
       if (e.message.includes("not found")) {
-        console.error("something is wrong with the request")
+        console.error("something is wrong with the request");
         setError(e);
-
       } else {
         //   instead of redirecting here I could instead render the login form.
         // but redirecting automatically kicks off the route loader to autofill the passkey
-        process.env.NODE_ENV === "production" && navigate(`/?return_url=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+        process.env.NODE_ENV === "production"
+          ? navigate(`/?return_url=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+          : setError({ message: "You should be redirected to login flow but you're in development" });
       }
     }
   }, [searchParams]);
@@ -107,14 +129,18 @@ export const useOAuthFlow = (): OAuthFlow => {
       console.log(`Approving oauth `, oauthParams);
       const body = {
         ...oauthParams,
-        scopes: oauthParams?.scope.split(' ')
+        scopes: oauthParams?.scope.split(" "),
       };
       delete body.scope;
-      const response = await fetcher(`${API_PATH}/v1/oauth/approve`, {
-        method: "POST",
-        credentials: "include",
-        body: JSON.stringify(body),
-      },true);
+      const response = await fetcher(
+        `${API_PATH}/v1/oauth/approve`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: JSON.stringify(body),
+        },
+        true,
+      );
       setAuthDetails(response as { code: string; redirect_uri: string });
       setError(null);
     } catch (e: any) {

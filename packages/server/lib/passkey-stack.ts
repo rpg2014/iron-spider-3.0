@@ -28,10 +28,10 @@ export class PasskeyInfraStack extends cdk.Stack {
   public CredentialTable: Table;
   public rsaSecret: Secret;
   public AuthorizationsTable: Table;
-  public AuthorizationsTableByAuthCodeIndexName = "OAuthAuthorizationsTableByAuthCode";
-  public AuthorizationsTableByRefreshTokenIndexName = "OAuthAuthorizationsTableByRefreshToken";
-  public AuthorizationsTableByAccessTokenIndexName = "OAuthAuthorizationsTableByAccessToken";
-  public AuthorizationsTableByUserIndexName = "OAuthAuthorizationsTableByUserId";
+  public AuthorizationsTableByAuthCodeIndexName = "OAuthAuthorizationsTableByAuthCodeV2";
+  public AuthorizationsTableByRefreshTokenIndexName = "OAuthAuthorizationsTableByRefreshTokenV2";
+  public AuthorizationsTableByAccessTokenIndexName = "OAuthAuthorizationsTableByAccessTokenV2";
+  public AuthorizationsTableByUserIndexName = "OAuthAuthorizationsTableByUserIdV2";
   // public role;
   constructor(scope: Construct, id: string, props: cdk.StackProps & PasskeyInfraProps) {
     super(scope, id, props);
@@ -74,27 +74,27 @@ export class PasskeyInfraStack extends cdk.Stack {
       indexName: this.AuthorizationsTableByAuthCodeIndexName,
       partitionKey: { name: "authCode", type: AttributeType.STRING },
       projectionType: ProjectionType.INCLUDE,
-      nonKeyAttributes: ["clientId", "userId", "scopes", "authCodeInfo", "created", "codeChallenge", "codeChallengeMethod"],
+      nonKeyAttributes: ["clientId", "userId", "scopes", "authCodeInfo", "created", "codeChallenge", "codeChallengeMethod", "lastUpdatedDate"],
     });
     // get by refresh token
     this.AuthorizationsTable.addGlobalSecondaryIndex({
       indexName: this.AuthorizationsTableByRefreshTokenIndexName,
       partitionKey: { name: "refreshToken", type: AttributeType.STRING },
       projectionType: ProjectionType.INCLUDE,
-      nonKeyAttributes: ["clientId", "userId", "refreshTokenInfo"],
+      nonKeyAttributes: ["clientId", "userId", "refreshTokenInfo", "created", "lastUpdatedDate"],
     });
     this.AuthorizationsTable.addGlobalSecondaryIndex({
       indexName: this.AuthorizationsTableByAccessTokenIndexName,
       partitionKey: { name: "accessToken", type: AttributeType.STRING },
       projectionType: ProjectionType.INCLUDE,
-      nonKeyAttributes: ["clientId", "userId", "accessTokenInfo", "scopes"],
+      nonKeyAttributes: ["clientId", "userId", "accessTokenInfo", "scopes", "created", "lastUpdatedDate"],
     });
     this.AuthorizationsTable.addGlobalSecondaryIndex({
       indexName: this.AuthorizationsTableByUserIndexName,
       partitionKey: { name: "userId", type: AttributeType.STRING },
       sortKey: { name: "clientId", type: AttributeType.STRING },
       projectionType: ProjectionType.INCLUDE,
-      nonKeyAttributes: ["clientId", "userId", "scopes"],
+      nonKeyAttributes: ["clientId", "userId", "scopes", "created", "lastUpdatedDate"],
     });
 
     props.operationsAccess.forEach(operation => this.UserTable.grantReadWriteData(operation));

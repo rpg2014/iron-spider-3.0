@@ -1,5 +1,6 @@
+import { toast } from "sonner";
 import { SERVER_PATH } from "~/constants";
-import { fetcher } from "~/utils";
+import { fetcher, isServer } from "~/utils";
 
 // Create ServerStatus enum
 export enum ServerStatus {
@@ -97,10 +98,22 @@ class MCServerStatusCache {
       console.log("[MCServerStatusCache] API status fetch successful", {
         status: response.status,
       });
-
+      if (!isServer) {
+        toast.success("Server status successfully fetched", {
+          description: `Server status: ${response.status}`,
+          duration: 3000,
+        });
+      }
       return response.status;
     } catch (error) {
       console.error("[MCServerStatusCache] API status fetch failed", error);
+      if (!isServer) {
+        toast.error("Failed to fetch server status", {
+          className: "text-red-500",
+          description: `Error: ${error}`,
+          duration: 3000,
+        });
+      }
       throw new Error("Failed to fetch server status from API");
     }
   }

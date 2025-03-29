@@ -126,8 +126,10 @@ const authHandlerV2 = async (event: event, context) => {
 
             case 'bearer':
                 console.log(`[AuthHandlerV2] Attempting bearer token authentication for operation: ${operationName}`);
-                const bearerToken = event.headers["authorization"]?.split(" ")[1];
+                // normalize headers to lower case
+                const bearerToken = event.headers["authorization"]?.split(" ")[1] || event.headers["Authorization"]?.split(" ")[1];
                 if (bearerToken) {
+                    console.log(`[AuthHandlerV2] Found Bearer Token`)
                     authResult = await authService.authenticateByBearerToken(bearerToken);
                     if (authResult.isAuthenticated) {
                         console.log(`[AuthHandlerV2] Bearer token authentication successful for user: ${authResult.userId}`);
@@ -143,6 +145,7 @@ const authHandlerV2 = async (event: event, context) => {
             case 'cognito':
                 console.log(`[AuthHandlerV2] Attempting Cognito authentication for operation: ${operationName}`);
                 if (token) {
+                    console.log(`[AuthHandlerV2] Found Cognito Token`)
                     authResult = await authService.authenticateByCognito(token);
                     if (authResult.isAuthenticated) {
                         // Check for protected paths
@@ -174,7 +177,7 @@ const authHandlerV2 = async (event: event, context) => {
 
 const authHandlerV1 = async( event: event, context) => {
     const token: string | undefined = event.headers["spider-access-token"];
-    const bearerToken: string | undefined = event.headers["authorization"]?.split(" ")[1];
+    const bearerToken: string | undefined = event.headers["authorization"]?.split(" ")[1] || event.headers["Authorization"]?.split(" ")[1];
     const cookieString: string | undefined = event.headers["cookie"] ?? event.headers["Cookie"];
     let cookieAuthResult: AuthenticationResult | undefined;
 

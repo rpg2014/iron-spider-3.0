@@ -7,12 +7,13 @@ import { Button } from "~/components/ui/Button";
 import { Card, CardFooter } from "~/components/ui/Card";
 import { getDateService } from "~/service/DateService";
 import { getHeaders } from "~/utils";
+import { getSession } from "~/sessions.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   console.log("Updating Date");
   try {
     const formData = await request.formData();
-
+    const session = await getSession(request.headers.get("Cookie"));
     // const objectFormData = Object.fromEntries(formData.entries());
     // throw data({ message: `Function not implemented. Got Form data: ${JSON.stringify(objectFormData, null, 2)}` }, { status: 500 });
     const dateService = getDateService();
@@ -32,7 +33,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       note: formData.get("note") as string,
     } as UpdateDateCommandInput;
     console.log("Updating date: ", dateInfo);
-    const updatedDate = await dateService.updateDate({ date: dateInfo, headers: getHeaders(request) });
+    const updatedDate = await dateService.updateDate({
+      date: dateInfo,
+      headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }),
+    });
     console.log("Updated date: ", updatedDate);
     return redirect(`/dates/${updatedDate.id}`);
   } catch (error) {

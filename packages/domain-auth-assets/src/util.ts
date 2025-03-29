@@ -22,7 +22,7 @@ export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, i
     console.error(`Got ${res.status} error from backend`);
     throw {
       message: data.message,
-      status: res.status
+      status: res.status,
     } as APIError;
   }
   return data as T;

@@ -6,12 +6,20 @@
 
 import { PassThrough } from "node:stream";
 
-import type { AppLoadContext as ALC, EntryContext } from "react-router";
+import type { AppLoadContext as ALC, EntryContext, HandleErrorFunction } from "react-router";
 import { createReadableStreamFromReadable } from "@react-router/node";
 import { ServerRouter } from "react-router";
 import { isbot } from "isbot";
 import { renderToPipeableStream, renderToString } from "react-dom/server";
 import { useStreams } from "../lib/constants";
+
+export const handleError: HandleErrorFunction = (error, { request }) => {
+  // React Router may abort some interrupted requests, don't log those
+  if (!request.signal.aborted) {
+    // make sure to still log the error so you can see it
+    console.error(`[entry.server:handleError] React Router encountered an error while rendering: `, error);
+  }
+};
 
 const ABORT_DELAY = 5_000;
 // Reject/cancel all pending promises after 5 seconds

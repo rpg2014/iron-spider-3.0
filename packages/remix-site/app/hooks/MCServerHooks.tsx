@@ -45,6 +45,16 @@ export const ServerProvider = ({ children, initialState }: { children: React.Rea
   const [domainName, setDomainName] = useState<string>();
   const [errors, setErrors] = useState<{ message: string }[]>();
 
+  // pop errors off after 10 seconds
+  useEffect(() => {
+    if (errors && errors.length > 0) {
+      const timer = setTimeout(() => {
+        setErrors(errors.slice(1));
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errors]);
+
   //update status on mount
   useEffect(() => {
     if (!initialState) {

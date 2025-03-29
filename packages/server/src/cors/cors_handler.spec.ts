@@ -29,7 +29,7 @@ describe("Cors handler", () => {
 
     const allowed = validateCors(request, {});
     expect(allowed.origin).toEqual("https://auth.parkergiven.com");
-    expect(allowed.headers).toEqual("content-type, spider-access-token");
+    expect(allowed.headers).toEqual("content-type, spider-access-token, Authorization");
   });
 
   it("should and correct headers when called from pwa subdomain", async () => {
@@ -41,7 +41,7 @@ describe("Cors handler", () => {
 
     const allowed = validateCors(request, {});
     expect(allowed.origin).toEqual("https://pwa.parkergiven.com");
-    expect(allowed.headers).toEqual("content-type, spider-access-token");
+    expect(allowed.headers).toEqual("content-type, spider-access-token, Authorization");
   });
   it("should  correct headers when called from remix subdomain", async () => {
     const request = new HttpRequest({
@@ -54,7 +54,7 @@ describe("Cors handler", () => {
 
     const allowed = validateCors(request, {});
     expect(allowed.origin).toEqual("https://remix.parkergiven.com");
-    expect(allowed.headers).toEqual("content-type, spider-access-token");
+    expect(allowed.headers).toEqual("content-type, spider-access-token, Authorization");
   });
 
   it("should throwcalled from a different domain", async () => {

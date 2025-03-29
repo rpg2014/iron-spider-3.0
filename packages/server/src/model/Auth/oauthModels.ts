@@ -1,3 +1,5 @@
+import type { Temporal } from "temporal-polyfill";
+
 export interface Authorization {
     authorizationId?: string;
     clientId: string;
@@ -7,22 +9,34 @@ export interface Authorization {
     authCodeInfo?: {
         used: boolean;
         /* ISO Date*/
-        expiresAt: Date;
+        expiresAt: Temporal.Instant;
     };
     accessToken?: string;
     accessTokenInfo?: {
-        issuedAt: Date;
-        expiresAt: Date;
+        issuedAt: Temporal.Instant;
+        expiresAt: Temporal.Instant;
     };
+    accessTokens?: Token[];
     refreshToken?: string;
     refreshTokenInfo?: {
-        issuedAt: Date;
-        expiresAt: Date;
+        issuedAt: Temporal.Instant;
+        expiresAt: Temporal.Instant;
     }
+    refreshTokens?: Token[];
     codeChallenge?: string;
     codeChallengeMethod?: string;
-    created: Date;
-    lastUpdatedDate?: Date;
+    created: Temporal.Instant;
+    lastUpdatedDate?: Temporal.Instant;
+  }
+  export type Token = {
+    token: string,
+    issuedAt: Temporal.Instant,
+    expiresAt: Temporal.Instant
+  }
+  export type DDBToken = {
+    token: string,
+    issuedAt:  string,
+    expiresAt:string
   }
   // same thing as above but dates are iso strings
   export interface DDBAuthorization {
@@ -40,11 +54,13 @@ export interface Authorization {
         issuedAt: string;
         expiresAt: string;
     };
+    accessTokens?: DDBToken[];
     refreshToken?: string;
     refreshTokenInfo?: {
         issuedAt: string;
         expiresAt: string;
-    }
+    },
+    refreshTokens?: DDBToken[];
     codeChallenge?: string;
     codeChallengeMethod?: string;
     created: string;

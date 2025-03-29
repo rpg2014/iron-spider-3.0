@@ -21,7 +21,12 @@ export const ErrorBoundary = () => {
     console.error(`Got Route Error Response: `, error);
     // if error.data is a string, JSON parse it
     if (typeof error.data === "string") {
-      error.data = JSON.parse(error.data) as ErrorMessage;
+      try {
+        error.data = JSON.parse(error.data) as ErrorMessage;
+      } catch (e) {
+        console.warn(`Error parsing error data as JSON: `, e);
+        error.data = { message: error.data } as ErrorMessage;
+      }
     }
     const errorCast = error as ErrorResponseGeneric<ErrorMessage>;
 

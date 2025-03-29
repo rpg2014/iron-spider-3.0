@@ -4,17 +4,36 @@ import { useEffect, useState } from "react";
 import { API_DOMAIN_VERSION, AUTH_DOMAIN, notificationSettingKey } from "~/constants";
 import { fetcher } from "~/utils";
 import { DEFAULT_AUTH_LOADER } from "~/utils.server";
-import { useLoaderData, useLocation, useRevalidator } from "react-router";
+import { data, Form, useLoaderData, useLocation, useNavigation, useRevalidator } from "react-router";
 import { Label } from "~/components/ui/Label";
 import { toast } from "sonner";
+import { Route } from "./+types/settings";
+import { destroySession, getSession } from "~/sessions.server";
+import AuthGate from "~/components/AuthGate";
 
 //TODO: remove this loader if this adds latency and shit
 export const loader = DEFAULT_AUTH_LOADER;
 
+export async function action({ request }: Route.ActionArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+  return data(
+    {
+      success: true,
+    },
+    {
+      headers: {
+        "Set-Cookie": await destroySession(session),
+      },
+    },
+  );
+}
+
 export default function Settings() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>();
-  const { hasCookie, currentUrl } = useLoaderData<typeof loader>();
-  const url = new URL(currentUrl)
+  const { verified, currentUrlObj } = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
+
+  const url = currentUrlObj;
   const [redirectUri, setRedirectUri] = useState<string>(`${url.protocol}//${url.hostname}/oauth/callback`);
   // figure out notificaton permission on client side
   useEffect(() => {
@@ -29,7 +48,6 @@ export default function Settings() {
     <main className={styles.settingsContainer}>
       <h1>Settings</h1>
       <hr />
-
       <div className={styles.setting}>
         <Label className={styles.settingsLabel}>Notifications</Label>
         <Button
@@ -92,7 +110,7 @@ export default function Settings() {
         </Button>
       </div>
       <hr />
-      {hasCookie && (
+      {verified && (
         <>
           <div className={styles.setting}>
             <Label className={styles.settingsLabel}>Manage Account</Label>
@@ -101,10 +119,14 @@ export default function Settings() {
             </a>
           </div>
           {/* TODO: get this to work via an action to remove the session */}
-          {/* <div className={styles.setting}>
-            <Label className={styles.settingsLabel}>Sign out of this site</Label>
-            <LogoutButton />
-          </div> */}
+          <div className={styles.setting}>
+            <Label className={styles.settingsLabel}>Sign out</Label>
+            <Form method="post">
+              <Button type="submit" disabled={navigation.state !== "idle"} variant="destructive">
+                {navigation.state !== "idle" ? "Loading..." : "Logout"}
+              </Button>
+            </Form>
+          </div>
           <div className={styles.setting}>
             <Label className={styles.settingsLabel}>Sign out of all sites</Label>
             <LogoutButton />
@@ -112,11 +134,9 @@ export default function Settings() {
         </>
       )}
       <div className={styles.setting}>
-        <Label className={styles.settingsLabel}>Login via Oauth</Label>
+        <Label className={styles.settingsLabel}>Login via Oauth with pkce</Label>
         {/* // redirect uri should be the current url */}
-        <a href={`${AUTH_DOMAIN}/authorize?client_id=123456789&redirect_uri=${redirectUri}&scope=openid%20profile%20email&response_type=code&state=12345`}>
-          <Button variant="secondary">Login</Button>
-        </a>
+        <AuthGate currentUrlObj={currentUrlObj} pkce />
       </div>
     </main>
   );

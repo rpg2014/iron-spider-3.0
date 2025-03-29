@@ -90,5 +90,7 @@ sw.addEventListener("notificationclick", event => {
     event.notification.close();
   } else if (event.action === "open-settings") {
     event.waitUntil(sw.clients.openWindow("/settings"));
+  } else {
+    event.waitUntil(sw.clients.openWindow("/"));
   }
 });

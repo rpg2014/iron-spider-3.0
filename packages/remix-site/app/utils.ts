@@ -1,8 +1,12 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { AUTH_DOMAIN } from "./constants";
+import apiKeys from "../../../.api_keys.json";
+export const isServer = typeof window === "undefined";
 
-const isServer = typeof window === "undefined";
+export const getAPIKey = () => {
+  return apiKeys["remix-site-oauth-config"]["apiKey"];
+};
 
 /**
  * Performs a fetch request with custom headers and error handling.
@@ -81,12 +85,16 @@ export const getLoginRedirect = (returnLocation: string) =>
   `${AUTH_DOMAIN}?return_url=${encodeURIComponent(returnLocation)}&message=${encodeURIComponent(`Need To login`)}`;
 
 /**
- * Extracts the cookie from the request
- * @param request
- * @returns
+ * Extracts the cookie from the request, prioritizing session cookie if available
+ * @param request - The incoming request object
+ * @param session - Optional session object that may contain cookie info
+ * @returns Headers object with cookie information
  */
-export const getHeaders = (request: Request) => ({
-  ...request.headers,
-  //@ts-ignore
-  Cookie: request.headers.get("Cookie") || "",
-});
+export const getHeaders = (request: Request, session?: { cookie?: string; accessToken?: string }) => {
+  return {
+    ...request.headers,
+    Authorization: session?.accessToken ? `Bearer ${session.accessToken}` : "",
+    //@ts-ignore
+    Cookie: session?.accessToken ? undefined : request.headers.get("Cookie"),
+  };
+};

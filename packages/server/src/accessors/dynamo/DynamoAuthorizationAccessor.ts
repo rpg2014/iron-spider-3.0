@@ -3,10 +3,9 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { AuthorizationAccessor, RenewAuthParams } from "../AccessorInterfaces";
 import { InternalServerError, BadRequestError, OAuthError } from "iron-spider-ssdk";
-import { Authorization, CreateAuthorizationInput, DDBAuthorization } from "src/model/Auth/oauthModels";
+import { Authorization, CreateAuthorizationInput, DDBAuthorization, DDBToken, Token } from "src/model/Auth/oauthModels";
 import { Temporal } from "temporal-polyfill";
 
-//TODO: convert the dates here to temporal-polyfill
 export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
   private TABLE_NAME: string = process.env.AUTHORIZATIONS_TABLE_NAME as string;
   private BY_AUTH_CODE_INDEX_NAME = process.env.AUTHORIZATIONS_BY_AUTH_CODE_INDEX_NAME as string;
@@ -19,7 +18,7 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
     // create dynamo db client
     this.client = new DynamoDBClient({});
     this.ddbdocClient = DynamoDBDocumentClient.from(this.client,{marshallOptions: {
-      // This can cause issues if I accidentaly pass a real class in. 
+      // This can cause issues if I accidentaly pass a real class in. Would rather fail fast here. 
       // convertClassInstanceToMap: true
     }});
   }
@@ -39,8 +38,8 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
       codeChallenge: code_challenge ? code_challenge : undefined,
       // todo pass this from the input
       codeChallengeMethod: code_challenge_method ? code_challenge_method : undefined,
-      created: new Date().toISOString(),
-      lastUpdatedDate: new Date().toISOString(),
+      created: Temporal.Now.instant().toString(),
+      lastUpdatedDate: Temporal.Now.instant().toString(),    
     };
 
     try {
@@ -127,8 +126,8 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
       codeChallenge: code_challenge ? code_challenge : undefined,
       // TODO pass this from input?
       codeChallengeMethod: code_challenge_method ? code_challenge_method : undefined,
-      created: previousAuth.created.toISOString(),
-      lastUpdatedDate: Temporal.Now.plainDateTimeISO().toString(),
+      created: previousAuth.created.toString(),
+      lastUpdatedDate: Temporal.Now.instant().toString(),
     };
     delete authorization.accessToken;
     delete authorization.refreshToken;
@@ -174,16 +173,21 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
         console.log("Authorization not found");
         throw new OAuthError({ message: "Authorization not found", error: "invalid_grant", error_description: "Authorization not found" });
       }
-      const authorization = result.Items[0] as Authorization;
-      if (authorization.authCodeInfo && !authorization.authCodeInfo.used && new Date(authorization.authCodeInfo.expiresAt) > new Date()) {
+      const authorization = result.Items[0] as DDBAuthorization;
+      console.log(`[DyanmoAuthorizationAccessor.getAuthorizationByCode] Authorization found, previously used: ${authorization?.authCodeInfo?.used}, expiresAt: ${authorization?.authCodeInfo?.expiresAt}.`)
+      // Compare is -1 if first time is before second time, 0 if equal, 1 if reverse
+      if (authorization.authCodeInfo && !authorization.authCodeInfo.used && Temporal.Instant.compare(Temporal.Instant.from(authorization.authCodeInfo.expiresAt.toString()), Temporal.Now.instant()) > 0) {
         if (!authorization.authorizationId) {
+          // this shouldn't happen
           console.log("Authorization id not found for auth code", authCode, authorization);
           throw new InternalServerError({ message: "Authorization id not found" });
         }
-        return authorization;
+        return convertFromDDBAuthorization(authorization);
       } else {
         // if authcode is already used, then replay attack is happening and i should expire the whole key family. 
         console.log(`Auth code used: ${authorization?.authCodeInfo?.used}, expiresAt: ${authorization?.authCodeInfo?.expiresAt}`);
+        const authCodeExpired = Temporal.Instant.compare(Temporal.Instant.from(authorization?.authCodeInfo?.expiresAt.toString()?? Temporal.Now.instant()), Temporal.Now.instant())
+        console.log(`Auth code expired: ${authCodeExpired}`);
         throw new OAuthError({
           message: "Authorization code expired or already used",
           error: "invalid_grant",
@@ -212,9 +216,10 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
         console.log("Authorization not found");
         throw new OAuthError({ message: "Authorization not found", error: "invalid_grant", error_description: "Authorization not found" });
       }
-      const authorization = result.Items[0] as Authorization;
-      if (authorization.refreshTokenInfo && new Date(authorization.refreshTokenInfo.expiresAt) > new Date()) {
-        return authorization;
+      const authorization = result.Items[0] as DDBAuthorization;
+      
+      if (authorization.refreshTokenInfo && Temporal.Instant.compare(Temporal.Instant.from(authorization.refreshTokenInfo.expiresAt.toString()), Temporal.Now.instant()) > 0) {
+        return convertFromDDBAuthorization(authorization);
       } else {
         throw new OAuthError({
           message: "Refresh token expired",
@@ -233,7 +238,7 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
     return Buffer.from(uuidv4()).toString("base64url");
   }
 
-  private generateAuthCodeExpiration = () => Temporal.Now.plainDateTimeISO().add({minutes: 10}).toString();
+  private generateAuthCodeExpiration = () => Temporal.Now.instant().add({minutes: 10}).toString();
 
   async setAuthCodeUsed(authorizationId: string, userId: string): Promise<void> {
     try {
@@ -248,7 +253,7 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
           UpdateExpression: "set authCodeInfo.used = :used, authCodeInfo.expiresAt = :expiresAt REMOVE authCode",
           ExpressionAttributeValues: {
             ":used": true,
-            ":expiresAt": Temporal.Now.plainDateTimeISO().toString()
+            ":expiresAt": Temporal.Now.instant().toString()
           },
           ReturnValues: "ALL_NEW",
         }),
@@ -310,7 +315,7 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
             
             ":accessTokenInfo": accessInfo,
             ":refreshTokenInfo": refreshInfo,
-            ":lastUpdatedDate": Temporal.Now.plainDateTimeISO().toString(),
+            ":lastUpdatedDate": Temporal.Now.instant().toString(),
           },
           ReturnValues: "ALL_NEW",
         }),
@@ -327,30 +332,32 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
 // this function converts from an authorization object to a DDBAuthorization object
 const convertToDDBAuthorization = (authorization: Authorization): DDBAuthorization => {
   console.log(`[convertToDDBAuthorization] Converting authorization: ${JSON.stringify(authorization, null, 2)}`)
-  const auth = {
+  const auth: DDBAuthorization = {
     ...authorization,
     authCodeInfo: authorization.authCodeInfo
       ? {
           ...authorization.authCodeInfo,
-          expiresAt: authorization.authCodeInfo.expiresAt.toISOString(),
+          expiresAt: authorization.authCodeInfo.expiresAt.toString(),
         }
       : undefined,
     accessTokenInfo: authorization.accessTokenInfo
       ? {
           ...authorization.accessTokenInfo,
-          issuedAt: authorization.accessTokenInfo.issuedAt.toISOString(),
-          expiresAt: authorization.accessTokenInfo.expiresAt.toISOString(),
+          issuedAt: authorization.accessTokenInfo.issuedAt.toString(),
+          expiresAt: authorization.accessTokenInfo.expiresAt.toString(),
         }
       : undefined,
+    accessTokens: authorization.accessTokens?.map(convertToDDBToken),
     refreshTokenInfo: authorization.refreshTokenInfo
       ? {
           ...authorization.refreshTokenInfo,
-          issuedAt: authorization.refreshTokenInfo.issuedAt.toISOString(),
-          expiresAt: authorization.refreshTokenInfo.expiresAt.toISOString(),
+          issuedAt: authorization.refreshTokenInfo.issuedAt.toString(),
+          expiresAt: authorization.refreshTokenInfo.expiresAt.toString(),
         }
       : undefined,
-    created: authorization.created.toISOString(),
-    lastUpdatedDate: authorization.lastUpdatedDate ? authorization.lastUpdatedDate.toISOString() : undefined,
+    refreshTokens: authorization.refreshTokens?.map(convertToDDBToken),
+    created: authorization.created.toString(),
+    lastUpdatedDate: authorization.lastUpdatedDate ? authorization.lastUpdatedDate.toString() : undefined,
   };
   if(auth.lastUpdatedDate === undefined || auth.lastUpdatedDate === null) 
     delete auth.lastUpdatedDate;
@@ -360,30 +367,50 @@ const convertToDDBAuthorization = (authorization: Authorization): DDBAuthorizati
 // this function converts from a DDBAuthorization object to an authorization object
 const convertFromDDBAuthorization = (authorization: DDBAuthorization): Authorization => {
   console.log(`[convertFromDDBAuthorization] Converting authorization: ${JSON.stringify(authorization, null, 2)}`)
-  const auth =  {
+  const auth: Authorization =  {
     ...authorization,
     authCodeInfo: authorization.authCodeInfo
       ? {
           ...authorization.authCodeInfo,
-          expiresAt: new Date(authorization.authCodeInfo.expiresAt),
+          expiresAt: Temporal.Instant.from(authorization.authCodeInfo.expiresAt),
         }
       : undefined,
     accessTokenInfo: authorization.accessTokenInfo
       ? {
           ...authorization.accessTokenInfo,
-          issuedAt: new Date(authorization.accessTokenInfo.issuedAt),
-          expiresAt: new Date(authorization.accessTokenInfo.expiresAt),
+          issuedAt: Temporal.Instant.from(authorization.accessTokenInfo.issuedAt),
+          expiresAt: Temporal.Instant.from(authorization.accessTokenInfo.expiresAt),
         }
       : undefined,
+    accessTokens: authorization.accessTokens?.map(convertFromDDBToken),
     refreshTokenInfo: authorization.refreshTokenInfo
       ? {
           ...authorization.refreshTokenInfo,
-          issuedAt: new Date(authorization.refreshTokenInfo.issuedAt),
-          expiresAt: new Date(authorization.refreshTokenInfo.expiresAt),
+          issuedAt: Temporal.Instant.from(authorization.refreshTokenInfo.issuedAt),
+          expiresAt: Temporal.Instant.from(authorization.refreshTokenInfo.expiresAt),
         }
       : undefined,
-    created: new Date(authorization.created),
-    lastUpdatedDate: authorization.lastUpdatedDate ? new Date(authorization.lastUpdatedDate) : undefined,
+    refreshTokens: authorization.refreshTokens?.map(convertFromDDBToken),
+    created:  Temporal.Instant.from(authorization.created),
+    lastUpdatedDate: authorization.lastUpdatedDate ? Temporal.Instant.from(authorization.lastUpdatedDate) : undefined,
   };
   return auth;
+};
+
+// DDBToken to Token and viceversa converters
+
+const convertFromDDBToken = (token: DDBToken): Token => {
+  return {
+    ...token,
+    issuedAt: Temporal.Instant.from(token.issuedAt),
+    expiresAt: Temporal.Instant.from(token.expiresAt),
+  };
+};
+
+const convertToDDBToken = (token: Token): DDBToken => {
+  return {
+    ...token,
+    issuedAt: token.issuedAt.toString(),
+    expiresAt: token.expiresAt.toString(),
+  };
 };

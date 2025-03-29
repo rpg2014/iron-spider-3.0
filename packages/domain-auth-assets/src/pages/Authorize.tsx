@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Spinner from "../components/Spinner";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
 import Alert from "../components/Alert";
+import styles from "./Authorize.module.scss";
 
 export default function Authorize() {
   const { oauthParams, clientDetails, onAccept, authDetails, isLoading, error } = useOAuthFlow();
@@ -16,46 +17,71 @@ export default function Authorize() {
     }
   }, [authDetails]);
 
+  // initial server side render
   if (!oauthParams) {
     return (
-      <div className="flex justify-center items-center h-[100%]">
+      <div className={styles.container}>
         <Spinner />
       </div>
     );
   }
 
-  // Validation of required parameters
   if (!oauthParams.client_id || !oauthParams.redirect_uri || !oauthParams.response_type) {
-    return <div>Invalid OAuth request: Missing required parameters</div>;
+    return (
+      <div className={`${styles.container} ${styles.fadeInScale}`}>
+        <Alert variant="danger">
+          {`Invalid OAuth request: Missing required parameters:  ${!oauthParams.client_id ? "client_id, " : ""}${!oauthParams.redirect_uri ? "redirect_uri, " : ""}${!oauthParams.response_type ? "response_type" : ""} `}
+        </Alert>
+      </div>
+    );
   }
 
+  const formatScopes = (scopeString?: string) => {
+    if (!scopeString) return [];
+    return scopeString.split(" ").map(scope => {
+      return scope
+        .replace(/[_-]/g, " ")
+        .toLowerCase()
+        .replace(/\b\w/g, letter => letter.toUpperCase());
+    });
+  };
+
   return (
-    <div>
-      <h1>Authorization Request</h1>
-      <div>
+    <div className={`${styles.container} ${styles.fadeInScale}`}>
+      <h2 className={styles.title}>Authorization Request</h2>
+      <div className={styles.formContainer}>
         {!clientDetails ? (
           <Spinner />
         ) : (
           <>
-            <p>An application would like to access your account</p>
-            <p>Client ID: {oauthParams.client_id}</p>
-            <p>Redirect URI: {oauthParams.redirect_uri}</p>
-            <p>Scope: {oauthParams.scope}</p>
-            {oauthParams.state && <p>State: {oauthParams.state}</p>}
-            {/* Add authorization buttons and handling logic here */}
-            Client Details
-            <pre>{JSON.stringify(clientDetails, null, 2)}</pre>
+            <h3 className={styles.clientName}>{clientDetails.clientName}</h3>
+            <p className={styles.description}>would like to access your account</p>
             {isLoading ? (
               <Spinner />
             ) : authDetails ? (
-              <Alert variant="success">
-                Success! Redirecting <Spinner />
-              </Alert>
-            ) : (
-              <div>
-                <button onClick={onAccept}>Authorize</button>
-                <button onClick={() => window.history.back()}>Deny</button>
+              <div className={styles.successContainer}>
+                <Spinner />
+                <Alert variant="success">Success! Redirecting...</Alert>
               </div>
+            ) : (
+              <>
+                <div className={styles.scopesContainer}>
+                  <h4>This app will have access to:</h4>
+                  <ul>
+                    {formatScopes(oauthParams.scope).map((scope, index) => (
+                      <li key={index}>{scope}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className={styles.buttonContainer}>
+                  <button className={`${styles.button} ${styles.acceptButton}`} onClick={onAccept}>
+                    Accept
+                  </button>
+                  <button className={`${styles.button} ${styles.denyButton}`} onClick={() => window.history.back()}>
+                    Deny
+                  </button>
+                </div>
+              </>
             )}
           </>
         )}

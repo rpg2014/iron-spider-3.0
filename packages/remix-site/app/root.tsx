@@ -37,17 +37,14 @@ export const meta: MetaFunction = () => [
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   try {
-    try {
-      const session = await getSession(request.headers.get("Cookie"));
-      if (session.has("oauthTokens")) {
-        console.log("Found OauthInfo", session.get("oauthTokens"));
-      } else {
-        console.log("No OauthInfo found");
-      }
-    } catch (error) {
-      console.error("Error parsing oauth cookie", error);
+    const session = await getSession(request.headers.get("Cookie"));
+    if (session.has("oauthTokens")) {
+      console.log("Found OauthInfo", session.get("oauthTokens"));
+    } else {
+      console.log("No OauthInfo found");
     }
-    const initialStatus = await MCServerApi.getStatus(getHeaders(request), context);
+
+    const initialStatus = await MCServerApi.getStatus(getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }), context);
     return { initialStatus };
   } catch (error) {
     console.error("Error fetching initial status:", error);

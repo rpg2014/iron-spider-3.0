@@ -3,7 +3,7 @@ import { JWTProcessor as jwtlib } from 'jwt-lib';
 import * as AuthDynamoWrapper from '../AuthDynamoWrapper';
 import { AUTH_CONFIG } from '../config/authConfig';
 import { FileOIDCClientAccessor } from "../DAO/OIDCClientDAO";
-import { FakeAccessTokenValidator } from "../DAO/AccessTokenDAO";
+import { DynamoDBAccessTokenValidator } from "../DAO/AccessTokenDAO";
 
 export interface AuthenticationResult {
     isAuthenticated: boolean;
@@ -139,7 +139,7 @@ export class AuthenticationService {
         }
     }
     async authenticateByBearerToken(token: string): Promise<AuthenticationResult> {
-        const validator = FakeAccessTokenValidator.getInstance();
+        const validator = DynamoDBAccessTokenValidator.getInstance();
         try {
             const result = await validator.checkToken(token);
             if (!result) {
@@ -154,9 +154,8 @@ export class AuthenticationService {
                     clientId: result.clientId,
                     scopes: result.scopes
                 },
-                displayName: result.userId,//todo fix-
+                // displayName: result.userId,//todo fix-
                 userId: result.userId,
-            
             };
 
         }catch (error) {

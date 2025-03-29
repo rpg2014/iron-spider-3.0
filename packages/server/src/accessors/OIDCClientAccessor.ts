@@ -20,8 +20,10 @@ export class FileOIDCClientAccessor extends OIDCClientAccessor {
     static getInstance() {
         return new FileOIDCClientAccessor();
     }
-    async getClient(clientId: keyof typeof apiKeys): Promise<OIDCClient> {
-        const client = apiKeys[clientId];
+    async getClient(clientId: string): Promise<OIDCClient> {
+        // filter out the string
+        const clients = Object.values(apiKeys).filter((client) => typeof client === 'object') as OIDCClient[];
+        const client = clients.find((client) => client.clientId === clientId);
         if (!client) {
             throw new Error('Client not found');
         }
@@ -29,7 +31,7 @@ export class FileOIDCClientAccessor extends OIDCClientAccessor {
     }
     async getClientByClientSecret(key: string): Promise<OIDCClient> {
         // for each client in apiKeys, check if the clientSecret matches the key
-        const clients = Object.values(apiKeys);
+        const clients = Object.values(apiKeys).filter((client) => typeof client === 'object') as OIDCClient[];;
         const client = clients.find((client) => client.clientSecret === key);
         if (!client) {
             throw new Error('Client not found');
@@ -37,7 +39,7 @@ export class FileOIDCClientAccessor extends OIDCClientAccessor {
         return client;  
     }
     async getClientByApiKey(key: string): Promise<OIDCClient> {
-        const client = Object.values(apiKeys).find((client) => client.apiKey === key);
+        const client = Object.values(apiKeys).filter((client) => typeof client === 'object').find((client) => client.apiKey === key);
         if (!client) {
             throw new Error('Client not found');
         }

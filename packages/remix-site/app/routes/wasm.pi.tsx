@@ -26,7 +26,7 @@ export default function Pi() {
   return (
     <div>
       <h1>Server side WebAssembly</h1>
-      <p>Click a button to calculate pi using a that number of iterations of a montecarlo approximation</p>
+      <p>Click a button to calculate pi using that number of iterations of a montecarlo approximation</p>
       <div>
         <LinkWithButton iterations={100} />
         <LinkWithButton iterations={1000} />

@@ -1,4 +1,4 @@
-import { MetaFunction, useLocation, useLoaderData } from "react-router";
+import { MetaFunction, useLocation, useLoaderData, data } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { useServers } from "~/hooks/MCServerHooks";
 import logo from "~/images/minecraft-logo-17.png";
@@ -6,9 +6,10 @@ import { ServerStatus, MCServerApi } from "~/service/MCServerService";
 import { StartStopButton } from "~/components/server/StartStopButton";
 import { RefreshCwIcon } from "lucide-react";
 import { Alert } from "~/components/ui/Alert";
-import { checkCookieAuth } from "~/utils.server";
+import { checkCookieAuth, checkIdTokenAuth } from "~/utils.server";
 import AuthGate from "~/components/AuthGate";
 import { Suspense, useEffect } from "react";
+import { commitSession, getSession } from "~/sessions.server";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Parker's Minecraft Server Control" }];
@@ -16,21 +17,29 @@ export const meta: MetaFunction = () => {
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   try {
-    const authResult = await checkCookieAuth(request);
+    const newAuthResult = await checkIdTokenAuth(request);
+    const session = await getSession(request.headers.get("Cookie"));
+    if (newAuthResult.verified && newAuthResult.oauthDetails) {
+      session.set("oauthTokens", newAuthResult.oauthDetails);
+    }
     // fetching in root route, and prepopulating the hook
     // const initialStatus = await MCServerApi.getStatus(request.headers, context);
     // console.log(`MC Server Status: ${initialStatus}`);
-    return {
+    return data({
       // initialStatus,
-      hasCookie: authResult.hasCookie,
-      currentUrl: request.url,
-    };
+      verified: newAuthResult.verified,
+      currentUrlObj: new URL(request.url),
+    },{
+          headers: {
+            "Set-Cookie": await commitSession(session),
+          },
+        });
   } catch (e: any) {
     console.log(e);
     return {
       initialStatus: "Error: " + e["message"],
-      hasCookie: false,
-      currentUrl: request.url,
+      verified: false,
+      currentUrlObj: new URL(request.url),
       error: "Error: " + e["message"],
     };
   }
@@ -79,9 +88,9 @@ export default function Server() {
       </div>
       {domainName && <p>Domain name: ${domainName}</p>}
       <div className="h-25 start-button mx-auto flex flex-col items-center pb-3 pt-5 align-middle">
-        {data.hasCookie ? (
+        {data.verified ? (
           <StartStopButton
-            loggedIn={data.hasCookie}
+            loggedIn={data.verified}
             loading={actionLoading}
             serverStatus={currentStatus as ServerStatus}
             updateStatus={async () => actions.status()}
@@ -89,7 +98,7 @@ export default function Server() {
             startServer={async () => actions.start()}
           />
         ) : (
-          <AuthGate currentUrl={data.currentUrl} />
+          <AuthGate currentUrlObj={data.currentUrlObj} />
         )}
         {errors &&
           errors.map((error, index) => (

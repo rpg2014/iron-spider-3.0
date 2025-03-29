@@ -25,7 +25,7 @@ export type OutletState = {
 };
 
 export default function Chat() {
-  const { hasCookie, currentUrl } = useLoaderData<typeof loader>();
+  const { verified, currentUrlObj } = useLoaderData<typeof loader>();
   const [status, setStatus] = useState<StatusResponse | undefined>();
   const [temperature, setTemperature] = useLocalStorage("modelTemperature", 0.5);
   const [maxTokens, setMaxTokens] = useLocalStorage("modelMaxTokens", 2048);
@@ -68,10 +68,9 @@ export default function Chat() {
     loadStatus();
   }, []);
 
-  if (!hasCookie && import.meta.env.PROD) {
-    return <AuthGate currentUrl={window?.location?.href ?? currentUrl} />;
+  if (!verified && import.meta.env.PROD && typeof window !== 'undefined'){
+    return <AuthGate currentUrlObj={window?.location?.href ? new URL(window.location.href) : currentUrlObj} />;
   }
-
   return (
     <>
       <div className="navigation-container">

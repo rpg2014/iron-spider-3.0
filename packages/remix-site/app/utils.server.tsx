@@ -10,18 +10,21 @@ import type { LoaderFunctionArgs } from "react-router";
 import { createHash } from "crypto";
 import { PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "./constants";
 import pkg from "jsonwebtoken";
-import { fetcher } from "./utils";
-import { createCookie } from "react-router";
-import apiKeys from "../.apiKeys.json";
-import { getSession } from "./sessions.server";
+import { fetcher, getAPIKey } from "./utils";
+import { commitSession, getSession, SessionData } from "./sessions.server";
+import { data, Session } from "react-router";
+import { Temporal } from "temporal-polyfill";
+import { IronSpiderAPI } from "./service/IronSpiderClient";
+import apiKeys from "../../../.api_keys.json";
+
 const { verify } = pkg;
-type JwtPayload = pkg.JwtPayload;
+export type JwtPayload = pkg.JwtPayload & { preferred_username: string };
 
 export function hash(str: string) {
   return createHash("sha1").update(str).digest("hex").toString();
 }
 
-const API_KEY_HEADERS = { "spider-access-token": apiKeys["iron-spider-api"] };
+const API_KEY_HEADERS = { "spider-access-token": getAPIKey() };
 
 const isPublicRoute = (url: string) => {
   //typecast to URL, throw on error
@@ -30,17 +33,91 @@ const isPublicRoute = (url: string) => {
 };
 let publicKey: { keys?: string[] } | undefined;
 
+// Module-scoped variable to hold the current refresh promise.
+let refreshPromise: Promise<OAuthDetails | undefined> | null = null;
 
+export const checkIdTokenAuth = async (request: Request): Promise<AuthResponse> => {
+  console.log("[checkIdTokenAuth] Starting authentication check");
+  try {
+    const session = await getSession(request.headers.get("Cookie"));
+    console.log("[checkIdTokenAuth] Got session", session.data);
 
-export const checkIdTokenAuth = async (request: Request) => {
-  const session = await getSession(request.headers.get("Cookie"));
-  session.get("oauthTokens");
-  // todo implement
+    if (session.has("userData") && session.has("oauthTokens") && session.has("userId")) {
+      let newOauthData: OAuthDetails | undefined = undefined;
+      console.log("[checkIdTokenAuth] Session has userId and oauthTokens, checking token, and in the future, attempting refresh");
 
-  throw new Error("Not implemented");
+      const oauthTokens = session.get("oauthTokens");
+      const timeToCompareTo = Temporal.Now.instant().add({ minutes: 1 });
+      console.log(`[checkIdTokenAuth] oauthTokens: ${oauthTokens?.accessToken}, ${oauthTokens?.expiresAt}, Now+1: ${timeToCompareTo}`);
+
+      // Check if the token is expiring within the next minute.
+      if (oauthTokens && Temporal.Instant.compare(Temporal.Instant.from(oauthTokens.expiresAt), timeToCompareTo) < 0) {
+        console.log(`[checkIdTokenAuth] Access token expired or about to expire, attempting refresh`);
+
+        // If a refresh is already in progress, wait for it.
+        if (!refreshPromise) {
+          // Create a new refresh promise
+          refreshPromise = (async () => {
+            try {
+              const response = await IronSpiderAPI.getTokens({
+                refreshToken: oauthTokens.refreshToken,
+                oauthConfig: getOauthDetails(),
+              });
+              // Validate that all tokens are present
+              if (!response.access_token || !response.refresh_token || !response.id_token || !response.expires_in) {
+                console.error("[checkIdTokenAuth] Error refreshing tokens, no tokens returned");
+                return undefined;
+              }
+              console.log("[checkIdTokenAuth] Tokens refreshed, returning new tokens");
+              return {
+                accessToken: response.access_token,
+                refreshToken: response.refresh_token,
+                idToken: response.id_token,
+                expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
+              } as OAuthDetails;
+            } catch (e) {
+              console.error("[checkIdTokenAuth] Error refreshing tokens", e);
+              return undefined;
+            } finally {
+              // Reset the promise so that subsequent calls can trigger a refresh if needed.
+              refreshPromise = null;
+            }
+          })();
+        }
+        // Wait for the refresh to complete and use the new tokens if available.
+        newOauthData = await refreshPromise;
+      }
+
+      const userId = session.get("userId");
+      const data = session.get("userData");
+      const preferred_username = data?.preferred_username ?? "Unknown User";
+      return {
+        verified: true,
+        userData: { ...data, preferred_username, userId },
+        oauthDetails: newOauthData ? newOauthData : oauthTokens,
+      };
+    } else {
+      return { verified: false };
+    }
+  } catch (e) {
+    console.error("[checkIdTokenAuth] Error getting session", e);
+    return { verified: false };
+  }
+};
+type OAuthDetails = {
+  accessToken: string;
+  refreshToken: string;
+  idToken: string;
+  expiresAt: string;
 };
 
-export const checkCookieAuth = async (request: Request) => {
+type AuthResponse = {
+  verified: boolean;
+  userData?: JwtPayload;
+  oauthDetails?: OAuthDetails;
+};
+
+export const checkCookieAuth = async (request: Request): Promise<AuthResponse> => {
   //get x-pg-id cookie from request cookie header
   console.log("Doing Auth");
   const cookies = request.headers.get("Cookie");
@@ -52,22 +129,31 @@ export const checkCookieAuth = async (request: Request) => {
     try {
       const validationResponse = await validateIronSpiderToken(authCookieString.split("=")[1]);
       if (validationResponse.verified) {
-        return { hasCookie: true, userData: validationResponse.userData };
+        return { verified: true, userData: validationResponse.userData };
       } else {
-        return { hasCookie: false, userData: undefined };
+        return { verified: false, userData: undefined };
       }
     } catch (e) {
       console.warn("Error validating token", e);
-      return { hasCookie: false, userData: undefined };
+      return { verified: false, userData: undefined };
     }
   } else if (!authCookieString && !isPublicRoute(request.url)) {
-    return { hasCookie: false };
+    return { verified: false };
   } else {
     console.log("No auth cookie, but is a public route, returning no data");
-    return { hasCookie: false };
+    return { verified: false };
   }
 };
-// extract out the key handling and validation logic from the above function, and provide an easy method to validate a token
+
+/**
+ * Validates an Iron Spider authentication token
+ *
+ * @param token The JWT token string to validate
+ * @returns Promise that resolves to an object containing:
+ *          - userData: The decoded JWT payload if verification succeeds
+ *          - verified: Boolean indicating if the token was successfully verified
+ * @throws Error if unable to fetch public key for verification
+ */
 export const validateIronSpiderToken = async (token: string): Promise<{ userData?: JwtPayload; verified: boolean }> => {
   if (!publicKey) {
     try {
@@ -110,15 +196,29 @@ const refreshKey = async (headers: Headers): Promise<{ keys?: string[] } | undef
 };
 
 /**
- * TODO: switch to other auth type
- * @param param0 
- * @returns 
+ * TODO: make this faster, it's to slow atm
+ * @param param0
+ * @returns
  */
 export const DEFAULT_AUTH_LOADER = async ({ request }: LoaderFunctionArgs) => {
   //to add a delay in the response
   // const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   // await sleep(1000);
-  return { ...(await checkCookieAuth(request)), currentUrl: request.url };
+  const session = await getSession(request.headers.get("Cookie"));
+  const newAuth = await checkIdTokenAuth(request);
+
+  // If the OAuth tokens have been refreshed, update the session
+  if (newAuth.verified && newAuth.oauthDetails) {
+    session.set("oauthTokens", newAuth.oauthDetails);
+  }
+  return data(
+    { currentUrl: request.url, ...newAuth, currentUrlObj: new URL(request.url) },
+    {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    },
+  );
 };
 
 export type VerifyWithKeyOptions = {
@@ -129,20 +229,35 @@ export type VerifyWithKeyOptions = {
 };
 export const verifyWithKey = (
   props: VerifyWithKeyOptions,
-):
-  | JwtPayload
-  | {
-      userId: string;
-      scope: string;
-      displayName: string;
-      siteAccess: string[];
-      apiAccess: string[];
-    } => {
+): JwtPayload &
+  // legacy cookie fields, prefer oudc fields
+  Partial<{
+    userId: string;
+    scope: string;
+    displayName: string;
+    siteAccess: string[];
+    apiAccess: string[];
+  }> => {
   return verify(props.token, props.publicKey, {
-    issuer: props.issuer ? props.issuer : `auth.${process.env.DOMAIN}`,
+    issuer: props.issuer ? props.issuer : `https://auth.${process.env.DOMAIN}`,
     audience: props.aud,
     algorithms: ["RS256"],
   }) as JwtPayload;
+};
+
+export const getOauthDetails = (): { clientId: string; clientSecret: string; redirectUris: string[] } => {
+  // const clientId = process.env.OAUTH_CLIENT_ID;
+  // const clientSecret = process.env.OAUTH_CLIENT_SECRET;
+  // const redirectUris = process.env.OAUTH_REDIRECT_URIS?.split(", ");
+  // get from apiKeys instead
+  const clientId = apiKeys["remix-site-oauth-config"]["clientId"];
+  const clientSecret = apiKeys["remix-site-oauth-config"]["clientSecret"];
+  const redirectUris = apiKeys["remix-site-oauth-config"]["redirectUris"];
+
+  if (!clientId || !clientSecret || !redirectUris) {
+    throw new Error("Missing required environment variables");
+  }
+  return { clientId, clientSecret, redirectUris };
 };
 
 //TODO: figure out how to make a reusable component as a login guard component, eg,
