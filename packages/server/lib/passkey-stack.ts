@@ -32,6 +32,9 @@ export class PasskeyInfraStack extends cdk.Stack {
   public AuthorizationsTableByRefreshTokenIndexName = "OAuthAuthorizationsTableByRefreshTokenV2";
   public AuthorizationsTableByAccessTokenIndexName = "OAuthAuthorizationsTableByAccessTokenV2";
   public AuthorizationsTableByUserIndexName = "OAuthAuthorizationsTableByUserIdV2";
+  public TokensTable: Table
+  public TokensTableByTokenIndexName = "OAuthTokensTableByToken"
+  public TokensTableByAuthorizationIdIndexName = "OAuthTokensTableByAuthorizationId"
   // public role;
   constructor(scope: Construct, id: string, props: cdk.StackProps & PasskeyInfraProps) {
     super(scope, id, props);
@@ -96,10 +99,25 @@ export class PasskeyInfraStack extends cdk.Stack {
       projectionType: ProjectionType.INCLUDE,
       nonKeyAttributes: ["clientId", "userId", "scopes", "created", "lastUpdatedDate"],
     });
+    this.TokensTable = new Table(this, "OAuthTokensTable", {
+      partitionKey: { name: "tokenId", type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+    });
+    this.TokensTable.addGlobalSecondaryIndex({
+      indexName: this.TokensTableByTokenIndexName,
+      partitionKey: {name: "token", type: AttributeType.STRING},
+      projectionType: ProjectionType.ALL,
+    })
+    this.TokensTable.addGlobalSecondaryIndex({
+      indexName: this.TokensTableByAuthorizationIdIndexName,
+      partitionKey: {name: "authorizationId", type: AttributeType.STRING},
+      projectionType: ProjectionType.ALL,
+    })
 
     props.operationsAccess.forEach(operation => this.UserTable.grantReadWriteData(operation));
     props.operationsAccess.forEach(operation => this.CredentialTable.grantReadWriteData(operation));
     props.operationsAccess.forEach(operation => this.AuthorizationsTable.grantReadWriteData(operation));
+    props.operationsAccess.forEach(operation=> this.TokensTable.grantReadWriteData(operation))
 
     //Secrets
     //generate RSA key
@@ -165,6 +183,9 @@ export class PasskeyInfraStack extends cdk.Stack {
         op.addEnvironment("AUTHORIZATIONS_BY_REFRESH_TOKEN_INDEX_NAME", this.AuthorizationsTableByRefreshTokenIndexName);
         op.addEnvironment("AUTHORIZATIONS_BY_ACCESS_TOKEN_INDEX_NAME", this.AuthorizationsTableByAccessTokenIndexName);
         op.addEnvironment("AUTHORIZATIONS_BY_USER_INDEX_NAME", this.AuthorizationsTableByUserIndexName);
+        op.addEnvironment("TOKENS_TABLE_NAME", this.TokensTable.tableName);
+        op.addEnvironment("TOKENS_BY_TOKEN_INDEX_NAME", this.TokensTableByTokenIndexName);
+        op.addEnvironment("TOKENS_BY_AUTHORIZATION_ID_INDEX_NAME", this.TokensTableByAuthorizationIdIndexName);
       });
   }
 }

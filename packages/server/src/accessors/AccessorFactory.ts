@@ -8,6 +8,7 @@ import {
   LocationAccessor,
   AuthorizationAccessor,
   OIDCClientAccessor,
+  OAuthTokenAccessor,
 } from "./AccessorInterfaces";
 import { SESEmailAccessor } from "./SESEmailAccessor";
 import { SecretsManagerSecretKeyAccessor } from "./SecretsManagerSecretKeyAccessor";
@@ -15,6 +16,7 @@ import { DynamoCredentialsAccessor } from "./dynamo/DynamoCredentialAccessor";
 import { DynamoDateAccessor } from "./dynamo/DynamoDateAccessor";
 import { AWSLocationAccessor } from "./AWSLocationAccessor";
 import { DynamoAuthorizationAccessor } from "./dynamo/DynamoAuthorizationAccessor";
+import { DynamoTokenAccessor } from "./dynamo/DynamoTokenAccessor";
 import { BadRequestError, NotFoundError } from "iron-spider-ssdk";
 import { FileOIDCClientAccessor } from "./OIDCClientAccessor";
 
@@ -25,6 +27,7 @@ let credentialsAccessor: CredentialsAccessor;
 let locationAccessor: LocationAccessor;
 let authorizationAccessor: AuthorizationAccessor;
 let oidcClientAccessor: OIDCClientAccessor;
+let tokenAccessor: OAuthTokenAccessor;
 
 export function getUserAccessor(): UserAccessor {
   if (!userAccessor) {
@@ -81,6 +84,13 @@ export function getOIDCClientAccessor(): OIDCClientAccessor {
     oidcClientAccessor = new FileOIDCClientAccessor();
   }
   return oidcClientAccessor;
+}
+
+export function getTokenAccessor(): OAuthTokenAccessor {
+  if (!tokenAccessor) {
+    tokenAccessor = new DynamoTokenAccessor();
+  }
+  return tokenAccessor;
 }
 
 // {
