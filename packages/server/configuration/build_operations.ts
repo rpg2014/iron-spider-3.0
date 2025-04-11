@@ -3,8 +3,7 @@ import fs from "fs";
 //@ts-ignore
 import buildUtils from "../../../configuration/buildUtils";
 
-
-console.log("Reading Operations Data")
+console.log("Reading Operations Data");
 const operationsConfig = require(path.join(__dirname, "../lib/operationsConfig.ts"));
 const operationData = operationsConfig.getOperationsAsFlatObject();
 const handlersDir = path.join(__dirname, "../src/handlers");

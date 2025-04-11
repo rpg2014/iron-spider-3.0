@@ -8,7 +8,7 @@ import { HandlerContext, HandlerContextFromAuthorizer } from "./model/common";
 // import Provider from "oidc-provider";
 // import { configuration } from "./odic/handler";
 // import { Http2ServerRequest, Http2ServerResponse } from "http2";
-const BYPASS_CORS_PATHS = ["/v1/oauth/tokens", "/.well-known/jwks.json", '/.well-known/openid-configuration', "/v1/userinfo"]
+const BYPASS_CORS_PATHS = ["/v1/oauth/tokens", "/.well-known/jwks.json", "/.well-known/openid-configuration", "/v1/userinfo"];
 const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<string, string> => {
   if (!allowed || !allowed.origin || !allowed.headers) {
     throw new Error("Invalid allowed cors");
@@ -37,7 +37,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
     // console.log("Got context", context);
     console.log(`Got request for: ${event.httpMethod} ${event.path}`);
     // basic check cors headers
-    const origin = event.headers["origin"] || event.headers['Origin'];
+    const origin = event.headers["origin"] || event.headers["Origin"];
     // handled by cors validation below
     // if ((!origin || !origin.includes("parkergiven.com")) && event.path!== '/v1/oauth/tokens') {
     //   // do something?
@@ -79,17 +79,15 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
       let allowed: {
         origin: string;
         headers: string;
-    }; 
-      if(BYPASS_CORS_PATHS.includes(event.path)) {
+      };
+      if (BYPASS_CORS_PATHS.includes(event.path)) {
         allowed = {
           origin: "*",
-          headers: 'content-type, authorization'
-        }
+          headers: "content-type, authorization",
+        };
       } else {
-        allowed = validateCors(httpRequest)
-
+        allowed = validateCors(httpRequest);
       }
-      
 
       // If i want to make the main lambda also handle the preflight requests, I should enable the below code,
       // and set it up in the cdk correctly.

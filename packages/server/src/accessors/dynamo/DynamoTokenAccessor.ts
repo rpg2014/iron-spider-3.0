@@ -109,7 +109,7 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
         return [];
       }
 
-      return result.Items.map((item) => this.convertFromDDBToken(item as DDBToken));
+      return result.Items.map(item => this.convertFromDDBToken(item as DDBToken));
     } catch (error) {
       console.error("Error getting tokens by authorization ID:", error);
       throw new InternalServerError({ message: "Unable to retrieve tokens" });
@@ -136,7 +136,7 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
           Item: ddbToken,
         }),
       );
-      
+
       return token.tokenId;
     } catch (error) {
       console.error("Error creating token:", error);
@@ -172,7 +172,7 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
     try {
       // First, get all tokens for this authorization
       const tokens = await this.getTokensByAuthorizationId(authorizationId);
-      
+
       if (tokens.length === 0) {
         return;
       }
@@ -181,21 +181,21 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
       const batchSize = 25;
       for (let i = 0; i < tokens.length; i += batchSize) {
         const batch = tokens.slice(i, i + batchSize);
-        
+
         const deleteRequests = batch.map(token => ({
           DeleteRequest: {
             Key: {
-              tokenId: token.tokenId
-            }
-          }
+              tokenId: token.tokenId,
+            },
+          },
         }));
 
         await this.ddbdocClient.send(
           new BatchWriteCommand({
             RequestItems: {
-              [this.TABLE_NAME]: deleteRequests
-            }
-          })
+              [this.TABLE_NAME]: deleteRequests,
+            },
+          }),
         );
       }
     } catch (error) {
@@ -227,6 +227,39 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
       ...token,
       issuedAt: token.issuedAt.toString(),
       expiresAt: token.expiresAt.toString(),
+    };
+  }
+
+  /**
+   * Creates a token object with standard fields
+   * @param tokenValue The actual token value
+   * @param authorizationId The authorization ID this token belongs to
+   * @param userId The user ID this token belongs to
+   * @param clientId The client ID this token belongs to
+   * @param tokenType The type of token ('access' or 'refresh')
+   * @param scopes The scopes associated with this token
+   * @param expiresInSeconds The number of seconds until the token expires
+   * @returns A fully formed Token object ready to be stored
+   */
+  createTokenObject(
+    tokenValue: string,
+    authorizationId: string,
+    userId: string,
+    clientId: string,
+    tokenType: "access" | "refresh",
+    scopes: string[],
+    expiresInSeconds: number,
+  ): Token {
+    return {
+      tokenId: `pg.token.${uuidv4()}`,
+      token: tokenValue,
+      authorizationId,
+      userId,
+      clientId,
+      tokenType,
+      scopes,
+      issuedAt: Temporal.Now.instant(),
+      expiresAt: Temporal.Now.instant().add({ seconds: expiresInSeconds }),
     };
   }
 }

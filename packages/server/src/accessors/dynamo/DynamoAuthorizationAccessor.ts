@@ -20,7 +20,7 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
     this.client = new DynamoDBClient({});
     this.ddbdocClient = DynamoDBDocumentClient.from(this.client, {
       marshallOptions: {
-        // This can cause issues if I accidentaly pass a real class in. Would rather fail fast here. 
+        // This can cause issues if I accidentaly pass a real class in. Would rather fail fast here.
         // convertClassInstanceToMap: true
       },
     });
@@ -44,7 +44,7 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
       lastUpdatedDate: Temporal.Now.instant().toString(),
       // initialize new token arrays
       accessTokens: [],
-      refreshTokens: []
+      refreshTokens: [],
     };
 
     try {
@@ -182,9 +182,15 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
         throw new OAuthError({ message: "Authorization not found", error: "invalid_grant", error_description: "Authorization not found" });
       }
       const authorization = result.Items[0] as DDBAuthorization;
-      console.log(`[DyanmoAuthorizationAccessor.getAuthorizationByCode] Authorization found, previously used: ${authorization?.authCodeInfo?.used}, expiresAt: ${authorization?.authCodeInfo?.expiresAt}.`)
+      console.log(
+        `[DyanmoAuthorizationAccessor.getAuthorizationByCode] Authorization found, previously used: ${authorization?.authCodeInfo?.used}, expiresAt: ${authorization?.authCodeInfo?.expiresAt}.`,
+      );
       // Compare is -1 if first time is before second time, 0 if equal, 1 if reverse
-      if (authorization.authCodeInfo && !authorization.authCodeInfo.used && Temporal.Instant.compare(Temporal.Instant.from(authorization.authCodeInfo.expiresAt.toString()), Temporal.Now.instant()) > 0) {
+      if (
+        authorization.authCodeInfo &&
+        !authorization.authCodeInfo.used &&
+        Temporal.Instant.compare(Temporal.Instant.from(authorization.authCodeInfo.expiresAt.toString()), Temporal.Now.instant()) > 0
+      ) {
         if (!authorization.authorizationId) {
           // this shouldn't happen
           console.log("Authorization id not found for auth code", authCode, authorization);
@@ -192,48 +198,17 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
         }
         return await convertFromDDBAuthorization(authorization);
       } else {
-        // if authcode is already used, then replay attack is happening and i should expire the whole key family. 
+        // if authcode is already used, then replay attack is happening and i should expire the whole key family.
         console.log(`Auth code used: ${authorization?.authCodeInfo?.used}, expiresAt: ${authorization?.authCodeInfo?.expiresAt}`);
-        const authCodeExpired = Temporal.Instant.compare(Temporal.Instant.from(authorization?.authCodeInfo?.expiresAt.toString() ?? Temporal.Now.instant()), Temporal.Now.instant())
+        const authCodeExpired = Temporal.Instant.compare(
+          Temporal.Instant.from(authorization?.authCodeInfo?.expiresAt.toString() ?? Temporal.Now.instant()),
+          Temporal.Now.instant(),
+        );
         console.log(`Auth code expired: ${authCodeExpired}`);
         throw new OAuthError({
           message: "Authorization code expired or already used",
           error: "invalid_grant",
           error_description: "Authorization code expired or already used",
-        });
-      }
-    } catch (error) {
-      console.error("Error getting authorization:", error);
-      throw new InternalServerError({ message: "Unable to retrieve authorization" });
-    }
-  }
-
-  async getAuthorizationByRefreshToken(refreshToken: string): Promise<Authorization> {
-    try {
-      const result = await this.ddbdocClient.send(
-        new QueryCommand({
-          TableName: this.TABLE_NAME,
-          IndexName: this.BY_REFRESH_TOKEN_INDEX_NAME,
-          KeyConditionExpression: "refreshToken = :refreshToken",
-          ExpressionAttributeValues: {
-            ":refreshToken": refreshToken,
-          },
-        }),
-      );
-
-      if (!result.Items || result.Items.length === 0 || result.Items.length > 1) {
-        console.log("Authorization not found");
-        throw new OAuthError({ message: "Authorization not found", error: "invalid_grant", error_description: "Authorization not found" });
-      }
-      const authorization = result.Items[0] as DDBAuthorization;
-      
-      if (authorization.refreshTokenInfo && Temporal.Instant.compare(Temporal.Instant.from(authorization.refreshTokenInfo.expiresAt.toString()), Temporal.Now.instant()) > 0) {
-        return await convertFromDDBAuthorization(authorization);
-      } else {
-        throw new OAuthError({
-          message: "Refresh token expired",
-          error: "invalid_grant",
-          error_description: "Refresh token expired",
         });
       }
     } catch (error) {
@@ -261,7 +236,7 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
           UpdateExpression: "set authCodeInfo.used = :used, authCodeInfo.expiresAt = :expiresAt REMOVE authCode",
           ExpressionAttributeValues: {
             ":used": true,
-            ":expiresAt": Temporal.Now.instant().toString()
+            ":expiresAt": Temporal.Now.instant().toString(),
           },
           ReturnValues: "ALL_NEW",
         }),
@@ -280,22 +255,19 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
    * @param userId The user ID
    * @param token The token to add
    */
-  async addTokenToAuthorization(
-    authorizationId: string,
-    userId: string,
-    token: Token,
-  ): Promise<void> {
+  async addTokenToAuthorization(authorizationId: string, userId: string, token: Token): Promise<void> {
     try {
       if (!token.tokenId) {
         throw new BadRequestError({ message: "Token must have an ID" });
       }
 
       const tokenType = token.tokenType;
-      
+
       // Determine which array to update based on token type
-      const updateExpression = tokenType === 'access'
-        ? "set accessTokens = list_append(if_not_exists(accessTokens, :emptyList), :tokenIds), lastUpdatedDate = :lastUpdatedDate"
-        : "set refreshTokens = list_append(if_not_exists(refreshTokens, :emptyList), :tokenIds), lastUpdatedDate = :lastUpdatedDate";
+      const updateExpression =
+        tokenType === "access"
+          ? "set accessTokens = list_append(if_not_exists(accessTokens, :emptyList), :tokenIds), lastUpdatedDate = :lastUpdatedDate"
+          : "set refreshTokens = list_append(if_not_exists(refreshTokens, :emptyList), :tokenIds), lastUpdatedDate = :lastUpdatedDate";
 
       await this.ddbdocClient.send(
         new UpdateCommand({
@@ -313,7 +285,7 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
           ReturnValues: "ALL_NEW",
         }),
       );
-      
+
       console.log(`Token ${token.tokenId} added to authorization ${authorizationId}`);
       return;
     } catch (error) {
@@ -328,31 +300,27 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
    * @param userId The user ID
    * @param tokens The tokens to add
    */
-  async addTokensToAuthorization(
-    authorizationId: string,
-    userId: string,
-    tokens: Token[],
-  ): Promise<void> {
+  async addTokensToAuthorization(authorizationId: string, userId: string, tokens: Token[]): Promise<void> {
     try {
       // Separate tokens by type
       const accessTokenIds: string[] = [];
       const refreshTokenIds: string[] = [];
-      
+
       for (const token of tokens) {
         if (!token.tokenId) {
           console.warn("Token without ID found, skipping");
           continue;
         }
-        
-        if (token.tokenType === 'access') {
+
+        if (token.tokenType === "access") {
           accessTokenIds.push(token.tokenId);
-        } else if (token.tokenType === 'refresh') {
+        } else if (token.tokenType === "refresh") {
           refreshTokenIds.push(token.tokenId);
         } else {
           console.warn(`Unknown token type: ${token.tokenType}, skipping`);
         }
       }
-      
+
       // Update the authorization with the token IDs
       if (accessTokenIds.length > 0 || refreshTokenIds.length > 0) {
         let updateExpression = "set lastUpdatedDate = :lastUpdatedDate";
@@ -360,17 +328,17 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
           ":lastUpdatedDate": Temporal.Now.instant().toString(),
           ":emptyList": [],
         };
-        
+
         if (accessTokenIds.length > 0) {
           updateExpression += ", accessTokens = list_append(if_not_exists(accessTokens, :emptyList), :accessTokenIds)";
           expressionAttributeValues[":accessTokenIds"] = accessTokenIds;
         }
-        
+
         if (refreshTokenIds.length > 0) {
           updateExpression += ", refreshTokens = list_append(if_not_exists(refreshTokens, :emptyList), :refreshTokenIds)";
           expressionAttributeValues[":refreshTokenIds"] = refreshTokenIds;
         }
-        
+
         await this.ddbdocClient.send(
           new UpdateCommand({
             TableName: this.TABLE_NAME,
@@ -383,17 +351,16 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
             ReturnValues: "ALL_NEW",
           }),
         );
-        
+
         console.log(`Added ${accessTokenIds.length} access tokens and ${refreshTokenIds.length} refresh tokens to authorization ${authorizationId}`);
       }
-      
+
       return;
     } catch (error) {
       console.error("Error adding tokens to authorization:", error);
       throw new InternalServerError({ message: "Unable to add tokens to authorization" });
     }
   }
-
 }
 
 // Conversion functions
@@ -410,7 +377,7 @@ const convertToDDBAuthorization = (authorization: Authorization): DDBAuthorizati
           expiresAt: authorization.authCodeInfo.expiresAt.toString(),
         }
       : undefined,
-      accessTokenInfo: authorization.accessTokenInfo
+    accessTokenInfo: authorization.accessTokenInfo
       ? {
           ...authorization.accessTokenInfo,
           issuedAt: authorization.accessTokenInfo.issuedAt.toString(),
@@ -418,9 +385,7 @@ const convertToDDBAuthorization = (authorization: Authorization): DDBAuthorizati
         }
       : undefined,
     // Store token IDs in the arrays
-    accessTokens: authorization.accessTokens 
-      ? authorization.accessTokens.map(token => token.tokenId)
-      : undefined,
+    accessTokens: authorization.accessTokens ? authorization.accessTokens.map(token => token.tokenId) : undefined,
     refreshTokenInfo: authorization.refreshTokenInfo
       ? {
           ...authorization.refreshTokenInfo,
@@ -428,28 +393,25 @@ const convertToDDBAuthorization = (authorization: Authorization): DDBAuthorizati
           expiresAt: authorization.refreshTokenInfo.expiresAt.toString(),
         }
       : undefined,
-    refreshTokens: authorization.refreshTokens 
-      ? authorization.refreshTokens.map(token => token.tokenId)
-      : undefined,
+    refreshTokens: authorization.refreshTokens ? authorization.refreshTokens.map(token => token.tokenId) : undefined,
     created: authorization.created.toString(),
     lastUpdatedDate: authorization.lastUpdatedDate ? authorization.lastUpdatedDate.toString() : undefined,
   };
-  
+
   // Handle legacy fields
   if (authorization.accessToken && authorization.accessTokenInfo && (!auth.accessTokens || auth.accessTokens.length === 0)) {
     // Create a token ID for the legacy token
     const legacyTokenId = `token.legacy.access.${uuidv4()}`;
     auth.accessTokens = [legacyTokenId];
   }
-  
+
   if (authorization.refreshToken && authorization.refreshTokenInfo && (!auth.refreshTokens || auth.refreshTokens.length === 0)) {
     // Create a token ID for the legacy token
     const legacyTokenId = `token.legacy.refresh.${uuidv4()}`;
     auth.refreshTokens = [legacyTokenId];
   }
-  
-  if (auth.lastUpdatedDate === undefined || auth.lastUpdatedDate === null) 
-    delete auth.lastUpdatedDate;
+
+  if (auth.lastUpdatedDate === undefined || auth.lastUpdatedDate === null) delete auth.lastUpdatedDate;
   return auth;
 };
 
@@ -457,56 +419,56 @@ const convertToDDBAuthorization = (authorization: Authorization): DDBAuthorizati
 // This function fetches the actual tokens from the token table
 const convertFromDDBAuthorization = async (authorization: DDBAuthorization): Promise<Authorization> => {
   console.log(`[convertFromDDBAuthorization] Converting authorization: ${JSON.stringify(authorization, null, 2)}`);
-  
+
   // Initialize empty token arrays
   let accessTokens: Token[] = [];
   let refreshTokens: Token[] = [];
-  
+
   // Fetch tokens using the token accessor if we have an authorization ID
   if (authorization.authorizationId) {
     try {
       const tokenAccessor = getTokenAccessor();
       const allTokens = await tokenAccessor.getTokensByAuthorizationId(authorization.authorizationId);
-      
+
       // Separate tokens by type
-      accessTokens = allTokens.filter(token => token.tokenType === 'access');
-      refreshTokens = allTokens.filter(token => token.tokenType === 'refresh');
-      
+      accessTokens = allTokens.filter(token => token.tokenType === "access");
+      refreshTokens = allTokens.filter(token => token.tokenType === "refresh");
+
       console.log(`[convertFromDDBAuthorization] Fetched ${accessTokens.length} access tokens and ${refreshTokens.length} refresh tokens`);
     } catch (error) {
       console.error(`[convertFromDDBAuthorization] Error fetching tokens for authorization ${authorization.authorizationId}:`, error);
     }
   }
-  
+
   // If we have legacy tokens, convert them to the new format
   if (authorization.accessToken && authorization.accessTokenInfo) {
     const legacyAccessToken: Token = {
       tokenId: `token.legacy.access.${uuidv4()}`,
       token: authorization.accessToken,
-      authorizationId: authorization.authorizationId || '',
+      authorizationId: authorization.authorizationId || "",
       userId: authorization.userId,
       clientId: authorization.clientId,
-      tokenType: 'access',
+      tokenType: "access",
       issuedAt: Temporal.Instant.from(authorization.accessTokenInfo.issuedAt),
       expiresAt: Temporal.Instant.from(authorization.accessTokenInfo.expiresAt),
     };
     accessTokens.push(legacyAccessToken);
   }
-  
+
   if (authorization.refreshToken && authorization.refreshTokenInfo) {
     const legacyRefreshToken: Token = {
       tokenId: `token.legacy.refresh.${uuidv4()}`,
       token: authorization.refreshToken,
-      authorizationId: authorization.authorizationId || '',
+      authorizationId: authorization.authorizationId || "",
       userId: authorization.userId,
       clientId: authorization.clientId,
-      tokenType: 'refresh',
+      tokenType: "refresh",
       issuedAt: Temporal.Instant.from(authorization.refreshTokenInfo.issuedAt),
       expiresAt: Temporal.Instant.from(authorization.refreshTokenInfo.expiresAt),
     };
     refreshTokens.push(legacyRefreshToken);
   }
-  
+
   const auth: Authorization = {
     ...authorization,
     authCodeInfo: authorization.authCodeInfo
@@ -528,24 +490,6 @@ const convertFromDDBAuthorization = async (authorization: DDBAuthorization): Pro
     created: Temporal.Instant.from(authorization.created),
     lastUpdatedDate: authorization.lastUpdatedDate ? Temporal.Instant.from(authorization.lastUpdatedDate) : undefined,
   };
-  
+
   return auth;
-};
-
-// DDBToken to Token and vice versa converters
-
-const convertFromDDBToken = (token: DDBToken): Token => {
-  return {
-    ...token,
-    issuedAt: Temporal.Instant.from(token.issuedAt),
-    expiresAt: Temporal.Instant.from(token.expiresAt),
-  };
-};
-
-const convertToDDBToken = (token: Token): DDBToken => {
-  return {
-    ...token,
-    issuedAt: token.issuedAt.toString(),
-    expiresAt: token.expiresAt.toString(),
-  };
 };

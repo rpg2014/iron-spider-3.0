@@ -42,7 +42,7 @@ const AuthOperations: Partial<IEntryPoints> = {
   GetOAuthDetails: null,
   ApproveOAuth: null,
   GetOAuthTokens: null,
-  GetOIDCDiscovery: null
+  GetOIDCDiscovery: null,
 };
 
 const LightweightAPIs: Partial<IEntryPoints> = {

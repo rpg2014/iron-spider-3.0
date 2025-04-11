@@ -81,58 +81,54 @@ export abstract class AuthorizationAccessor {
    * @param input The authorization input data
    */
   abstract createAuthorization(input: CreateAuthorizationInput): Promise<Authorization>;
-  
+
   /**
    * Get an authorization for a specific user and client
    * @param userId The user ID
    * @param clientId The client ID
    */
   abstract getAuthorizationForUserAndClient(userId: string, clientId: string): Promise<Authorization | null>;
-  
+
   /**
    * Get an authorization by its ID and user ID
    * @param authorizationId The authorization ID
    * @param userId The user ID
    */
   abstract getAuthorizationById(authorizationId: string, userId: string): Promise<Authorization>;
-  
+
   /**
    * Renew an authorization
    * @param params The renewal parameters
    */
   abstract renewAuthorization(params: RenewAuthParams): Promise<Authorization>;
-  
+
   /**
    * Get an authorization by its code
    * @param code The authorization code
    * @returns A partial authorization view from the GSI
    */
   abstract getAuthorizationByCode(code: string): Promise<Partial<Authorization>>;
-  
-  /**
-   * Get an authorization by its refresh token
-   * @param refreshToken The refresh token
-   */
-  abstract getAuthorizationByRefreshToken(refreshToken: string): Promise<Authorization>;
-  
+
+  // /**
+  //  * Get an authorization by its refresh token
+  //  * @param refreshToken The refresh token
+  //  */
+  // abstract getAuthorizationByRefreshToken(refreshToken: string): Promise<Authorization>;
+
   /**
    * Mark an authorization code as used
    * @param authorizationId The authorization ID
    * @param userId The user ID
    */
   abstract setAuthCodeUsed(authorizationId: string, userId: string): Promise<void>;
-  
+
   /**
    * Add a token to an authorization
    * @param authorizationId The authorization ID
    * @param userId The user ID
    * @param token The token to add
    */
-  abstract addTokenToAuthorization(
-    authorizationId: string,
-    userId: string,
-    token: Token,
-  ): Promise<void>;
+  abstract addTokenToAuthorization(authorizationId: string, userId: string, token: Token): Promise<void>;
 
   /**
    * Add multiple tokens to an authorization
@@ -140,13 +136,7 @@ export abstract class AuthorizationAccessor {
    * @param userId The user ID
    * @param tokens The tokens to add
    */
-  abstract addTokensToAuthorization(
-    authorizationId: string,
-    userId: string,
-    tokens: Token[],
-  ): Promise<void>;
-  
-
+  abstract addTokensToAuthorization(authorizationId: string, userId: string, tokens: Token[]): Promise<void>;
 }
 
 /**
@@ -158,37 +148,58 @@ export abstract class OAuthTokenAccessor {
    * @param token The token value to look up
    */
   abstract getToken(token: string): Promise<Token>;
-  
+
   /**
    * Get a token by its ID
    * @param tokenId The token ID to look up
    */
   abstract getTokenById(tokenId: string): Promise<Token>;
-  
+
   /**
    * Get all tokens for a specific authorization
    * @param authorizationId The authorization ID to look up tokens for
    */
   abstract getTokensByAuthorizationId(authorizationId: string): Promise<Token[]>;
-  
+
   /**
    * Create a new token
    * @param token The token object to create
    * @returns The ID of the created token
    */
   abstract createToken(token: Token): Promise<string>;
-  
+
   /**
    * Delete a token by its ID
    * @param tokenId The ID of the token to delete
    */
   abstract deleteToken(tokenId: string): Promise<void>;
-  
+
   /**
    * Delete all tokens for a specific authorization
    * @param authorizationId The authorization ID to delete tokens for
    */
   abstract deleteTokensByAuthorizationId(authorizationId: string): Promise<void>;
+
+  /**
+   * Creates a token object with standard fields
+   * @param tokenValue The actual token value
+   * @param authorizationId The authorization ID this token belongs to
+   * @param userId The user ID this token belongs to
+   * @param clientId The client ID this token belongs to
+   * @param tokenType The type of token ('access' or 'refresh')
+   * @param scopes The scopes associated with this token
+   * @param expiresInSeconds The number of seconds until the token expires
+   * @returns A fully formed Token object ready to be stored
+   */
+  abstract createTokenObject(
+    tokenValue: string,
+    authorizationId: string,
+    userId: string,
+    clientId: string,
+    tokenType: "access" | "refresh",
+    scopes: string[],
+    expiresInSeconds: number,
+  ): Token;
 }
 
 export abstract class OIDCClientAccessor {

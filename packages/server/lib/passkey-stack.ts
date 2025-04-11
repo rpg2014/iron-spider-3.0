@@ -29,12 +29,11 @@ export class PasskeyInfraStack extends cdk.Stack {
   public rsaSecret: Secret;
   public AuthorizationsTable: Table;
   public AuthorizationsTableByAuthCodeIndexName = "OAuthAuthorizationsTableByAuthCodeV2";
-  public AuthorizationsTableByRefreshTokenIndexName = "OAuthAuthorizationsTableByRefreshTokenV2";
   public AuthorizationsTableByAccessTokenIndexName = "OAuthAuthorizationsTableByAccessTokenV2";
   public AuthorizationsTableByUserIndexName = "OAuthAuthorizationsTableByUserIdV2";
-  public TokensTable: Table
-  public TokensTableByTokenIndexName = "OAuthTokensTableByToken"
-  public TokensTableByAuthorizationIdIndexName = "OAuthTokensTableByAuthorizationId"
+  public TokensTable: Table;
+  public TokensTableByTokenIndexName = "OAuthTokensTableByToken";
+  public TokensTableByAuthorizationIdIndexName = "OAuthTokensTableByAuthorizationId";
   // public role;
   constructor(scope: Construct, id: string, props: cdk.StackProps & PasskeyInfraProps) {
     super(scope, id, props);
@@ -79,13 +78,6 @@ export class PasskeyInfraStack extends cdk.Stack {
       projectionType: ProjectionType.INCLUDE,
       nonKeyAttributes: ["clientId", "userId", "scopes", "authCodeInfo", "created", "codeChallenge", "codeChallengeMethod", "lastUpdatedDate"],
     });
-    // get by refresh token
-    this.AuthorizationsTable.addGlobalSecondaryIndex({
-      indexName: this.AuthorizationsTableByRefreshTokenIndexName,
-      partitionKey: { name: "refreshToken", type: AttributeType.STRING },
-      projectionType: ProjectionType.INCLUDE,
-      nonKeyAttributes: ["clientId", "userId", "refreshTokenInfo", "created", "lastUpdatedDate"],
-    });
     this.AuthorizationsTable.addGlobalSecondaryIndex({
       indexName: this.AuthorizationsTableByAccessTokenIndexName,
       partitionKey: { name: "accessToken", type: AttributeType.STRING },
@@ -105,19 +97,19 @@ export class PasskeyInfraStack extends cdk.Stack {
     });
     this.TokensTable.addGlobalSecondaryIndex({
       indexName: this.TokensTableByTokenIndexName,
-      partitionKey: {name: "token", type: AttributeType.STRING},
+      partitionKey: { name: "token", type: AttributeType.STRING },
       projectionType: ProjectionType.ALL,
-    })
+    });
     this.TokensTable.addGlobalSecondaryIndex({
       indexName: this.TokensTableByAuthorizationIdIndexName,
-      partitionKey: {name: "authorizationId", type: AttributeType.STRING},
+      partitionKey: { name: "authorizationId", type: AttributeType.STRING },
       projectionType: ProjectionType.ALL,
-    })
+    });
 
     props.operationsAccess.forEach(operation => this.UserTable.grantReadWriteData(operation));
     props.operationsAccess.forEach(operation => this.CredentialTable.grantReadWriteData(operation));
     props.operationsAccess.forEach(operation => this.AuthorizationsTable.grantReadWriteData(operation));
-    props.operationsAccess.forEach(operation=> this.TokensTable.grantReadWriteData(operation))
+    props.operationsAccess.forEach(operation => this.TokensTable.grantReadWriteData(operation));
 
     //Secrets
     //generate RSA key
@@ -141,7 +133,7 @@ export class PasskeyInfraStack extends cdk.Stack {
           .replace(/-----END PUBLIC KEY-----/, "")
           .replace(/\n/g, "")
           .slice(0, 8);
-        fs.writeFileSync(path.resolve(__dirname, "../.keypair.json"), JSON.stringify({...keypair, keyId }, null, 2));
+        fs.writeFileSync(path.resolve(__dirname, "../.keypair.json"), JSON.stringify({ ...keypair, keyId }, null, 2));
       }
       return JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.keypair.json"), "utf-8"));
     };

@@ -486,7 +486,10 @@ export class ApiStack extends Stack {
 
     //Add authorizer fn and role to the open API def, easy way
     let openapiString = JSON.stringify(openapi)
-      .replaceAll("{{AUTH_FUNCTION_ARN}}", `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${authorizerInfo.fnArn}/invocations`)
+      .replaceAll(
+        "{{AUTH_FUNCTION_ARN}}",
+        `arn:${this.partition}:apigateway:${this.region}:lambda:path/2015-03-31/functions/${authorizerInfo.fnArn}/invocations`,
+      )
       .replaceAll("{{AUTH_ROLE_ARN}}", authorizerInfo.roleArn);
     // or in a different way
     // openapi['components']['securitySchemes']['iron-auth']['x-amazon-apigateway-authorizer'].authorizerUri = authorizerInfo.fnArn
