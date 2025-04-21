@@ -37,7 +37,7 @@ class OAuthTokenProcessor {
     console.log(`[generateRefreshToken] token: ${base64url}`);
     return base64url;
   }
-  async generateIdToken(userId: string, clientId: string, displayName: string, scopes?: string[], nonce?: string) {
+  async generateIdToken(userId: string, clientId: string, displayName: string, sid: string, scopes?: string[], nonce?: string) {
     console.log(`[generateIdToken] userId: ${userId}, clientId: ${clientId}, displayName: ${displayName}, scopes: ${scopes}, nonce: ${nonce}`);
     // generate id token logic
     const token = await jwtlib.generateIdTokenForUser({

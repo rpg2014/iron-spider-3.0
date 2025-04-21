@@ -361,7 +361,61 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
       throw new InternalServerError({ message: "Unable to add tokens to authorization" });
     }
   }
+  async removeTokensFromAuthorizationBySessionId(authorizationId: string, sessionId: string, userId: string) {
+    // get all tokens from authorization then filter by sessionId
+    console.log(`[DynamoAuthorizationAccessor.removeTokensFromAuthorizationBySessionId] Removing tokens from authorization ${authorizationId} for session ${sessionId}`);
+    const tokens = await getTokenAccessor().getTokensByAuthorizationId(authorizationId);
+    const filteredTokens = tokens.filter(token => token.sessionId === sessionId);
+    console.log(`[DynamoAuthorizationAccessor.removeTokensFromAuthorizationBySessionId] Found ${filteredTokens.length} tokens to remove`);
+
+    // remove tokens from authorization object
+    const authorization = await this.getAuthorizationById(authorizationId, userId);
+    if (!authorization) {
+      throw new InternalServerError({ message: "Authorization not found" });
+    }
+    console.log(`[DynamoAuthorizationAccessor.removeTokensFromAuthorizationBySessionId] Authorization found, removing tokens`);
+    const updatedTokens = authorization.accessTokens?.filter(token => !filteredTokens.find(filteredToken => filteredToken.tokenId === token.tokenId)) ?? [];
+    const updatedRefreshTokens = authorization.refreshTokens?.filter(token => !filteredTokens.find(filteredToken => filteredToken.tokenId === token.tokenId)) ?? [];
+    console.log(`[DynamoAuthorizationAccessor.removeTokensFromAuthorizationBySessionId] Updated tokens: ${updatedTokens.length}, Updated refresh tokens: ${updatedRefreshTokens.length}`);
+    authorization.accessTokens = updatedTokens;
+    authorization.refreshTokens = updatedRefreshTokens;
+
+    // update dynamo db item
+    console.log(`[DynamoAuthorizationAccessor.removeTokensFromAuthorizationBySessionId] Updating authorization in dynamo db`);
+    try {
+      const ddbAuth = convertToDDBAuthorization({
+        ...authorization,
+        accessTokens: updatedTokens,
+        refreshTokens: updatedRefreshTokens,
+        lastUpdatedDate: Temporal.Now.instant()
+      });
+
+      await this.ddbdocClient.send(
+        new UpdateCommand({
+          TableName: this.TABLE_NAME,
+          Key: {
+            authorizationId,
+            userId,
+          },
+          UpdateExpression: "set accessTokens = :accessTokens, refreshTokens = :refreshTokens, lastUpdatedDate = :lastUpdatedDate",
+          ExpressionAttributeValues: {
+            ":accessTokens": ddbAuth.accessTokens,
+            ":refreshTokens": ddbAuth.refreshTokens,
+            ":lastUpdatedDate": ddbAuth.lastUpdatedDate
+          },
+          ReturnValues: "ALL_NEW",
+        }),
+      );
+      console.log("[DynamoAuthorizationAccessor.removeTokensFromAuthorizationBySessionId] Successfully updated authorization");
+      return filteredTokens.map(token => token.tokenId)
+    } catch (error) {
+      console.error("[DynamoAuthorizationAccessor.removeTokensFromAuthorizationBySessionId] Error updating authorization:", error);
+      throw new InternalServerError({ message: "Unable to update authorization" });
+    }
+  }
 }
+
+
 
 // Conversion functions
 
@@ -373,25 +427,25 @@ const convertToDDBAuthorization = (authorization: Authorization): DDBAuthorizati
     ...authorization,
     authCodeInfo: authorization.authCodeInfo
       ? {
-          ...authorization.authCodeInfo,
-          expiresAt: authorization.authCodeInfo.expiresAt.toString(),
-        }
+        ...authorization.authCodeInfo,
+        expiresAt: authorization.authCodeInfo.expiresAt.toString(),
+      }
       : undefined,
     accessTokenInfo: authorization.accessTokenInfo
       ? {
-          ...authorization.accessTokenInfo,
-          issuedAt: authorization.accessTokenInfo.issuedAt.toString(),
-          expiresAt: authorization.accessTokenInfo.expiresAt.toString(),
-        }
+        ...authorization.accessTokenInfo,
+        issuedAt: authorization.accessTokenInfo.issuedAt.toString(),
+        expiresAt: authorization.accessTokenInfo.expiresAt.toString(),
+      }
       : undefined,
     // Store token IDs in the arrays
     accessTokens: authorization.accessTokens ? authorization.accessTokens.map(token => token.tokenId) : undefined,
     refreshTokenInfo: authorization.refreshTokenInfo
       ? {
-          ...authorization.refreshTokenInfo,
-          issuedAt: authorization.refreshTokenInfo.issuedAt.toString(),
-          expiresAt: authorization.refreshTokenInfo.expiresAt.toString(),
-        }
+        ...authorization.refreshTokenInfo,
+        issuedAt: authorization.refreshTokenInfo.issuedAt.toString(),
+        expiresAt: authorization.refreshTokenInfo.expiresAt.toString(),
+      }
       : undefined,
     refreshTokens: authorization.refreshTokens ? authorization.refreshTokens.map(token => token.tokenId) : undefined,
     created: authorization.created.toString(),
@@ -418,8 +472,13 @@ const convertToDDBAuthorization = (authorization: Authorization): DDBAuthorizati
 // Converts from a DDBAuthorization object to an Authorization object.
 // This function fetches the actual tokens from the token table
 const convertFromDDBAuthorization = async (authorization: DDBAuthorization): Promise<Authorization> => {
-  console.log(`[convertFromDDBAuthorization] Converting authorization: ${JSON.stringify(authorization, null, 2)}`);
-
+  console.log(`[convertFromDDBAuthorization] Converting authorization: ${JSON.stringify(authorization, (key, value) => {
+  if (value && typeof value === 'object') {
+    const depth = key === '' ? 0 : 1;
+    if (depth >= 2) return '[Object]';
+  }
+  return value;
+}, 2)}`);
   // Initialize empty token arrays
   let accessTokens: Token[] = [];
   let refreshTokens: Token[] = [];
@@ -446,6 +505,7 @@ const convertFromDDBAuthorization = async (authorization: DDBAuthorization): Pro
       tokenId: `token.legacy.access.${uuidv4()}`,
       token: authorization.accessToken,
       authorizationId: authorization.authorizationId || "",
+      sessionId: "1",
       userId: authorization.userId,
       clientId: authorization.clientId,
       tokenType: "access",
@@ -460,6 +520,7 @@ const convertFromDDBAuthorization = async (authorization: DDBAuthorization): Pro
       tokenId: `token.legacy.refresh.${uuidv4()}`,
       token: authorization.refreshToken,
       authorizationId: authorization.authorizationId || "",
+      sessionId: "1",
       userId: authorization.userId,
       clientId: authorization.clientId,
       tokenType: "refresh",
@@ -473,18 +534,18 @@ const convertFromDDBAuthorization = async (authorization: DDBAuthorization): Pro
     ...authorization,
     authCodeInfo: authorization.authCodeInfo
       ? {
-          ...authorization.authCodeInfo,
-          expiresAt: Temporal.Instant.from(authorization.authCodeInfo.expiresAt),
-        }
+        ...authorization.authCodeInfo,
+        expiresAt: Temporal.Instant.from(authorization.authCodeInfo.expiresAt),
+      }
       : undefined,
     accessTokenInfo: undefined, // legacy field removed in favor of accessTokens
     accessTokens: accessTokens,
     refreshTokenInfo: authorization.refreshTokenInfo
       ? {
-          ...authorization.refreshTokenInfo,
-          issuedAt: Temporal.Instant.from(authorization.refreshTokenInfo.issuedAt),
-          expiresAt: Temporal.Instant.from(authorization.refreshTokenInfo.expiresAt),
-        }
+        ...authorization.refreshTokenInfo,
+        issuedAt: Temporal.Instant.from(authorization.refreshTokenInfo.issuedAt),
+        expiresAt: Temporal.Instant.from(authorization.refreshTokenInfo.expiresAt),
+      }
       : undefined,
     refreshTokens: refreshTokens,
     created: Temporal.Instant.from(authorization.created),

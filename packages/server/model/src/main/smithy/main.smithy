@@ -13,6 +13,8 @@ use com.rpg2014.cloud.oauth#GetOAuthDetails
 use com.rpg2014.cloud.oauth#ApproveOAuth
 use com.rpg2014.cloud.oauth#GetOAuthTokens
 use com.rpg2014.cloud.oauth#GetOIDCDiscovery
+use com.rpg2014.cloud.oauth#OAuthLogout
+use com.rpg2014.cloud.oauth#OAuthFormLogout
 
 @title("Various API's to support services")
 
@@ -64,7 +66,9 @@ service IronSpider {
         ApproveOAuth,
         GetOAuthTokens,
         GetOIDCDiscovery,
-        // support the date trackerW
+        OAuthLogout,
+        OAuthFormLogout,
+        // support the date tracker
         SearchForLocation, 
         GetLocationByPlaceId,
         GetConnectedUsers

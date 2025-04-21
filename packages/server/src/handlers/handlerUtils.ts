@@ -39,6 +39,10 @@ import {
   ListDatesOutput,
   LogoutServerInput,
   LogoutServerOutput,
+  OAuthFormLogoutInput,
+  OAuthFormLogoutOutput,
+  OAuthLogoutInput,
+  OAuthLogoutOutput,
   SearchForLocationInput,
   SearchForLocationOutput,
   ServerDetailsServerInput,
@@ -153,6 +157,12 @@ export const getNoOpFunctions = (): IronSpiderService<HandlerContext> => {
       throw new InternalServerError({ message: "Function not implemented." });
     },
     GetOIDCDiscovery: function (input: GetOIDCDiscoveryServerInput, context: HandlerContext): Promise<GetOIDCDiscoveryOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    OAuthLogout: function (input: OAuthLogoutInput, context: HandlerContext): Promise<OAuthLogoutOutput> {
+      throw new InternalServerError({ message: "Function not implemented." });
+    },
+    OAuthFormLogout: function (input: OAuthFormLogoutInput, context: HandlerContext): Promise<OAuthFormLogoutOutput> {
       throw new InternalServerError({ message: "Function not implemented." });
     },
   };

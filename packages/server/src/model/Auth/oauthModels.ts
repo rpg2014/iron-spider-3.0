@@ -49,7 +49,7 @@ export interface Token {
     tokenId: string;       // Partition key (generated UUID)
     token: string;         // The actual token value - with GSI
     authorizationId: string; // With GSI for lookups
-    // sessionId: string; // the session of the token, will be shared with the related  other tokentype.  Referrs to a specific auth grant. 
+    sessionId: string; // the session of the token, will be shared with the related  other tokentype.  Referrs to a specific auth grant. 
     userId: string;        // Useful for queries
     clientId: string;      // For additional context
     tokenType: 'access' | 'refresh';
@@ -65,7 +65,7 @@ export interface DDBToken {
     tokenId: string;       // Partition key (generated UUID)
     token: string;         // The actual token value - with GSI
     authorizationId: string; // With GSI for lookups
-    // sessionId: string; // the session of the token, will be shared with the related  other tokentype.  Referrs to a specific auth grant. 
+    sessionId: string; // the session of the token, will be shared with the related  other tokentype.  Referrs to a specific auth grant. 
     userId: string;        // Useful for queries
     clientId: string;      // For additional context
     tokenType: 'access' | 'refresh';

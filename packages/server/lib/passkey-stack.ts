@@ -172,7 +172,6 @@ export class PasskeyInfraStack extends cdk.Stack {
         op.addEnvironment("CREDENTIALS_BY_USER_INDEX_NAME", userIndexName);
         op.addEnvironment("AUTHORIZATIONS_TABLE_NAME", this.AuthorizationsTable.tableName);
         op.addEnvironment("AUTHORIZATIONS_BY_AUTH_CODE_INDEX_NAME", this.AuthorizationsTableByAuthCodeIndexName);
-        op.addEnvironment("AUTHORIZATIONS_BY_REFRESH_TOKEN_INDEX_NAME", this.AuthorizationsTableByRefreshTokenIndexName);
         op.addEnvironment("AUTHORIZATIONS_BY_ACCESS_TOKEN_INDEX_NAME", this.AuthorizationsTableByAccessTokenIndexName);
         op.addEnvironment("AUTHORIZATIONS_BY_USER_INDEX_NAME", this.AuthorizationsTableByUserIndexName);
         op.addEnvironment("TOKENS_TABLE_NAME", this.TokensTable.tableName);

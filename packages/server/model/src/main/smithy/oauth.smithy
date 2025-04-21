@@ -331,3 +331,62 @@ list ClaimsList {
 list LanguageTagsList {
     member: String
 }
+
+@http(method: "GET", uri: "/v1/oauth/logout")
+operation OAuthLogout with [CommonErrors] {
+    input: OAuthLogoutInput
+    output: OAuthLogoutOutput
+    errors: [OAuthError]
+}
+
+@input
+structure OAuthLogoutInput {
+    @required
+    @httpQuery("client_id")
+    clientId: String,
+
+    @required
+    @httpQuery("post_logout_redirect_uri")
+    postLogoutRedirectUri: String,
+
+    @httpQuery("id_token_hint")
+    @required
+    idTokenHint: String,
+
+    @httpQuery("logout_hint")
+    logoutHint: String,
+
+    @httpQuery("state")
+    state: String
+}
+
+@output
+structure OAuthLogoutOutput with [CommonHeaders] {
+    @required
+    redirect_uri: String,
+    state: String
+}
+
+@http(method: "POST", uri: "/v1/oauth/logout")
+operation OAuthFormLogout with [CommonErrors] {
+    input: OAuthFormLogoutInput
+    output: OAuthFormLogoutOutput
+    errors: [OAuthError]
+}
+
+@mediaType("application/x-www-form-urlencoded")
+string OAuthFormLogoutBody
+
+@input
+structure OAuthFormLogoutInput {
+    @required
+    @httpPayload
+    @documentation("application/x-www-form-urlencoded request body")
+    body: OAuthFormLogoutBody
+}
+@output
+structure OAuthFormLogoutOutput with [CommonHeaders] {
+    @required
+    redirect_uri: String,
+    state: String
+}

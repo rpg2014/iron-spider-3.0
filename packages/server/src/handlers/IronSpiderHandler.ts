@@ -25,6 +25,7 @@ import { ApproveOAuth } from "src/operations/OAuthOperations/ApproveOAuthOperati
 import { GetOAuthDetails } from "src/operations/OAuthOperations/GetOAuthDetailsOperation";
 import { GetOAuthTokens } from "src/operations/OAuthOperations/GetOAuthTokensOperation";
 import { GetOIDCDiscoveryOperation } from "src/operations/OAuthOperations/GetOIDCDiscoveryOperation";
+import { OAuthLogoutOperation } from "src/operations/OAuthOperations/OAuthLogoutOperation";
 
 
 //TODO: Finish this. will need to update apig integration
@@ -58,6 +59,7 @@ const service: IronSpiderService<HandlerContext> = {
   ApproveOAuth,
   GetOAuthTokens,
   GetOIDCDiscovery: GetOIDCDiscoveryOperation,
+  OAuthLogout: OAuthLogoutOperation,
 };
 
 export const ironSpiderHandler: APIGatewayProxyHandler = getApiGatewayHandler(getIronSpiderServiceHandler(service));

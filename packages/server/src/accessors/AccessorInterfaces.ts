@@ -137,6 +137,7 @@ export abstract class AuthorizationAccessor {
    * @param tokens The tokens to add
    */
   abstract addTokensToAuthorization(authorizationId: string, userId: string, tokens: Token[]): Promise<void>;
+  abstract removeTokensFromAuthorizationBySessionId(authorizationId: string, sessionId: string, userId: string): Promise<string[]>;
 }
 
 /**
@@ -184,6 +185,7 @@ export abstract class OAuthTokenAccessor {
    * Creates a token object with standard fields
    * @param tokenValue The actual token value
    * @param authorizationId The authorization ID this token belongs to
+   * @param sessionId The session ID this token belongs to
    * @param userId The user ID this token belongs to
    * @param clientId The client ID this token belongs to
    * @param tokenType The type of token ('access' or 'refresh')
@@ -194,6 +196,7 @@ export abstract class OAuthTokenAccessor {
   abstract createTokenObject(
     tokenValue: string,
     authorizationId: string,
+    sessionId:string,
     userId: string,
     clientId: string,
     tokenType: "access" | "refresh",

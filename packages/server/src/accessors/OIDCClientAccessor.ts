@@ -6,6 +6,7 @@ export interface OIDCClient {
   clientName: string;
   clientSecret: string;
   redirectUris: string[];
+  postLogoutRedirectUris?: string[]
   scopes?: string[];
   grantTypes?: string[];
   apiKey?: string;

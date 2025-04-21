@@ -40,9 +40,12 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
         new QueryCommand({
           TableName: this.TABLE_NAME,
           IndexName: this.BY_TOKEN_INDEX_NAME,
-          KeyConditionExpression: "token = :token",
+          KeyConditionExpression: "#tokenValue = :tokenValue",
+          ExpressionAttributeNames: {
+            "#tokenValue": "token"
+          },
           ExpressionAttributeValues: {
-            ":token": token,
+            ":tokenValue": token,
           },
         }),
       );
@@ -230,10 +233,12 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
     };
   }
 
+  
   /**
    * Creates a token object with standard fields
    * @param tokenValue The actual token value
    * @param authorizationId The authorization ID this token belongs to
+   * @param sessionId The session ID this token belongs to
    * @param userId The user ID this token belongs to
    * @param clientId The client ID this token belongs to
    * @param tokenType The type of token ('access' or 'refresh')
@@ -244,6 +249,7 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
   createTokenObject(
     tokenValue: string,
     authorizationId: string,
+    sessionId: string,
     userId: string,
     clientId: string,
     tokenType: "access" | "refresh",
@@ -254,6 +260,7 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
       tokenId: `pg.token.${uuidv4()}`,
       token: tokenValue,
       authorizationId,
+      sessionId,
       userId,
       clientId,
       tokenType,

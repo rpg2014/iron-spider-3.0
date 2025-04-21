@@ -8,7 +8,7 @@ import { Logger, LogLevel } from "src/util";
 import { Temporal } from "temporal-polyfill";
 import { Nullable, OIDCTokenInput, ERROR_INVALID_CLIENT, ERROR_INVALID_REQUEST, GRANT_TYPE_REFRESH_TOKEN, GRANT_TYPE_AUTHORIZATION_CODE, ERROR_INVALID_GRANT, ACCESS_TOKEN_EXPIRES_IN_SECONDS, REFRESH_TOKEN_EXPIRES_IN_SECONDS, TOKEN_TYPE_BEARER } from "./constants";
 import { validateTokenInput, validatePKCE } from "./utils";
-
+import { v4 as uuidv4 } from "uuid";
 
 
 
@@ -187,7 +187,7 @@ const refreshTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDCC
       });
     }
   
-    // validate pkce, copy code from generateTokens below
+    // validate pkce, copy code from generateTokens below.. Don't need pkce on refresh token.
     // if (tokenInput?.code_verifier) {
     //   validatePKCE(
     //     client.scopes?.includes("openid") ? "S256" : "",
@@ -203,25 +203,26 @@ const refreshTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDCC
     
     // Generate new access and refresh tokens
     logger.info("Generating new tokens");
-    const tokenProcessor = getTokenProcessor();
-    const accessToken = await tokenProcessor.generateAccessToken(
+    const tokenGenerator = getTokenProcessor();
+    const accessToken = await tokenGenerator.generateAccessToken(
       authorization.authorizationId,
       authorization.clientId,
       authorization.userId,
       authorization.scopes,
     );
   
-    const newRefreshToken = await tokenProcessor.generateRefreshToken(
+    const newRefreshToken = await tokenGenerator.generateRefreshToken(
       authorization.authorizationId,
       authorization.clientId,
       authorization.userId,
       authorization.scopes,
     );
-  
+    const sessionId= `pg.token.session.${uuidv4()}`;
     // Create token objects using the token accessor
     const newAccessTokenObj = tokenAccessor.createTokenObject(
       accessToken,
       authorization.authorizationId,
+      sessionId,
       authorization.userId,
       authorization.clientId,
       "access",
@@ -232,6 +233,7 @@ const refreshTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDCC
     const newRefreshTokenObj = tokenAccessor.createTokenObject(
       newRefreshToken,
       authorization.authorizationId,
+      sessionId,
       authorization.userId,
       authorization.clientId,
       "refresh",
@@ -247,10 +249,29 @@ const refreshTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDCC
   
     await tokenAccessor.createToken(newAccessTokenObj);
     await tokenAccessor.createToken(newRefreshTokenObj);
+    logger.info("Stored new tokens", {
+      accessTokenId: newAccessTokenObj.tokenId,
+      refreshTokenId: newRefreshTokenObj.tokenId,
+    });
   
     // Add tokens to the authorization
     await authorizationAccessor.addTokensToAuthorization(authorization.authorizationId, authorization.userId, [newAccessTokenObj, newRefreshTokenObj]);
-  
+    // TODO remove the old tokens from the authroization
+    // Need to both remove the token from the auth, but also delete the tokens from the token db.
+    // need prob new methods in the authorization accessor to support this. either updating auth with new data or more specific, remove token?
+    
+    const deletedTokens: string[] = await authorizationAccessor.removeTokensFromAuthorizationBySessionId(authorization.authorizationId, refreshToken.sessionId, authorization.userId)
+    logger.info("Deleted tokens", {
+      deletedTokens: deletedTokens.map((token) => token),
+    });
+    // delete old tokens
+    await Promise.all(deletedTokens.map(async (token) => {
+      await tokenAccessor.deleteToken(token);
+    }));
+    logger.info("Deleted tokens from db", {
+      deletedTokens: deletedTokens.map((token) => token),
+    });
+
     // Get the user for id_token generation
     logger.info("Getting user details");
     const { displayName } = await getUserAccessor().getUser(authorization.userId);
@@ -259,7 +280,7 @@ const refreshTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDCC
     const tokenType = TOKEN_TYPE_BEARER;
   
     logger.info("Generating ID token");
-    const idToken = await tokenProcessor.generateIdToken(authorization.userId, authorization.clientId, displayName, authorization.scopes);
+    const idToken = await tokenGenerator.generateIdToken(authorization.userId, authorization.clientId, displayName, sessionId, authorization.scopes);
   
     logger.info("Successfully completed refresh token flow");
     return {
@@ -344,13 +365,14 @@ const generateTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDC
       const accessToken = await tokenProcessor.generateAccessToken(authorizationId, clientId, userId, scopes);
   
       const refreshToken = await tokenProcessor.generateRefreshToken(authorizationId, clientId, userId, scopes);
-  
+      const sessionId = `pg.token.session.${uuidv4()}`;
       // Create token objects using the token accessor
-      const accessTokenObj = tokenAccessor.createTokenObject(accessToken, authorizationId, userId, clientId, "access", scopes, ACCESS_TOKEN_EXPIRES_IN_SECONDS);
+      const accessTokenObj = tokenAccessor.createTokenObject(accessToken, authorizationId,sessionId, userId, clientId, "access", scopes, ACCESS_TOKEN_EXPIRES_IN_SECONDS);
   
       const refreshTokenObj = tokenAccessor.createTokenObject(
         refreshToken,
         authorizationId,
+        sessionId,
         userId,
         clientId,
         "refresh",
@@ -387,7 +409,7 @@ const generateTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDC
         expires_in: expiresIn,
         token_type: tokenType,
         scope: scopes?.join(" "),
-        id_token: await tokenProcessor.generateIdToken(userId, clientId, displayName, scopes),
+        id_token: await tokenProcessor.generateIdToken(userId, clientId, displayName, sessionId, scopes),
       };
     } catch (error: any) {
       logger.error("Error generating tokens:", error);
