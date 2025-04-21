@@ -48,8 +48,8 @@ const authHandlerV2 = async (event: event, context) => {
     }
 
     // Check if spider-access-token is required
-    const token = event.headers["spider-access-token"];
-    if (!token && !operationConfig.doNotRequireSpiderAccessToken) {
+    const spiderToken = event.headers["spider-access-token"];
+    if (!spiderToken && !operationConfig.doNotRequireSpiderAccessToken) {
         console.warn(`[AuthHandlerV2] No spider-access-token provided for operation: ${operationName}`);
         return generateDeny("unknown", event.methodArn, {
             message: "Missing spider-access-token"
@@ -136,17 +136,36 @@ const authHandlerV2 = async (event: event, context) => {
                         return generateAllow(authResult.userId || "bearer_user", event.methodArn, {
                             userId: authResult.userId,
                             displayName: authResult.displayName,
+                            apiAccess: authResult.apiAccess?.join(", "),
+                            siteAccess: authResult.siteAccess?.join(", "),
                             tokenExpiry: authResult.tokenExpiry?.toString(),
                             oauth: JSON.stringify(authResult.oauth)
                         });
                     }
                 }
                 break;
+            case 'api_key':
+                console.log(`[AuthHandlerV2] Attempting API key authentication for operation: ${operationName}`);
+                if(spiderToken) {
+                    const apiKeyAuthResult = await authService.authenticateByAPIKey(spiderToken);
+                    if (apiKeyAuthResult.isAuthenticated) {
+                        console.log(`[AuthHandlerV2] API key authentication successful for user: ${apiKeyAuthResult.userId}`);
+                        return generateAllow(apiKeyAuthResult.oauth?.clientId || "unknown", event.methodArn, {
+                            userId: apiKeyAuthResult.userId,
+                            displayName: apiKeyAuthResult.displayName,
+                            oauth: JSON.stringify(apiKeyAuthResult.oauth),
+                        });
+                    } else {
+                        console.warn(`[AuthHandlerV2] API key authentication failed`);
+                    }
+                } else {
+                    console.warn(`[AuthHandlerV2] No API key found in the spider-access-token`);
+                }
             case 'cognito':
                 console.log(`[AuthHandlerV2] Attempting Cognito authentication for operation: ${operationName}`);
-                if (token) {
+                if (spiderToken) {
                     console.log(`[AuthHandlerV2] Found Cognito Token`)
-                    authResult = await authService.authenticateByCognito(token);
+                    authResult = await authService.authenticateByCognito(spiderToken);
                     if (authResult.isAuthenticated) {
                         // Check for protected paths
                         if (operationConfig.legacy?.checkAuthZ || Object.values(AUTH_CONFIG.PROTECTED_PATHS).includes(event.path)) {
@@ -216,6 +235,9 @@ const authHandlerV1 = async( event: event, context) => {
             return generateAllow(bearerTokenAuthResult.userId || "unknown", event.methodArn, {
                 userId: bearerTokenAuthResult.userId,
                 displayName: bearerTokenAuthResult.displayName,
+                siteAccess: bearerTokenAuthResult.siteAccess?.join(", "),
+                apiAccess: bearerTokenAuthResult.apiAccess?.join(", "),
+                tokenExpiry: bearerTokenAuthResult.tokenExpiry?.toString(),
                 // TODO extrac this logic out
                 oauth: JSON.stringify(bearerTokenAuthResult.oauth),
             });

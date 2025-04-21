@@ -10,7 +10,19 @@ export interface AccessTokenInfo {
     scopes: string[];
     expiresAt: Temporal.Instant;
 }
-
+interface DDBToken {
+    tokenId: string;       // Partition key (generated UUID)
+    token: string;         // The actual token value - with GSI
+    authorizationId: string; // With GSI for lookups
+    // sessionId: string; // the session of the token, will be shared with the related  other tokentype.  Referrs to a specific auth grant. 
+    userId: string;        // Useful for queries
+    clientId: string;      // For additional context
+    tokenType: 'access' | 'refresh';
+    scopes?: string[];     // Scopes associated with this token
+    issuedAt: string;
+    expiresAt: string;     // Can be used for TTL
+    metadata?: Record<string, any>; // Optional additional data
+}
 abstract class AccessTokenValidator {
     abstract checkToken(token: string): Promise<AccessTokenInfo>;
 }
@@ -31,14 +43,16 @@ export class DynamoDBAccessTokenValidator extends AccessTokenValidator {
     async checkToken(token: string): Promise<AccessTokenInfo> {
         console.log('[DynamoDBAccessTokenValidator.checkToken] Validating token');
         const params = {
-            TableName: process.env.AUTHORIZATIONS_TABLE_NAME,
-            IndexName: process.env.AUTHORIZATIONS_BY_ACCESS_TOKEN_INDEX_NAME,
-            KeyConditionExpression: 'accessToken = :token',
+            TableName: process.env.TOKENS_TABLE_NAME,
+            IndexName: process.env.TOKENS_BY_TOKEN_INDEX_NAME,
+            KeyConditionExpression: "#tokenAttr = :tokenValue",
+            ExpressionAttributeNames: {
+                "#tokenAttr": "token"
+            },
             ExpressionAttributeValues: {
-                ':token': token
-            }
+                ":tokenValue": token,
+            },
         };
-
         try {
             console.log('[DynamoDBAccessTokenValidator.checkToken] Querying DynamoDB');
             const { Items } = await this.dynamodbClient.send(new QueryCommand(params));
@@ -48,17 +62,17 @@ export class DynamoDBAccessTokenValidator extends AccessTokenValidator {
                 throw new Error('Token not found');
             }
 
-            const tokenItem = Items[0];
-            const { accessTokenInfo, scopes, clientId, userId } = tokenItem;
+            const tokenItem = Items[0] as DDBToken;
+            const {  scopes, clientId, userId, expiresAt } = tokenItem;
 
             // Parse expiration date
             console.log('[DynamoDBAccessTokenValidator.checkToken] Parsing expiration date');
-            const expiresAt = Temporal.Instant.from(accessTokenInfo.expiresAt);
+            const expiresAtTime = Temporal.Instant.from(expiresAt);
 
             // Check if token is expired
             console.log('[DynamoDBAccessTokenValidator.checkToken] Checking token expiration');
-            if (Temporal.Instant.compare(Temporal.Now.instant(), expiresAt) >= 0) {
-                console.log('[DynamoDBAccessTokenValidator.checkToken] Token has expired.  Token expired at:', expiresAt.toString(), 'Current time:', Temporal.Now.instant().toString() + ', a difference of:', Temporal.Now.instant().since(expiresAt).toString() + ' has passed');
+            if (Temporal.Instant.compare(Temporal.Now.instant(), expiresAtTime) >= 0) {
+                console.log('[DynamoDBAccessTokenValidator.checkToken] Token has expired.  Token expired at:', expiresAtTime.toString(), 'Current time:', Temporal.Now.instant().toString() + ', a difference of:', Temporal.Now.instant().since(expiresAt).toString() + ' has passed');
                 throw new Error('Token has expired');
             }
 
@@ -66,8 +80,8 @@ export class DynamoDBAccessTokenValidator extends AccessTokenValidator {
             return {
                 clientId,
                 userId,
-                scopes,
-                expiresAt
+                scopes: scopes || [],
+                expiresAt: expiresAtTime
             };
         } catch (error) {
             console.error('[DynamoDBAccessTokenValidator.checkToken] Error validating token:', error);

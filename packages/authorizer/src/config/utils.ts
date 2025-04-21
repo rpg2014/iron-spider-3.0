@@ -5,7 +5,7 @@ export const DATE_TRACKER_SCOPE= 'date-tracker'
 export const READ_SCOPE = 'read'
 export const WRITE_SCOPE = 'write'
 export const MODERN_AUTHS: AuthMechanism[] = ['bearer', 'cookie']
-export type AuthMechanism = 'client_secret_basic_auth' | 'public' | "bearer" | "cookie" | 'cognito'/* legacy */
+export type AuthMechanism = 'client_secret_basic_auth' | 'api_key' | 'public' | "bearer" | "cookie" | 'cognito'/* legacy */
 export type OperationConfigOptions = {
     mechanism: AuthMechanism | AuthMechanism[]
     scopes?: string[]

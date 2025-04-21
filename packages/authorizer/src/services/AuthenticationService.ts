@@ -4,6 +4,7 @@ import * as AuthDynamoWrapper from '../AuthDynamoWrapper';
 import { AUTH_CONFIG } from '../config/authConfig';
 import { FileOIDCClientAccessor } from "../DAO/OIDCClientDAO";
 import { DynamoDBAccessTokenValidator } from "../DAO/AccessTokenDAO";
+import { DynamoDBUserDAO } from "../DAO/UserDAO";
 
 export interface AuthenticationResult {
     isAuthenticated: boolean;
@@ -148,13 +149,19 @@ export class AuthenticationService {
                     message: "Invalid token"
                 };
             }
+            // fetch user
+            console.log("Fetching user for id:", result.userId)
+            const userDAO = DynamoDBUserDAO.getInstance();
+            const user = await userDAO.getUserById(result.userId);
             return {
                 isAuthenticated: true,
                 oauth: {
                     clientId: result.clientId,
                     scopes: result.scopes
                 },
-                // displayName: result.userId,//todo fix-
+                displayName: user.displayName,
+                apiAccess: user.apiAccess,
+                siteAccess: user.siteAccess,
                 userId: result.userId,
             };
 

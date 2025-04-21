@@ -6,7 +6,7 @@
     "subject_types_supported": ["public"],
     "token_endpoint": "https://api.parkergiven.com/v1/oauth/tokens",
     "id_token_signing_alg_values_supported": ["RS256"],
-    "claims_supported": ["openid", "profile"],
+    "claims_supported": ["openid", "profile", "email"],
     "request_uri_parameter_supported": false,
     "userinfo_endpoint": "https://api.parkergiven.com/v1/userInfo"
 }

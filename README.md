@@ -46,6 +46,9 @@ extend the existing authorizer to also accept a cookie set by the passkey auth, 
 CRA app that handles the auth flow and redirects back to the original path.
 https://dev.to/paulallies/deploy-your-static-react-app-to-aws-cloudfront-using-cdk-44hm
 
+## Add Oauth Clients
+Client id is uuid,
+client secret: `openssl rand -base64 64`
 
 ## Smithy Server Generator for TypeScript Example Service
 
