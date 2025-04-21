@@ -68,7 +68,7 @@ export default function Chat() {
     loadStatus();
   }, []);
 
-  if (!verified && import.meta.env.PROD && typeof window !== 'undefined'){
+  if (!verified && import.meta.env.PROD && typeof window !== "undefined") {
     return <AuthGate currentUrlObj={window?.location?.href ? new URL(window.location.href) : currentUrlObj} />;
   }
   return (

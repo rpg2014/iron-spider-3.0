@@ -45,7 +45,7 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
       return redirectDocument(getLoginRedirect(request.url));
     }
     if (!params.dateId) {
-      return redirect(`/dates`,  {headers: { "Set-Cookie": await commitSession(session) }, status: 303});
+      return redirect(`/dates`, { headers: { "Set-Cookie": await commitSession(session) }, status: 303 });
     }
     try {
       // if dev, return fake date
@@ -55,10 +55,10 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
       const dateService = getDateService();
       const date = await dateService.getDate({
         id: params.dateId,
-        headers: getHeaders(request,  { accessToken: session.get("oauthTokens")?.accessToken }),
+        headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }),
       });
-      const connectedUsers = await dateService.getConnectedUsers({ headers: getHeaders(request,  { accessToken: session.get("oauthTokens")?.accessToken }) });
-      return data({ date, userData, connectedUsers: connectedUsers.users }, {headers: { "Set-Cookie": await commitSession(session) }});
+      const connectedUsers = await dateService.getConnectedUsers({ headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }) });
+      return data({ date, userData, connectedUsers: connectedUsers.users }, { headers: { "Set-Cookie": await commitSession(session) } });
     } catch (e: any) {
       console.error(e);
       throw data(JSON.stringify({ message: e.message }), { status: 500, headers: { "Set-Cookie": await commitSession(session) } });
@@ -77,7 +77,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   }
 
   try {
-    const { success } = await getDateService().delete({ id: dateId, headers: getHeaders(request,  { accessToken: session.get("oauthTokens")?.accessToken }) });
+    const { success } = await getDateService().delete({ id: dateId, headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }) });
     if (success) {
       return redirect("/dates");
     } else {

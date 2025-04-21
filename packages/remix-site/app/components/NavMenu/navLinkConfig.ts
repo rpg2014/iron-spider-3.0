@@ -15,4 +15,8 @@ export const navLinkConfig = [
     to: "/dates",
     label: "Date Tracker",
   },
+  {
+    to: "/cookies",
+    label: "Cookies",
+  },
 ];

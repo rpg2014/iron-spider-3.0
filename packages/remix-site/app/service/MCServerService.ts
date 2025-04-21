@@ -69,9 +69,6 @@ class MCServerStatusCache {
       this.cachedStatus = await this.fetchStatusFromAPI(headers, ctx);
       this.lastFetchTime = Date.now();
 
-      // Trigger async background refresh
-      this.backgroundRefresh(headers, ctx);
-
       return this.cachedStatus;
     }
 

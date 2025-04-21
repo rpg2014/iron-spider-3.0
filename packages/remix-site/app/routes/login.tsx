@@ -46,7 +46,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
     //log search params
 
     const searchParamsObj = Object.fromEntries(authorizationUrl.searchParams.entries());
-    
+
     return data(
       { authorizationUrlSearchParams: searchParamsObj },
       {
@@ -56,14 +56,11 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
       },
     );
   }
-  return redirect(
-    authorizationUrl.toString(),
-    {
-      headers: {
-        "Set-Cookie": await commitOauthStateSession(session),
-      },
+  return redirect(authorizationUrl.toString(), {
+    headers: {
+      "Set-Cookie": await commitOauthStateSession(session),
     },
-  );
+  });
   // return data(
   //   { redirectTo: authorizationUrl.toString() },
   //   {
@@ -80,7 +77,7 @@ const LoginComponent = ({ loaderData }: Route.ComponentProps) => {
     setTimeout(() => {
       const hasRedirect = "redirectTo" in loaderData;
       if (hasRedirect && loaderData.redirectTo) {
-        toast("uncomment this line")
+        toast("uncomment this line");
         // window.location.href = loaderData.redirectTo;
       }
     }, 1000);

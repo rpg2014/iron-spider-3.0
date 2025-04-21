@@ -1,6 +1,4 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { SERVER_PATH } from "~/constants";
-import { fetcher } from "~/utils";
 import type { IServerState } from "~/service/MCServerService";
 import { MCServerApi, ServerStatus } from "~/service/MCServerService";
 type ServerActions = {
@@ -80,7 +78,7 @@ export const ServerProvider = ({ children, initialState }: { children: React.Rea
   //create actions
   const actions = {
     // don't need to pass auth cookie through here as these will come from the UI.
-    // todo: add use callback?
+    // todo: update to use the Bearer Token, should prob work via the fetcher util
     refreshStatus: wrapWithErrorLogic(async () => {
       const status = await MCServerApi.getStatus(null, { skipCache: true });
       setStatus(status);

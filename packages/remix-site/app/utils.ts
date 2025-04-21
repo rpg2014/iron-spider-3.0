@@ -7,6 +7,12 @@ export const isServer = typeof window === "undefined";
 export const getAPIKey = () => {
   return apiKeys["remix-site-oauth-config"]["apiKey"];
 };
+export const getClientId = () => {
+  return apiKeys["remix-site-oauth-config"]["clientId"];
+};
+export const getLogoutRedirectUrl = () => {
+  return apiKeys["remix-site-oauth-config"]["postLogoutRedirectUris"][0];
+};
 
 /**
  * Performs a fetch request with custom headers and error handling.
@@ -35,8 +41,9 @@ export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, i
     // TODO: pass this access token around better, can I keep it internal to remix via sessions?
     const requestedURL = new URL(input.toString());
     if (requestedURL.hostname === "ai.i.parkergiven.com" || requestedURL.hostname === "api.parkergiven.com") {
-      const accessToken = localStorage.getItem("x-pg-access-token");
+      const accessToken = localStorage.getItem("pg.storage.1.access-token");
       if (accessToken) {
+        console.log(`Using Local Storage accessToken for ${input.toString()}`)
         headers["Authorization"] = `Bearer ${accessToken}`;
       }
     }

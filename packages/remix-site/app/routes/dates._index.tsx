@@ -36,7 +36,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 
       const items = userDates.items;
       console.log(`Got user ListDates response: ${JSON.stringify(userDates)}`);
-      return data({ items: items, loggedIn: true }, {headers: {"Set-Cookie": await commitSession(session)}});
+      return data({ items: items, loggedIn: true }, { headers: { "Set-Cookie": await commitSession(session) } });
     } catch (e: any) {
       console.error(e);
       throw new Response(JSON.stringify({ message: e.message }), { status: 500 });

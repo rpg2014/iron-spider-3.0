@@ -25,15 +25,18 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     // fetching in root route, and prepopulating the hook
     // const initialStatus = await MCServerApi.getStatus(request.headers, context);
     // console.log(`MC Server Status: ${initialStatus}`);
-    return data({
-      // initialStatus,
-      verified: newAuthResult.verified,
-      currentUrlObj: new URL(request.url),
-    },{
-          headers: {
-            "Set-Cookie": await commitSession(session),
-          },
-        });
+    return data(
+      {
+        // initialStatus,
+        verified: newAuthResult.verified,
+        currentUrlObj: new URL(request.url),
+      },
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+      },
+    );
   } catch (e: any) {
     console.log(e);
     return {

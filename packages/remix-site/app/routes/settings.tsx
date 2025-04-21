@@ -10,15 +10,25 @@ import { toast } from "sonner";
 import { Route } from "./+types/settings";
 import { destroySession, getSession } from "~/sessions.server";
 import AuthGate from "~/components/AuthGate";
+import { IronSpiderAPI } from "~/service/IronSpiderClient";
 
 //TODO: remove this loader if this adds latency and shit
 export const loader = DEFAULT_AUTH_LOADER;
 
 export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
+  // todo call oauthlogout api with the id token
+  const idToken = session.get("oauthTokens")?.idToken;
+  let authServerLoggedOut = false;
+  if (idToken) {
+    // shouldn't this be redirecting to the auth domain logout page, then that hits this api???
+    const response = await IronSpiderAPI.oauthLogout({ idToken });
+    authServerLoggedOut = !!response;
+  }
   return data(
     {
       success: true,
+      authServerLoggedOut,
     },
     {
       headers: {
@@ -28,22 +38,34 @@ export async function action({ request }: Route.ActionArgs) {
   );
 }
 
-export default function Settings() {
+export default function Settings({ actionData }: Route.ComponentProps) {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>();
   const { verified, currentUrlObj } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
 
-  const url = currentUrlObj;
-  const [redirectUri, setRedirectUri] = useState<string>(`${url.protocol}//${url.hostname}/oauth/callback`);
   // figure out notificaton permission on client side
   useEffect(() => {
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
     }
-    // domain + /oauth/callback
-    setRedirectUri(encodeURIComponent(`${window.location.protocol}//${window.location.hostname}/oauth/callback`));
   }, []);
 
+  // toast when the actionData shows up, saying if the auth server was logged out or not
+  useEffect(() => {
+    if (actionData) {
+      if (actionData.authServerLoggedOut) {
+        toast.success("Logged Out", {
+          description: `Successfully logged out and deleted tokens`,
+          duration: 3000,
+        });
+      } else {
+        toast.warning("Logged Out", {
+          description: "Logged Out but unable to delete tokens",
+          duration: 5000,
+        });
+      }
+    }
+  }, [actionData]);
   return (
     <main className={styles.settingsContainer}>
       <h1>Settings</h1>
@@ -121,7 +143,13 @@ export default function Settings() {
           {/* TODO: get this to work via an action to remove the session */}
           <div className={styles.setting}>
             <Label className={styles.settingsLabel}>Sign out</Label>
-            <Form method="post">
+            <Form
+              method="post"
+              onSubmit={() => {
+                // TODO logout of Auth server as well by calling Oauth logout api with the id token.
+                toast.success("Logged Out. TODO: delete tokens", {});
+              }}
+            >
               <Button type="submit" disabled={navigation.state !== "idle"} variant="destructive">
                 {navigation.state !== "idle" ? "Loading..." : "Logout"}
               </Button>

@@ -11,7 +11,7 @@ import { Temporal } from "temporal-polyfill";
 import { getOauthDetails, validateIronSpiderToken } from "~/utils.server";
 import { JwtPayload } from "jsonwebtoken";
 import { toast } from "sonner";
-
+import { useLocalStorage } from "~/hooks/useLocalStorage.client";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -65,6 +65,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 const OAuthCallbackPage = ({ loaderData }: Route.ComponentProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  // move the localstorage calls from below to useLocalStorage hooks
+  const [accessToken, setAccessToken] = useLocalStorage<string | null>("access-token", null);
+  const [refreshToken, setRefreshToken] = useLocalStorage<string | null>("refresh-token", null);
+  const [idToken, setIdToken] = useLocalStorage<string | null>("id-token", null);
+  const [userId, setUserId] = useLocalStorage<string | null>("user-id", null);
+  const [authSessionId, setAuthSessionId] = useLocalStorage<string | null>("auth-session-id", null);
+
   const navigate = useNavigate();
   // clean query params out of the url
   useEffect(() => {
@@ -74,7 +81,7 @@ const OAuthCallbackPage = ({ loaderData }: Route.ComponentProps) => {
   }, []);
 
   //if returnTo exists redirect there after a second
-  //todo this doesnt toast correctly in order to cancel the redirect. 
+  //todo this doesnt toast correctly in order to cancel the redirect.
   useEffect(() => {
     if (loaderData?.data?.returnTo) {
       console.log("Redirecting to: ", loaderData.data.returnTo);
@@ -108,10 +115,14 @@ const OAuthCallbackPage = ({ loaderData }: Route.ComponentProps) => {
     if (loaderData?.data && loaderData?.data?.access_token && loaderData?.data?.refresh_token) {
       // this doesn't seem to be working?
       toast.success("OAuth Success!", { description: "You have successfully logged in." });
-      localStorage.setItem("x-pg-access-token", loaderData.data.access_token);
-      localStorage.setItem("x-pg-refresh-token", loaderData.data.refresh_token);
+      setAccessToken(loaderData.data.access_token);
+      setRefreshToken(loaderData.data.refresh_token);
+      setIdToken(loaderData.data.id_token as string);
       if (loaderData?.data?.sub) {
-        localStorage.setItem("x-pg-user-id", loaderData.data.sub);
+        setUserId(loaderData.data.sub);
+      }
+      if (loaderData?.data?.sid) {
+        setAuthSessionId(loaderData.data.sid);
       }
     } else {
       toast.error("OAuth Error", { description: "There was an error logging in." });

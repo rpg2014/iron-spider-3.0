@@ -41,6 +41,16 @@ export const NavMenu = () => {
           </NavLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
+          <NavLink prefetch={"render"} to={"/grocery-list"} className={navigationMenuTriggerStyle()}>
+            Grocery List
+          </NavLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavLink prefetch={"render"} to={"/settings"} className={navigationMenuTriggerStyle()}>
+            Settings
+          </NavLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
           <NavigationMenuTrigger>Pages</NavigationMenuTrigger>
           <NavigationMenuContent className="flex flex-col items-center divide-y divide-gray-800 transition-all duration-300 ease-in-out sm:flex-row sm:divide-x sm:divide-y-0">
             {navLinkConfig.map(link => (
@@ -54,16 +64,6 @@ export const NavMenu = () => {
               </NavLink>
             ))}
           </NavigationMenuContent>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavLink prefetch={"render"} to={"/cookies"} className={navigationMenuTriggerStyle()}>
-            Cookies
-          </NavLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavLink prefetch={"render"} to={"/settings"} className={navigationMenuTriggerStyle()}>
-            Settings
-          </NavLink>
         </NavigationMenuItem>
       </NavigationMenuList>
       {/* Little tab under the item that triggers the dropdown, rendered in the viewport hidden in the main menu level */}

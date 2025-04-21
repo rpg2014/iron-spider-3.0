@@ -2,6 +2,7 @@ mod utils;
 
 use wasm_bindgen::prelude::*;
 mod game_of_life; 
+mod boids;
 
 #[wasm_bindgen]
 extern "C" {

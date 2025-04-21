@@ -5,15 +5,20 @@ import * as EB from "~/components/ErrorBoundary";
 import { Button } from "~/components/ui/Button";
 import { getHeaders } from "~/utils";
 import { Route } from "./+types/dates.create";
+import { getSession } from "~/sessions.server";
 
-export const clientAction = async ({ request }: Route.ClientActionArgs) => {
+export const action = async ({ request }: Route.ActionArgs) => {
   const formData = await request.formData();
+  const session = await getSession(request.headers.get("Cookie"));
   const searchText = formData.get("searchText");
   if (!searchText) {
     throw data("Search text is required", { status: 400 });
   }
   try {
-    const response = await new LocationService().searchForLocation(searchText.toString(), getHeaders(request)); //, {
+    const response = await new LocationService().searchForLocation(
+      searchText.toString(),
+      getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }),
+    ); //, {
     // ...request.headers,
     // //@ts-ignore
     // Cookie: request.headers.get("Cookie") || "",});
@@ -29,7 +34,7 @@ export const clientAction = async ({ request }: Route.ClientActionArgs) => {
 };
 
 export default function StartDateCreation({ actionData }: Route.ComponentProps) {
-  const { Form, data, state } = useFetcher<typeof clientAction>({ key: "location-data" });
+  const { Form, data, state } = useFetcher<typeof action>({ key: "location-data" });
   const isSubmitting = state === "submitting";
   return (
     <>

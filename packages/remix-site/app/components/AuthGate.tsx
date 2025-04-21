@@ -22,9 +22,17 @@ export default function AuthGate({ currentUrlObj, pkce }: AuthGateProps) {
     <Suspense fallback={<Skeleton className="h-8 w-[200px]" />}>
       <div className="my-4 flex flex-col items-center sm:my-3 sm:flex-row">
         <a
-          href={`/login?return_url=${encodeURIComponent(currentUrlObj.href)}&message=${encodeURIComponent(`Unable To login`)}&pcke=${pkce ? "true" : "false"}`} onClick={()=> setLoading(true)}
+          href={`/login?return_url=${encodeURIComponent(currentUrlObj.href)}&message=${encodeURIComponent(`Unable To login`)}&pcke=${pkce ? "true" : "false"}`}
+          onClick={() => setLoading(true)}
         >
-          <Button variant={"default"} disabled={loading}>{loading && <><RefreshCwIcon size={'15'} className="animate-spin" /> <div className="ml-1"/> </>}Click here to login</Button>
+          <Button variant={"default"} disabled={loading}>
+            {loading && (
+              <>
+                <RefreshCwIcon size={"15"} className="animate-spin" /> <div className="ml-1" />{" "}
+              </>
+            )}
+            Click here to login
+          </Button>
         </a>
       </div>
     </Suspense>

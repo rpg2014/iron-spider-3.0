@@ -8,6 +8,8 @@ import { Button } from "~/components/ui/Button";
 import { Card, CardFooter } from "~/components/ui/Card";
 import { DateService, getDateService, LocationService } from "~/service/DateService";
 import type { Route } from "./+types/dates.new";
+import { getHeaders } from "~/utils";
+import { getSession } from "~/sessions.server";
 
 export interface DateModel {
   id?: string;
@@ -22,6 +24,7 @@ export interface DateModel {
 export const action = async ({ request }: Route.ActionArgs) => {
   console.log("Saving new date");
   try {
+    const session = await getSession(request.headers.get("Cookie"));
     const formData = await request.formData();
 
     // const objectFormData = Object.fromEntries(formData.entries());
@@ -52,11 +55,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
 
     const createdDate = await dateService.createDate({
       date: { ...dateInfo },
-      headers: {
-        ...request.headers,
-        //@ts-ignore
-        Cookie: request.headers.get("Cookie") || "",
-      },
+      headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }),
     });
     console.log("createdDate: ", createdDate);
     // Upload picture second: TODO
@@ -78,9 +77,10 @@ export const action = async ({ request }: Route.ActionArgs) => {
 
 export const loader = async ({ request, context, params }: Route.LoaderArgs) => {
   try {
+    const session = await getSession(request.headers.get("Cookie"));
     const url = new URL(request.url);
     const placeId = url.searchParams.get("placeId");
-    const headers = { ...request.headers, cookie: request.headers.get("cookie") };
+    const headers = getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken });
     if (placeId) {
       try {
         const location = await new LocationService().getLocationByPlaceId(placeId, headers);

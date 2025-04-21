@@ -21,3 +21,4 @@ export const AGENT_STREAMING_SUFFIX = `/agent`;
 export const AGENT_INVOKE_SUFFIX = "/agent/invoke";
 
 export const OAUTH_TOKEN_ENDPOINT = `${API_DOMAIN_VERSION}/oauth/tokens`;
+export const OAUTH_LOGOUT_ENDPOINT = `${API_DOMAIN_VERSION}/oauth/logout`;

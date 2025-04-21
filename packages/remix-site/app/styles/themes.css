@@ -25,7 +25,7 @@
   --color-links-hover: hsl(0, 98%, 60%);
   --color-border: rgb(134, 134, 134);
   --font-body: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --background-image: url("../images/forest.jpg");
+  /* --background-image: url("../images/forest.jpg"); */
 }
 
 [data-theme="yellow"] {

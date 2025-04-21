@@ -6,34 +6,39 @@ import { Temporal } from "temporal-polyfill";
 import { IronSpiderAPI } from "~/service/IronSpiderClient";
 import { Button } from "~/components/ui/Button";
 import { Alert } from "~/components/ui";
+import { useLocalStorage } from "~/hooks/useLocalStorage.client";
+import { useAuthLocalStorage } from "~/hooks/useAuthLocalStorage";
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
   // return the cookies on the request, parse them into Record<string, string>
   const session = await getSession(request.headers.get("Cookie"));
   const authInfo = await checkCookieAuth(request);
   const newAuthInfo = await checkIdTokenAuth(request);
-  
-    // set oauthDetails
-    if (newAuthInfo.oauthDetails) {
-      session.set("oauthTokens", newAuthInfo.oauthDetails);
-    }
-  return data({
-    cookies:
-      request.headers
-        .get("Cookie")
-        ?.split(";")
-        .map((cookie: string) => cookie.trim())
-        .reduce((acc: Record<string, string>, cookie: string) => {
-          const [key, value] = cookie.split("=");
-          acc[key] = value;
-          return acc;
-        }, {}) ?? {},
-    cookieData: {
-      "x-pg-remix-oauth": session.get("oauthTokens") ?? "undefined",
-      "x-pg-id": authInfo,
-      newAuthInfo: newAuthInfo,
+
+  // set oauthDetails
+  if (newAuthInfo.oauthDetails) {
+    session.set("oauthTokens", newAuthInfo.oauthDetails);
+  }
+  return data(
+    {
+      cookies:
+        request.headers
+          .get("Cookie")
+          ?.split(";")
+          .map((cookie: string) => cookie.trim())
+          .reduce((acc: Record<string, string>, cookie: string) => {
+            const [key, value] = cookie.split("=");
+            acc[key] = value;
+            return acc;
+          }, {}) ?? {},
+      cookieData: {
+        "x-pg-remix-oauth": session.get("oauthTokens") ?? "undefined",
+        "x-pg-id": authInfo,
+        newAuthInfo: newAuthInfo,
+      },
     },
-  }, {headers: { "Set-Cookie": await commitSession(session) }});
+    { headers: { "Set-Cookie": await commitSession(session) } },
+  );
 };
 
 // action to refresh tokens
@@ -59,7 +64,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
         idToken: response.id_token,
         expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
       });
-      return data({ message: "Tokens refreshed", newRefreshToken: response.refresh_token }, { headers: { "Set-Cookie": await commitSession(session) } });
+      return data({ message: "Tokens refreshed", newRefreshToken: response.refresh_token, oauthTokens: session.get("oauthTokens") }, { headers: { "Set-Cookie": await commitSession(session) } });
     } else {
       console.error(`[checkIdTokenAuth] One of the tokens wasn't returned: ${JSON.stringify(response)}`);
       return data({ error: { message: `One of the tokens wasn't returned: ${JSON.stringify(response)}` } });
@@ -74,7 +79,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
 export default function ({ loaderData, actionData }: Route.ComponentProps) {
   const submit = useSubmit();
   const { state } = useNavigation();
-
+  useAuthLocalStorage({access_token: actionData?.oauthTokens?.accessToken, refresh_token: actionData?.oauthTokens?.refreshToken, id_token: actionData?.oauthTokens?.idToken})
   return (
     <div className="mx-auto max-w-4xl p-8">
       <h1 className="mb-6 text-3xl font-bold ">Oauth Testing</h1>
