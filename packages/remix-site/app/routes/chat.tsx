@@ -1,18 +1,19 @@
 import type { LinksFunction, MetaFunction } from "react-router";
 import { NavLink, isRouteErrorResponse, useRouteError, Outlet, useLoaderData } from "react-router";
 import { useEffect, useMemo, useState } from "react";
-import { DEFAULT_AUTH_LOADER } from "~/utils.server";
+import { DEFAULT_URL_LOADER } from "~/utils/utils.server";
 import * as EB from "~/components/ErrorBoundary";
 import styles from "~/styles/chat.css?url";
 import { useLocalStorage } from "~/hooks/useLocalStorage.client";
 import type { StatusResponse } from "~/genAi/spiderAssistant";
 import { assistant } from "~/genAi/spiderAssistant";
 import { AIBackendStatus } from "~/components/chat/Status";
-import AuthGate from "~/components/AuthGate";
+import { AuthGateV2 } from "~/components/AuthGate";
+import { Route } from "./+types/chat";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
-export const loader = DEFAULT_AUTH_LOADER;
+export const loader = DEFAULT_URL_LOADER;
 
 export const meta: MetaFunction = () => [{ title: "AI Agent" }];
 
@@ -24,8 +25,7 @@ export type OutletState = {
   status?: StatusResponse;
 };
 
-export default function Chat() {
-  const { verified, currentUrlObj } = useLoaderData<typeof loader>();
+export default function Chat({ loaderData }: Route.ComponentProps) {
   const [status, setStatus] = useState<StatusResponse | undefined>();
   const [temperature, setTemperature] = useLocalStorage("modelTemperature", 0.5);
   const [maxTokens, setMaxTokens] = useLocalStorage("modelMaxTokens", 2048);
@@ -68,11 +68,8 @@ export default function Chat() {
     loadStatus();
   }, []);
 
-  if (!verified && import.meta.env.PROD && typeof window !== "undefined") {
-    return <AuthGate currentUrlObj={window?.location?.href ? new URL(window.location.href) : currentUrlObj} />;
-  }
   return (
-    <>
+    <AuthGateV2 currentUrlObj={window?.location?.href ? new URL(window.location.href) : loaderData.currentUrlObj}>
       <div className="navigation-container">
         <nav className="break flex flex-row">
           <ul>
@@ -95,7 +92,7 @@ export default function Chat() {
       <div className="outlet-container">
         <Outlet context={outletState} />
       </div>
-    </>
+    </AuthGateV2>
   );
 }
 

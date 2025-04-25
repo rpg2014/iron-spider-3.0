@@ -1,6 +1,6 @@
 import { createCookieSessionStorage } from "react-router";
 import { authSessionCookie, oauthStateCookie } from "./cookies.server";
-import { JwtPayload } from "./utils.server";
+import { JwtPayload } from "./utils/utils.server";
 
 export type SessionData = {
   userId?: string;

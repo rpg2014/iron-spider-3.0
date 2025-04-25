@@ -8,11 +8,7 @@
  * @module
  */
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
+import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server";
 import type * as groceryItems from "../groceryItems.js";
 import type * as groceryList from "../groceryList.js";
 import type * as llmUtils from "../llmUtils.js";
@@ -30,11 +26,5 @@ declare const fullApi: ApiFromModules<{
   groceryList: typeof groceryList;
   llmUtils: typeof llmUtils;
 }>;
-export declare const api: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "public">
->;
-export declare const internal: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "internal">
->;
+export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
+export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;

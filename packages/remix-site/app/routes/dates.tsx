@@ -1,7 +1,8 @@
 import { MetaFunction, Outlet, useLoaderData } from "react-router";
 import * as EB from "~/components/ErrorBoundary";
-import { DEFAULT_AUTH_LOADER } from "~/utils.server";
-import AuthGate from "~/components/AuthGate";
+import { DEFAULT_URL_LOADER } from "~/utils/utils.server";
+import { AuthGateV2 } from "~/components/AuthGate";
+import { Route } from "./+types/dates";
 
 export const meta: MetaFunction = () => [
   {
@@ -9,24 +10,15 @@ export const meta: MetaFunction = () => [
   },
 ];
 
-export const loader = DEFAULT_AUTH_LOADER;
+export const loader = DEFAULT_URL_LOADER;
 
-export default function DatesLayout() {
-  const { verified, currentUrlObj } = useLoaderData<typeof loader>();
-  if (!verified && import.meta.env.PROD) {
-    return (
-      <div className="container">
-        <AuthGate currentUrlObj={currentUrlObj} />
-      </div>
-    );
-  }
-
+export default function DatesLayout({ loaderData }: Route.ComponentProps) {
   return (
-    <div>
+    <AuthGateV2 currentUrlObj={loaderData.currentUrlObj}>
       <div className="container">
         <Outlet />
       </div>
-    </div>
+    </AuthGateV2>
   );
 }
 

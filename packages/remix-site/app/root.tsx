@@ -9,11 +9,11 @@ import { Document } from "~/components/Document";
 import { ThemeProvider } from "./hooks/useTheme";
 import { ServerProvider } from "./hooks/MCServerHooks";
 import { MCServerApi } from "./service/MCServerService";
-import { getHeaders } from "./utils";
 import { Route } from "./+types/root";
 import { Suspense } from "react";
 import { Toaster } from "./components/ui/Sonner";
-import { getSession } from "./sessions.server";
+import { checkIdTokenAuth } from "./utils/utils.server";
+import { AuthProvider } from "./hooks/useAuth";
 
 export const links: LinksFunction = () => {
   return [
@@ -35,23 +35,18 @@ export const meta: MetaFunction = () => [
   { title: "Parker's Remix site" },
 ];
 
-export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  try {
-    const session = await getSession(request.headers.get("Cookie"));
-    if (session.has("oauthTokens")) {
-      console.log("Found OauthInfo", session.get("oauthTokens"));
-    } else {
-      console.log("No OauthInfo found");
-    }
-
-    const initialStatus = await MCServerApi.getStatus(getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }), context);
-    return { initialStatus };
-  } catch (error) {
-    console.error("Error fetching initial status:", error);
-    return { initialStatus: undefined };
-  }
-};
-
+export async function loader({ request }: Route.LoaderArgs) {
+  const authResult = await checkIdTokenAuth(request);
+  const initialStatus = await MCServerApi.getStatus();
+  return {
+    auth: {
+      authenticated: authResult.verified,
+      accessToken: authResult.verified ? authResult.oauthDetails?.accessToken : undefined,
+      expiresAt: authResult.verified ? authResult.oauthDetails?.expiresAt : undefined,
+    },
+    initialStatus,
+  };
+}
 // export const headers: Route.HeadersFunction = () => ({
 //   // cache control 5 mins
 //   "Cache-Control": "public, max-age=300, s-maxage=300",
@@ -74,23 +69,25 @@ export default function App() {
   const data = useLoaderData<typeof loader>();
   return (
     <ThemeProvider>
-      <ServerProvider initialState={data.initialStatus}>
-        <Document>
-          <Layout>
-            <Suspense
-              fallback={
-                <div className="flex h-screen items-center justify-center">
-                  <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
-                  <span className="sr-only">Loading...</span>
-                </div>
-              }
-            >
-              <Outlet />
-              <Toaster />
-            </Suspense>
-          </Layout>
-        </Document>
-      </ServerProvider>
+      <AuthProvider initialAuth={data.auth}>
+        <ServerProvider initialState={data.initialStatus}>
+          <Document>
+            <Layout>
+              <Suspense
+                fallback={
+                  <div className="flex h-screen items-center justify-center">
+                    <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+                    <span className="sr-only">Loading...</span>
+                  </div>
+                }
+              >
+                <Outlet />
+                <Toaster />
+              </Suspense>
+            </Layout>
+          </Document>
+        </ServerProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

@@ -14,7 +14,7 @@ import type {
   UpdateDateCommandOutput,
 } from "iron-spider-client";
 import { API_DOMAIN_VERSION, DATES_PATH, LOCATIONS_PATH } from "~/constants";
-import { fetcher } from "~/utils";
+import { oauthFetcher } from "~/utils/authFetcher";
 
 export interface IDateClient {
   listDates: (input: { pageSize: number; headers?: Headers }) => Promise<ListDatesCommandOutput>;
@@ -37,7 +37,7 @@ export class DateService implements IDateClient {
   constructor() {}
 
   async listDates(input: { pageSize: number; headers?: Headers }): Promise<ListDatesCommandOutput> {
-    const dates: ListDatesCommandOutput = await fetcher(`${DATES_PATH}?pageSize=${input.pageSize}`, {
+    const dates: ListDatesCommandOutput = await oauthFetcher(`${DATES_PATH}?pageSize=${input.pageSize}`, {
       mode: "cors",
       headers: input.headers,
       credentials: "include",
@@ -50,7 +50,7 @@ export class DateService implements IDateClient {
   }
 
   async getDate(input: { id: string; headers?: Headers }): Promise<DateInfo> {
-    const dateInfo: DateInfo = await fetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include" });
+    const dateInfo: DateInfo = await oauthFetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include" });
     // convert dateInfo.date to a date object
     return { ...dateInfo, date: dateInfo.date ? new Date(dateInfo.date) : undefined };
   }
@@ -61,7 +61,7 @@ export class DateService implements IDateClient {
     const date = input.date.date ? input.date.date : new Date();
     const body = { ...input.date, date: date.toISOString() };
     console.log(`Creating date with body: ${JSON.stringify(body)}`);
-    const dateInfo: DateInfo = await fetcher<DateInfo>(
+    const dateInfo: DateInfo = await oauthFetcher<DateInfo>(
       `${DATES_PATH}`,
       {
         body: JSON.stringify(body),
@@ -79,7 +79,7 @@ export class DateService implements IDateClient {
     const date = input.date.date ? input.date.date : new Date();
     const body = { ...input.date, date: date.toISOString() };
     console.log(`Creating date with body: ${JSON.stringify(body)}`);
-    const output: DateInfo = await fetcher(
+    const output: DateInfo = await oauthFetcher(
       `${DATES_PATH}/${input.date.dateId}`,
       {
         body: JSON.stringify(body),
@@ -96,10 +96,10 @@ export class DateService implements IDateClient {
   }
   async delete(input: { id: string; headers?: Headers }): Promise<{ success: boolean }> {
     if (!input.id || input.id.length === 0) throw new Error("No id provided");
-    return await fetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include", method: "DELETE" });
+    return await oauthFetcher(`${DATES_PATH}/${input.id}`, { mode: "cors", headers: input.headers, credentials: "include", method: "DELETE" });
   }
   async getConnectedUsers(input: { headers?: Headers }): Promise<GetConnectedUsersOutput> {
-    return await fetcher(`${API_DOMAIN_VERSION}/connected-users`, { mode: "cors", headers: input.headers, credentials: "include" });
+    return await oauthFetcher(`${API_DOMAIN_VERSION}/connected-users`, { mode: "cors", headers: input.headers, credentials: "include" });
   }
 }
 
@@ -112,7 +112,7 @@ export class LocationService implements ILocationClient {
   constructor() {}
 
   async searchForLocation(text: string, headers?: Headers): Promise<SearchResult[]> {
-    const response: SearchForLocationCommandOutput = await fetcher(
+    const response: SearchForLocationCommandOutput = await oauthFetcher(
       `${LOCATIONS_PATH}`,
       {
         method: "POST",
@@ -129,7 +129,7 @@ export class LocationService implements ILocationClient {
   }
 
   async getLocationByPlaceId(placeId: string, headers?: Headers): Promise<Place | undefined> {
-    const response: GetLocationByPlaceIdCommandOutput = await fetcher(`${LOCATIONS_PATH}/${placeId}`, {
+    const response: GetLocationByPlaceIdCommandOutput = await oauthFetcher(`${LOCATIONS_PATH}/${placeId}`, {
       headers: headers,
       credentials: "include",
       mode: "cors",

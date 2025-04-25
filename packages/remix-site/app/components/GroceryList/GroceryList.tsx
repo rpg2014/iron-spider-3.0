@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "convex/react";
 import { Trash2 } from "lucide-react";
-import { useState} from "react";
+import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "../ui/Button";
 import { DepartmentConfig, DepartmentNames, getDepartmentName } from "./GroceryModel";
@@ -10,7 +10,6 @@ import type { GroceryItem as GroceryItemType } from "./GroceryModel";
 import { AddItemFAB } from "./AddItemFAB";
 
 export const GroceryList = () => {
-  
   const items = useQuery(api.groceryList.getUncheckedItems);
   const checkedItems = useQuery(api.groceryList.getCheckedItems);
   const [deleting, setDeleting] = useState(false);
@@ -75,11 +74,14 @@ export const GroceryList = () => {
           <div className="mt-6">
             <h2 className="mb-2 flex flex-row justify-between text-lg font-semibold text-muted-foreground">
               Archived Items{" "}
-              <span className="cursor-pointer pl-1" onClick={() => {
-                setDeleting(true);
-                deleteCheckedItems()
-                setDeleting(false);
-              }}>
+              <span
+                className="cursor-pointer pl-1"
+                onClick={() => {
+                  setDeleting(true);
+                  deleteCheckedItems();
+                  setDeleting(false);
+                }}
+              >
                 {deleting ? <Trash2 className="animate-spin" /> : <Trash2 />}
               </span>
             </h2>
@@ -91,36 +93,35 @@ export const GroceryList = () => {
       <AddItemFAB />
 
       {/* Bottom Toolbar */}
-     <BottomToolbar/>
+      <BottomToolbar />
     </div>
   );
 };
 
-
 const BottomToolbar = () => {
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const deleteAllItems = useMutation(api.groceryList.deleteAllItems);
-  const numItems = useQuery(api.groceryList.getNumberOfItems)
+  const numItems = useQuery(api.groceryList.getNumberOfItems);
   return (
     <div
-    className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-between border-t
+      className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-between border-t
                         border-border bg-background px-4 py-3"
-  >
-    <Button
-      variant="destructive"
-      size="sm"
-      disabled={isDeleteLoading}
-      className="flex items-center gap-2"
-      onClick={async () => {
-        setIsDeleteLoading(true);
-        await deleteAllItems();
-        setIsDeleteLoading(false);
-      }}
     >
-      <Trash2 className="h-4 w-4" />
-      Clear All
-    </Button>
-    <span className="text-sm text-muted-foreground">{numItems ?? 0} items</span>
-  </div>
-  )
-}
+      <Button
+        variant="destructive"
+        size="sm"
+        disabled={isDeleteLoading}
+        className="flex items-center gap-2"
+        onClick={async () => {
+          setIsDeleteLoading(true);
+          await deleteAllItems();
+          setIsDeleteLoading(false);
+        }}
+      >
+        <Trash2 className="h-4 w-4" />
+        Clear All
+      </Button>
+      <span className="text-sm text-muted-foreground">{numItems ?? 0} items</span>
+    </div>
+  );
+};

@@ -8571,13 +8571,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cookie@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@types/cookie@npm:0.6.0"
-  checksum: 10/b883348d5bf88695fbc2c2276b1c49859267a55cae3cf11ea1dccc1b3be15b466e637ce3242109ba27d616c77c6aa4efe521e3d557110b4fdd9bc332a12445c2
-  languageName: node
-  linkType: hard
-
 "@types/cookies@npm:*":
   version: 0.9.0
   resolution: "@types/cookies@npm:0.9.0"
@@ -10738,8 +10731,8 @@ __metadata:
 
 "client-rust-functions@file:./rust-wasm/client-code/pkg::locator=remix-site%40workspace%3Apackages%2Fremix-site":
   version: 0.1.0
-  resolution: "client-rust-functions@file:./rust-wasm/client-code/pkg#./rust-wasm/client-code/pkg::hash=d56cc4&locator=remix-site%40workspace%3Apackages%2Fremix-site"
-  checksum: 10/b194fc3226eb2fdd6fcb2bd0ba99a8cd15f0cc3f97f2468e9b55e4358ead9af3bc4bde586a18e295481f3b4a3513e50eb8894523f621ee2c8e07e6faf2883d0e
+  resolution: "client-rust-functions@file:./rust-wasm/client-code/pkg#./rust-wasm/client-code/pkg::hash=233046&locator=remix-site%40workspace%3Apackages%2Fremix-site"
+  checksum: 10/65bec6465d1b6112f1a9d23b18f9607d3da0ec85865ea77dbb2d4e04ce9265efbc8d2cd6d9edf60944d9693708f64eb0ef85540280988648588eb5cadf1e19ad
   languageName: node
   linkType: hard
 
@@ -18409,11 +18402,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:^7.2.0":
-  version: 7.2.0
-  resolution: "react-router@npm:7.2.0"
+"react-router@npm:^7.5.2":
+  version: 7.5.2
+  resolution: "react-router@npm:7.5.2"
   dependencies:
-    "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^1.0.1"
     set-cookie-parser: "npm:^2.6.0"
     turbo-stream: "npm:2.4.0"
@@ -18423,7 +18415,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10/2b8d51bf0787d088c1b12857a686719fa922256a8ac84045e64c98b86c5ff81a4b76d49a25e6fb9bc9f582fb0d92233207917573358a26dd40ad4e91b01bfb66
+  checksum: 10/7586ecb7fc17eaac70bf5fe838c94f9f3a2e18e6802a4eddf1ad10b0a51ca83c969f5b36b8e2be47fe46453fea7199f99f422d8554fd159a827c25c287ba5741
   languageName: node
   linkType: hard
 
@@ -18768,7 +18760,7 @@ __metadata:
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     react-markdown: "npm:^9.0.1"
-    react-router: "npm:^7.2.0"
+    react-router: "npm:^7.5.2"
     remark-gfm: "npm:^4.0.0"
     remix: "npm:^2.15.0"
     roadhouse-wasm: "github:rpg2014/roadhouse-wasm"

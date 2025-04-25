@@ -1,10 +1,10 @@
 import * as React from "react";
 import "../styles/intranetLinks.css?url";
-import { useLoaderData } from "react-router";
-import { DEFAULT_AUTH_LOADER } from "~/utils.server";
+import { DEFAULT_URL_LOADER } from "~/utils/utils.server";
 import { Button } from "~/components/ui/Button";
 import { useEffect, useState } from "react";
-import AuthGate from "~/components/AuthGate";
+import { AuthGateV2 } from "~/components/AuthGate";
+import { Route } from "./+types/IntranetLinks";
 
 interface IDynamicDNSResponse {
   serviceName: string;
@@ -25,13 +25,12 @@ const intranetLinkConfig: UrlConfig[] = [
   { url: "http://notes.i.parkergiven.com", name: "Notes" },
   { url: "https://nextjs.parkergiven.com", name: "NextJs Tutorial" },
 ];
-export const loader = DEFAULT_AUTH_LOADER;
+export const loader = DEFAULT_URL_LOADER;
 
-export default function IntranetLinks() {
+export default function IntranetLinks({ loaderData }: Route.ComponentProps) {
   const [ipAddress, setIpAddress] = useState<string | null>(null);
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
   const [isHighlightingComplete, setIsHighlightingComplete] = useState(false);
-  const { verified, currentUrlObj } = useLoaderData<typeof loader>();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -45,23 +44,22 @@ export default function IntranetLinks() {
     return () => intervalId && clearInterval(intervalId);
   }, []);
 
-  if (!verified) {
-    return <AuthGate currentUrlObj={window?.location?.href ? new URL(window.location.href) : new URL(currentUrlObj)} />;
-  }
   return (
-    <div className="row translucent-bg d-flex flex-column width-control mx-auto rounded">
-      <p /*className="  text-muted px-3 pt-3 h5 lead" */>These links only work when you're on my network</p>
-      <div className="row-md p-2 text-center">
-        {intranetLinkConfig.map(({ url, name }, index) => {
-          return (
-            <a href={url} key={name}>
-              <Button className="m-1" variant={`${index === highlightIndex ? "default" : "outline"}`} size="default">
-                {name}
-              </Button>
-            </a>
-          );
-        })}
+    <AuthGateV2 currentUrlObj={window?.location?.href ? new URL(window.location.href) : new URL(loaderData.currentUrlObj)}>
+      <div className="row translucent-bg d-flex flex-column width-control mx-auto rounded">
+        <p /*className="  text-muted px-3 pt-3 h5 lead" */>These links only work when you're on my network</p>
+        <div className="row-md p-2 text-center">
+          {intranetLinkConfig.map(({ url, name }, index) => {
+            return (
+              <a href={url} key={name}>
+                <Button className="m-1" variant={`${index === highlightIndex ? "default" : "outline"}`} size="default">
+                  {name}
+                </Button>
+              </a>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </AuthGateV2>
   );
 }

@@ -2,14 +2,13 @@ import { MetaFunction, useLocation, useLoaderData, data } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { useServers } from "~/hooks/MCServerHooks";
 import logo from "~/images/minecraft-logo-17.png";
-import { ServerStatus, MCServerApi } from "~/service/MCServerService";
+import { ServerStatus } from "~/service/MCServerService";
 import { StartStopButton } from "~/components/server/StartStopButton";
 import { RefreshCwIcon } from "lucide-react";
 import { Alert } from "~/components/ui/Alert";
-import { checkCookieAuth, checkIdTokenAuth } from "~/utils.server";
-import AuthGate from "~/components/AuthGate";
-import { Suspense, useEffect } from "react";
-import { commitSession, getSession } from "~/sessions.server";
+import { AuthGateV2 } from "~/components/AuthGate";
+import { useEffect } from "react";
+import { useAuth } from "~/hooks/useAuth";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Parker's Minecraft Server Control" }];
@@ -17,26 +16,13 @@ export const meta: MetaFunction = () => {
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   try {
-    const newAuthResult = await checkIdTokenAuth(request);
-    const session = await getSession(request.headers.get("Cookie"));
-    if (newAuthResult.verified && newAuthResult.oauthDetails) {
-      session.set("oauthTokens", newAuthResult.oauthDetails);
-    }
     // fetching in root route, and prepopulating the hook
     // const initialStatus = await MCServerApi.getStatus(request.headers, context);
     // console.log(`MC Server Status: ${initialStatus}`);
-    return data(
-      {
-        // initialStatus,
-        verified: newAuthResult.verified,
-        currentUrlObj: new URL(request.url),
-      },
-      {
-        headers: {
-          "Set-Cookie": await commitSession(session),
-        },
-      },
-    );
+    return data({
+      // initialStatus,
+      currentUrlObj: new URL(request.url),
+    });
   } catch (e: any) {
     console.log(e);
     return {
@@ -50,10 +36,10 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
 export default function Server() {
   const data = useLoaderData<typeof loader>();
+  const auth = useAuth();
   const {
     minecraftServer: { status, getLoading, actionLoading, actions, domainName, errors },
   } = useServers();
-  const location = useLocation();
 
   // const currentStatus = status === ServerStatus.InitialStatus ? data.initialStatus : status;
   const currentStatus = status;
@@ -91,18 +77,17 @@ export default function Server() {
       </div>
       {domainName && <p>Domain name: ${domainName}</p>}
       <div className="h-25 start-button mx-auto flex flex-col items-center pb-3 pt-5 align-middle">
-        {data.verified ? (
+        <AuthGateV2 currentUrlObj={data.currentUrlObj}>
           <StartStopButton
-            loggedIn={data.verified}
+            loggedIn={auth.isAuthenticated}
             loading={actionLoading}
             serverStatus={currentStatus as ServerStatus}
             updateStatus={async () => actions.status()}
             stopServer={async () => actions.stop()}
             startServer={async () => actions.start()}
           />
-        ) : (
-          <AuthGate currentUrlObj={data.currentUrlObj} />
-        )}
+        </AuthGateV2>
+
         {errors &&
           errors.map((error, index) => (
             <Alert variant="light_destructive" title="Error" className="mt-2" key={index}>

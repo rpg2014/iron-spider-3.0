@@ -1,8 +1,8 @@
 import { AGENT_CHATS_PATH, AGENT_INVOKE_SUFFIX, AGENT_STREAMING_SUFFIX, AGENT_URL } from "~/constants";
-import { fetcher } from "~/utils";
 import type { ReadableStream2 } from "./coreUtils";
 import { parseEventStream } from "./coreUtils";
 import type { Message } from "~/components/chat/Messages/model";
+import { oauthFetcher } from "~/utils/authFetcher";
 
 type InputOpts = Partial<{
   temperature: number;
@@ -51,7 +51,7 @@ export interface AgentStep {
 // }
 
 const invoke = async (prompt: string): Promise<string> => {
-  const response = await fetcher(
+  const response = await oauthFetcher(
     `${AGENT_URL}/invoke`,
     {
       method: "POST",
@@ -67,7 +67,7 @@ const invoke = async (prompt: string): Promise<string> => {
 };
 
 async function invokeAgent(input: Input, signal: AbortSignal) {
-  const response = await fetcher(
+  const response = await oauthFetcher(
     `${AGENT_CHATS_PATH}/${input.opts.chatId}${AGENT_INVOKE_SUFFIX}?storage=${input.storage}`,
     {
       method: "POST",
@@ -85,7 +85,7 @@ async function invokeAgent(input: Input, signal: AbortSignal) {
 }
 
 async function* streamAgent(input: Input, signal: AbortSignal) {
-  const res = await fetch(`${AGENT_CHATS_PATH}/${input.opts.chatId}${AGENT_STREAMING_SUFFIX}?storage=${input.storage}`, {
+  const res = await oauthFetcher(`${AGENT_CHATS_PATH}/${input.opts.chatId}${AGENT_STREAMING_SUFFIX}?storage=${input.storage}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -103,7 +103,7 @@ async function* streamAgent(input: Input, signal: AbortSignal) {
 }
 
 const getMemory = async (): Promise<{ messages?: Message[] }> => {
-  const res = await fetcher(`${AGENT_URL}/memory`, {
+  const res = await oauthFetcher(`${AGENT_URL}/memory`, {
     credentials: "include",
     mode: "cors",
   });
@@ -114,20 +114,20 @@ const getMemory = async (): Promise<{ messages?: Message[] }> => {
  * @returns the chatId of the new chat
  */
 const createChat = async (): Promise<{ chatId: string }> => {
-  const res = await fetcher(`${AGENT_CHATS_PATH}`, { credentials: "include", mode: "cors", method: "POST" });
+  const res = await oauthFetcher(`${AGENT_CHATS_PATH}`, { credentials: "include", mode: "cors", method: "POST" });
   return res;
 };
 const saveChat = async (chatId: string): Promise<{ success: boolean }> => {
-  const res = await fetcher(`${AGENT_CHATS_PATH}/${chatId}?storage=dynamodb`, { credentials: "include", mode: "cors", method: "PUT" });
+  const res = await oauthFetcher(`${AGENT_CHATS_PATH}/${chatId}?storage=dynamodb`, { credentials: "include", mode: "cors", method: "PUT" });
   return res;
 };
 const getChat = async (chatId: string): Promise<{ messages?: Message[] }> => {
-  const res = await fetcher(`${AGENT_CHATS_PATH}/${chatId}?storage=dynamodb`, { credentials: "include", mode: "cors" });
+  const res = await oauthFetcher(`${AGENT_CHATS_PATH}/${chatId}?storage=dynamodb`, { credentials: "include", mode: "cors" });
   return res;
 };
 
 const summarize = async (input: Input, signal: AbortSignal): Promise<Output> => {
-  const res = await fetcher(
+  const res = await oauthFetcher(
     `${AGENT_URL}/summarize`,
     {
       method: "POST",
@@ -145,7 +145,7 @@ const summarize = async (input: Input, signal: AbortSignal): Promise<Output> => 
 };
 
 const summarizeStream = async function* (input: Input, signal: any) {
-  const res = await fetch(`${AGENT_URL}/v1/streaming/summarize`, {
+  const res = await oauthFetcher(`${AGENT_URL}/v1/streaming/summarize`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -166,7 +166,7 @@ export const assistant = {
   invoke,
   streamAgent,
   status: async (): Promise<StatusResponse> => {
-    const response = await fetcher(
+    const response = await oauthFetcher(
       `${AGENT_URL}/status`,
       {
         credentials: "include",

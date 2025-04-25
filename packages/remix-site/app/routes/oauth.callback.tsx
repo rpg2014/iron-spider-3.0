@@ -1,14 +1,12 @@
-import type { LoaderFunctionArgs } from "react-router";
-import { data, useNavigate, useParams, useSearchParams } from "react-router";
+import { data, useNavigate} from "react-router";
 import { Alert, Button } from "~/components/ui";
 import { Route } from "./+types/oauth.callback";
-import { fetcher } from "~/utils";
 import { IronSpiderAPI } from "~/service/IronSpiderClient";
 import { useEffect, useState } from "react";
 import { GetOAuthTokensOutput } from "iron-spider-client";
 import { commitSession, getOauthStateSession, getSession } from "~/sessions.server";
 import { Temporal } from "temporal-polyfill";
-import { getOauthDetails, validateIronSpiderToken } from "~/utils.server";
+import { getOauthDetails, validateIronSpiderToken } from "~/utils/utils.server";
 import { JwtPayload } from "jsonwebtoken";
 import { toast } from "sonner";
 import { useLocalStorage } from "~/hooks/useLocalStorage.client";

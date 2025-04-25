@@ -8,7 +8,6 @@ import { Button } from "~/components/ui/Button";
 import { Card, CardFooter } from "~/components/ui/Card";
 import { DateService, getDateService, LocationService } from "~/service/DateService";
 import type { Route } from "./+types/dates.new";
-import { getHeaders } from "~/utils";
 import { getSession } from "~/sessions.server";
 
 export interface DateModel {
@@ -55,7 +54,6 @@ export const action = async ({ request }: Route.ActionArgs) => {
 
     const createdDate = await dateService.createDate({
       date: { ...dateInfo },
-      headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }),
     });
     console.log("createdDate: ", createdDate);
     // Upload picture second: TODO
@@ -80,11 +78,10 @@ export const loader = async ({ request, context, params }: Route.LoaderArgs) => 
     const session = await getSession(request.headers.get("Cookie"));
     const url = new URL(request.url);
     const placeId = url.searchParams.get("placeId");
-    const headers = getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken });
     if (placeId) {
       try {
-        const location = await new LocationService().getLocationByPlaceId(placeId, headers);
-        const connectedUsersRes = await getDateService().getConnectedUsers({ headers });
+        const location = await new LocationService().getLocationByPlaceId(placeId);
+        const connectedUsersRes = await getDateService().getConnectedUsers({});
         if (location) {
           return data({ location, connectedUsers: connectedUsersRes.users });
         }

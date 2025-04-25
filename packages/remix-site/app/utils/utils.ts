@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { AUTH_DOMAIN } from "./constants";
-import apiKeys from "../../../.api_keys.json";
+import { AUTH_DOMAIN } from "../constants";
+import apiKeys from "../../../../.api_keys.json";
 export const isServer = typeof window === "undefined";
 
 export const getAPIKey = () => {
@@ -36,17 +36,6 @@ export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, i
   if (isServer) {
     headers["user-agent"] = "IronSpiderRemixFn";
   } else {
-    // add bearer auth header if request is going to the same domain, with accesstoken from local-storage
-    // only run this on client since localStorage
-    // TODO: pass this access token around better, can I keep it internal to remix via sessions?
-    const requestedURL = new URL(input.toString());
-    if (requestedURL.hostname === "ai.i.parkergiven.com" || requestedURL.hostname === "api.parkergiven.com") {
-      const accessToken = localStorage.getItem("pg.storage.1.access-token");
-      if (accessToken) {
-        console.log(`Using Local Storage accessToken for ${input.toString()}`)
-        headers["Authorization"] = `Bearer ${accessToken}`;
-      }
-    }
   }
   if ((init?.body || init?.method === "POST") && !input.toString().includes("server") && includeContentType !== undefined && !headers["Content-Type"]) {
     console.log(`Adding content-type header for input ${input.toString()}`);
@@ -90,18 +79,3 @@ export function cn(...inputs: ClassValue[]) {
 
 export const getLoginRedirect = (returnLocation: string) =>
   `${AUTH_DOMAIN}?return_url=${encodeURIComponent(returnLocation)}&message=${encodeURIComponent(`Need To login`)}`;
-
-/**
- * Extracts the cookie from the request, prioritizing session cookie if available
- * @param request - The incoming request object
- * @param session - Optional session object that may contain cookie info
- * @returns Headers object with cookie information
- */
-export const getHeaders = (request: Request, session?: { cookie?: string; accessToken?: string }) => {
-  return {
-    ...request.headers,
-    Authorization: session?.accessToken ? `Bearer ${session.accessToken}` : "",
-    //@ts-ignore
-    Cookie: session?.accessToken ? undefined : request.headers.get("Cookie"),
-  };
-};

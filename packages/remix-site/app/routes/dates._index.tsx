@@ -5,8 +5,6 @@ import { Plus } from "lucide-react";
 import DateCard from "~/components/date_tracker/DateCard";
 import { Button } from "~/components/ui/Button";
 import { getDateService } from "~/service/DateService";
-import { getHeaders } from "~/utils";
-import { checkCookieAuth, checkIdTokenAuth } from "~/utils.server";
 import { Route } from "./+types/dates._index";
 import { commitSession, getSession } from "~/sessions.server";
 
@@ -18,25 +16,19 @@ import { commitSession, getSession } from "~/sessions.server";
  * @returns
  */
 export const loader = async ({ request }: Route.LoaderArgs) => {
-  const { verified, userData } = await checkCookieAuth(request);
-  const { verified: newVerified, userData: newUserData, oauthDetails } = await checkIdTokenAuth(request);
   const session = await getSession(request.headers.get("Cookie"));
-  // set oauthDetails
-  if (oauthDetails) {
-    session.set("oauthTokens", oauthDetails);
-  }
+
   const dateService = getDateService();
-  if ((newVerified && newUserData) || (verified && userData)) {
+  if (session.has("userId")) {
     try {
       const userDates = await dateService.listDates({
         pageSize: 10,
-        headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }),
       });
       if (userDates.items === undefined) throw data({ message: `userDates.items is undefined` }, { status: 500 });
 
       const items = userDates.items;
       console.log(`Got user ListDates response: ${JSON.stringify(userDates)}`);
-      return data({ items: items, loggedIn: true }, { headers: { "Set-Cookie": await commitSession(session) } });
+      return data({ items: items, loggedIn: true });
     } catch (e: any) {
       console.error(e);
       throw new Response(JSON.stringify({ message: e.message }), { status: 500 });

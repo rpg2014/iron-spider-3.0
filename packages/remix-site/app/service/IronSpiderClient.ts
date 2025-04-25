@@ -1,7 +1,7 @@
 import type { DateInfo, GetOAuthTokensOutput, IronSpiderClientConfig, OAuthLogoutOutput } from "iron-spider-client";
 import { IronSpiderClient, ListDatesCommand, LogoutCommand, LogoutCommandInput } from "iron-spider-client";
 import { DATES_PATH, OAUTH_LOGOUT_ENDPOINT, OAUTH_TOKEN_ENDPOINT } from "~/constants";
-import { fetcher, getAPIKey, getClientId, getLogoutRedirectUrl, isServer } from "~/utils";
+import { fetcher, getAPIKey, getClientId, getLogoutRedirectUrl, isServer } from "~/utils/utils";
 
 const config: IronSpiderClientConfig = {
   region: "us-east-1",
@@ -44,7 +44,7 @@ export const IronSpiderAPI = {
     if (codeVerifier) {
       body.set("code_verifier", codeVerifier ?? "");
     }
-
+    // use raw fetcher b/c this api doesn't accept bearer tokens
     const response = await fetcher(`${OAUTH_TOKEN_ENDPOINT}`, {
       method: "POST",
       headers: {

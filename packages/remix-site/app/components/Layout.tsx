@@ -9,6 +9,7 @@ export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
 /**
  * Header and footer that will be present on every route, think of it as the shell app.
  * TODO: rewrite the nav to be what i want
+ * also do this: https://reactrouter.com/explanation/special-files#layout-export, export from root, or maybe just the docuemnt
  * @param children
  * @constructor
  */

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Skeleton } from "~/components/ui/Skeleton";
 import { Route } from "./+types/login";
 import { useEffect } from "react";
-import { getOauthDetails } from "~/utils.server";
+import { getOauthDetails } from "~/utils/utils.server";
 import { toast } from "sonner";
 
 export const loader = async ({ request }: Route.LoaderArgs) => {

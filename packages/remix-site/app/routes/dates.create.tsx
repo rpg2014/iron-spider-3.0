@@ -3,7 +3,6 @@ import { Input } from "~/components/ui/Input";
 import { LocationService } from "~/service/DateService";
 import * as EB from "~/components/ErrorBoundary";
 import { Button } from "~/components/ui/Button";
-import { getHeaders } from "~/utils";
 import { Route } from "./+types/dates.create";
 import { getSession } from "~/sessions.server";
 
@@ -15,10 +14,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
     throw data("Search text is required", { status: 400 });
   }
   try {
-    const response = await new LocationService().searchForLocation(
-      searchText.toString(),
-      getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }),
-    ); //, {
+    const response = await new LocationService().searchForLocation(searchText.toString()); //, {
     // ...request.headers,
     // //@ts-ignore
     // Cookie: request.headers.get("Cookie") || "",});

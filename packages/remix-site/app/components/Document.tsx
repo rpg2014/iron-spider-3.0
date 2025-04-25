@@ -47,6 +47,7 @@ async function registerMcServerCheck() {
 
 /**
  * Contains the Various document metadata that you want on every page, Should probably add other manifest meta tags
+ * TODO: combine with layout? remove theme stuff?
  * @param children
  * @param title
  * @constructor

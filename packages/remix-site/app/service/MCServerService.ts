@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { SERVER_PATH } from "~/constants";
-import { fetcher, isServer } from "~/utils";
+import { oauthFetcher } from "~/utils/authFetcher";
+import { isServer } from "~/utils/utils";
 
 // Create ServerStatus enum
 export enum ServerStatus {
@@ -86,7 +87,7 @@ class MCServerStatusCache {
 
   private async fetchStatusFromAPI(headers?: any, ctx?: MCServerStatusCacheContext): Promise<ServerStatus> {
     try {
-      const response: { status: ServerStatus } = await fetcher(`${SERVER_PATH}/status`, {
+      const response: { status: ServerStatus } = await oauthFetcher(`${SERVER_PATH}/status`, {
         mode: "cors",
         headers: headers,
         credentials: "include",
@@ -160,19 +161,19 @@ export const MCServerApi = {
   },
 
   getDetails: async () => {
-    const response: { domainName: string } = await fetcher(`${SERVER_PATH}/details`, { mode: "cors", credentials: "include" });
+    const response: { domainName: string } = await oauthFetcher(`${SERVER_PATH}/details`, { mode: "cors", credentials: "include" });
     return response.domainName;
   },
 
   startServer: async () => {
-    const response: { serverStarted: boolean } = await fetcher(`${SERVER_PATH}/start`, { mode: "cors", credentials: "include", method: "POST" });
+    const response: { serverStarted: boolean } = await oauthFetcher(`${SERVER_PATH}/start`, { mode: "cors", credentials: "include", method: "POST" });
     const cache = MCServerStatusCache.getInstance();
     cache.refresh();
     return response.serverStarted;
   },
 
   stopServer: async () => {
-    const response: { serverStopping: boolean } = await fetcher(`${SERVER_PATH}/stop`, { mode: "cors", credentials: "include", method: "POST" });
+    const response: { serverStopping: boolean } = await oauthFetcher(`${SERVER_PATH}/stop`, { mode: "cors", credentials: "include", method: "POST" });
     const cache = MCServerStatusCache.getInstance();
     cache.refresh();
     return response.serverStopping;

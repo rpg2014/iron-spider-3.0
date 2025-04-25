@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import AuthGate from "./AuthGate";
+import AuthButton from "./AuthGate";
 
-const meta: Meta<typeof AuthGate> = {
+const meta: Meta<typeof AuthButton> = {
   title: "Components/AuthGate",
-  component: AuthGate,
+  component: AuthButton,
   parameters: {
     layout: "centered",
   },
@@ -11,7 +11,7 @@ const meta: Meta<typeof AuthGate> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof AuthGate>;
+type Story = StoryObj<typeof AuthButton>;
 
 export const Default: Story = {
   args: {

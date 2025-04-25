@@ -8,14 +8,15 @@
 // imported directly into a route module, but if it's in this file you're fine.
 import type { LoaderFunctionArgs } from "react-router";
 import { createHash } from "crypto";
-import { PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "./constants";
+import { PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "../constants";
 import pkg from "jsonwebtoken";
 import { fetcher, getAPIKey } from "./utils";
-import { commitSession, getSession, SessionData } from "./sessions.server";
+import { commitSession, getSession, SessionData } from "../sessions.server";
 import { data, Session } from "react-router";
 import { Temporal } from "temporal-polyfill";
-import { IronSpiderAPI } from "./service/IronSpiderClient";
-import apiKeys from "../../../.api_keys.json";
+import { IronSpiderAPI } from "../service/IronSpiderClient";
+import apiKeys from "../../../../.api_keys.json";
+import { setGlobalAuthToken } from "./globalAuth";
 
 const { verify } = pkg;
 export type JwtPayload = pkg.JwtPayload & { preferred_username: string };
@@ -34,67 +35,89 @@ const isPublicRoute = (url: string) => {
 let publicKey: { keys?: string[] } | undefined;
 
 // Module-scoped variable to hold the current refresh promise.
-let refreshPromise: Promise<OAuthDetails | undefined> | null = null;
+let refreshPromise: Promise<{ refreshed: boolean; oauthDetails?: OAuthDetails }> | null = null;
+
+/**
+ * is refreshed needed as a return value?
+ */
+export const refreshTokenIfNeeded = async (
+  session: Session,
+): Promise<{
+  refreshed: boolean;
+  oauthDetails?: OAuthDetails;
+}> => {
+  if (!session.has("oauthTokens")) {
+    console.error("[refreshTokenIfNeeded] No oauthTokens found in session");
+    return { refreshed: false };
+  }
+
+  const oauthTokens = session.get("oauthTokens");
+  const timeToCompareTo = Temporal.Now.instant().add({ minutes: 5 });
+  console.log(`[checkIdTokenAuth] oauthTokens: ${oauthTokens?.accessToken}, ${oauthTokens?.expiresAt}, Now+1: ${timeToCompareTo}`);
+  // Only refresh if expiring soon
+  if (Temporal.Instant.compare(Temporal.Instant.from(oauthTokens.expiresAt), timeToCompareTo) < 0) {
+    console.log(`[checkIdTokenAuth] Access token expired or about to expire, attempting refresh`);
+    try {
+      const response = await IronSpiderAPI.getTokens({
+        refreshToken: oauthTokens.refreshToken,
+        oauthConfig: getOauthDetails(),
+      });
+
+      if (!response.access_token || !response.refresh_token || !response.id_token || !response.expires_in) {
+        console.error("[checkIdTokenAuth] Error refreshing tokens, no tokens returned");
+        return { refreshed: false };
+      }
+      console.log("[checkIdTokenAuth] Tokens refreshed, returning new tokens");
+      const newOauthDetails = {
+        accessToken: response.access_token,
+        refreshToken: response.refresh_token,
+        idToken: response.id_token,
+        expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
+      };
+
+      // Update session with new tokens
+      session.set("oauthTokens", newOauthDetails);
+      // set global token as well to pass within this request
+      setGlobalAuthToken(newOauthDetails.accessToken, newOauthDetails.expiresAt);
+      return { refreshed: true, oauthDetails: newOauthDetails };
+    } catch (e) {
+      console.error("[refreshTokenIfNeeded] Error refreshing tokens", e);
+      return { refreshed: false };
+    }
+  }
+
+  return { refreshed: false, oauthDetails: oauthTokens };
+};
 
 export const checkIdTokenAuth = async (request: Request): Promise<AuthResponse> => {
   console.log("[checkIdTokenAuth] Starting authentication check");
   try {
     const session = await getSession(request.headers.get("Cookie"));
     console.log("[checkIdTokenAuth] Got session", session.data);
-
     if (session.has("userData") && session.has("oauthTokens") && session.has("userId")) {
-      let newOauthData: OAuthDetails | undefined = undefined;
-      console.log("[checkIdTokenAuth] Session has userId and oauthTokens, checking token, and in the future, attempting refresh");
-
-      const oauthTokens = session.get("oauthTokens");
-      const timeToCompareTo = Temporal.Now.instant().add({ minutes: 1 });
-      console.log(`[checkIdTokenAuth] oauthTokens: ${oauthTokens?.accessToken}, ${oauthTokens?.expiresAt}, Now+1: ${timeToCompareTo}`);
-
-      // Check if the token is expiring within the next minute.
-      if (oauthTokens && Temporal.Instant.compare(Temporal.Instant.from(oauthTokens.expiresAt), timeToCompareTo) < 0) {
-        console.log(`[checkIdTokenAuth] Access token expired or about to expire, attempting refresh`);
-
-        // If a refresh is already in progress, wait for it.
-        if (!refreshPromise) {
-          // Create a new refresh promise
-          refreshPromise = (async () => {
-            try {
-              const response = await IronSpiderAPI.getTokens({
-                refreshToken: oauthTokens.refreshToken,
-                oauthConfig: getOauthDetails(),
-              });
-              // Validate that all tokens are present
-              if (!response.access_token || !response.refresh_token || !response.id_token || !response.expires_in) {
-                console.error("[checkIdTokenAuth] Error refreshing tokens, no tokens returned");
-                return undefined;
-              }
-              console.log("[checkIdTokenAuth] Tokens refreshed, returning new tokens");
-              return {
-                accessToken: response.access_token,
-                refreshToken: response.refresh_token,
-                idToken: response.id_token,
-                expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
-              } as OAuthDetails;
-            } catch (e) {
-              console.error("[checkIdTokenAuth] Error refreshing tokens", e);
-              return undefined;
-            } finally {
-              // Reset the promise so that subsequent calls can trigger a refresh if needed.
-              refreshPromise = null;
-            }
-          })();
+      console.log("[checkIdTokenAuth] Session has userId and oauthTokens, checking token");
+      // If a refresh is already in progress, wait for it
+      if (refreshPromise) {
+        const result = await refreshPromise;
+        if (result.refreshed && result.oauthDetails) {
+          return {
+            verified: true,
+            userData: session.get("userData"),
+            oauthDetails: result.oauthDetails,
+          };
         }
-        // Wait for the refresh to complete and use the new tokens if available.
-        newOauthData = await refreshPromise;
       }
 
-      const userId = session.get("userId");
-      const data = session.get("userData");
-      const preferred_username = data?.preferred_username ?? "Unknown User";
+      // Start a new refresh if needed
+      refreshPromise = refreshTokenIfNeeded(session);
+      const { refreshed, oauthDetails } = await refreshPromise;
+      refreshPromise = null; // Reset for next time
+
+      // Return auth response with possibly refreshed tokens
       return {
         verified: true,
-        userData: { ...data, preferred_username, userId },
-        oauthDetails: newOauthData ? newOauthData : oauthTokens,
+        userData: session.get("userData"),
+        oauthDetails: oauthDetails,
       };
     } else {
       return { verified: false };
@@ -104,6 +127,7 @@ export const checkIdTokenAuth = async (request: Request): Promise<AuthResponse> 
     return { verified: false };
   }
 };
+
 type OAuthDetails = {
   accessToken: string;
   refreshToken: string;
@@ -186,6 +210,7 @@ export const validateIronSpiderToken = async (token: string): Promise<{ userData
 };
 
 const refreshKey = async (headers: Headers): Promise<{ keys?: string[] } | undefined> => {
+  // no auth needed here
   return await fetcher(
     PUBLIC_KEYS_PATH,
     {
@@ -195,30 +220,8 @@ const refreshKey = async (headers: Headers): Promise<{ keys?: string[] } | undef
   );
 };
 
-/**
- * TODO: make this faster, it's to slow atm
- * @param param0
- * @returns
- */
-export const DEFAULT_AUTH_LOADER = async ({ request }: LoaderFunctionArgs) => {
-  //to add a delay in the response
-  // const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-  // await sleep(1000);
-  const session = await getSession(request.headers.get("Cookie"));
-  const newAuth = await checkIdTokenAuth(request);
-
-  // If the OAuth tokens have been refreshed, update the session
-  if (newAuth.verified && newAuth.oauthDetails) {
-    session.set("oauthTokens", newAuth.oauthDetails);
-  }
-  return data(
-    { currentUrl: request.url, ...newAuth, currentUrlObj: new URL(request.url) },
-    {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    },
-  );
+export const DEFAULT_URL_LOADER = async ({ request }: LoaderFunctionArgs) => {
+  return data({ currentUrlObj: new URL(request.url) });
 };
 
 export type VerifyWithKeyOptions = {
@@ -259,18 +262,3 @@ export const getOauthDetails = (): { clientId: string; clientSecret: string; red
   }
   return { clientId, clientSecret, redirectUris };
 };
-
-//TODO: figure out how to make a reusable component as a login guard component, eg,
-//only render when logged in?  Need remix session first
-// export const LoginGuard = ({children}) => {
-
-//   if (!hasCookie) {
-//     return (
-//       <div className='flex flex-col items-center'>
-//       <a href={`${AUTH_DOMAIN}?return_url=${encodeURIComponent(location.href)}&message=${encodeURIComponent(`Unable To login`)}`}>
-//         <Button variant={'default'}>Click here to login</Button>
-//       </a>
-//       </div>
-//     );
-//   }
-// }

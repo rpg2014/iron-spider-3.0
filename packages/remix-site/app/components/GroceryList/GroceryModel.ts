@@ -136,6 +136,7 @@ export const DepartmentConfig: Record<DepartmentKeys, GroceryDepartment> = {
   UPSTAIRS: {
     id: "UPSTAIRS",
     displayName: "Upstairs",
-    description: "Home goods, cleaning and paper products like detergent, paper towels, and toilet paper. Includes Pet supplies as well as soap, and other health and Beauty items.",
+    description:
+      "Home goods, cleaning and paper products like detergent, paper towels, and toilet paper. Includes Pet supplies as well as soap, and other health and Beauty items.",
   },
 };

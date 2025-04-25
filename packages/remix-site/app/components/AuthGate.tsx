@@ -1,16 +1,22 @@
 import { AUTH_DOMAIN } from "~/constants";
 import { Button } from "./ui/Button";
-import { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import { Skeleton } from "./ui";
 import { RefreshCwIcon } from "lucide-react";
+import { useAuth } from "~/hooks/useAuth";
 
 interface AuthGateProps {
   currentUrlObj: URL;
   pkce?: boolean;
 }
 
-export default function AuthGate({ currentUrlObj, pkce }: AuthGateProps) {
+/**
+ * This one always renders, th
+ * @param param0
+ * @returns
+ */
+export default function AuthButton({ currentUrlObj, pkce }: AuthGateProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const location = useLocation();
   // const [redirectUri, setRedirectUri] = useState<string>(`${currentUrl.protocol}//${currentUrl.hostname}/oauth/callback`);
@@ -38,3 +44,12 @@ export default function AuthGate({ currentUrlObj, pkce }: AuthGateProps) {
     </Suspense>
   );
 }
+
+export const AuthGateV2 = ({ currentUrlObj, pkce, children }: AuthGateProps & { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  // If already authenticated, don't show the gate
+  if (isAuthenticated || !import.meta.env.PROD) {
+    return children;
+  }
+  return <AuthButton currentUrlObj={currentUrlObj} pkce={pkce !== undefined ? pkce : true} />;
+};

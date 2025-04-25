@@ -2,18 +2,19 @@ import { Button } from "~/components/ui/Button";
 import styles from "../styles/settings.module.css";
 import { useEffect, useState } from "react";
 import { API_DOMAIN_VERSION, AUTH_DOMAIN, notificationSettingKey } from "~/constants";
-import { fetcher } from "~/utils";
-import { DEFAULT_AUTH_LOADER } from "~/utils.server";
+import { fetcher } from "~/utils/utils";
+import { DEFAULT_URL_LOADER } from "~/utils/utils.server";
 import { data, Form, useLoaderData, useLocation, useNavigation, useRevalidator } from "react-router";
 import { Label } from "~/components/ui/Label";
 import { toast } from "sonner";
 import { Route } from "./+types/settings";
 import { destroySession, getSession } from "~/sessions.server";
-import AuthGate from "~/components/AuthGate";
+import AuthButton from "~/components/AuthGate";
 import { IronSpiderAPI } from "~/service/IronSpiderClient";
+import { useAuth } from "~/hooks/useAuth";
 
 //TODO: remove this loader if this adds latency and shit
-export const loader = DEFAULT_AUTH_LOADER;
+export const loader = DEFAULT_URL_LOADER;
 
 export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -38,9 +39,10 @@ export async function action({ request }: Route.ActionArgs) {
   );
 }
 
-export default function Settings({ actionData }: Route.ComponentProps) {
+export default function Settings({ actionData, loaderData: { currentUrlObj } }: Route.ComponentProps) {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>();
-  const { verified, currentUrlObj } = useLoaderData<typeof loader>();
+
+  const { isAuthenticated: verified } = useAuth();
   const navigation = useNavigation();
 
   // figure out notificaton permission on client side
@@ -164,7 +166,7 @@ export default function Settings({ actionData }: Route.ComponentProps) {
       <div className={styles.setting}>
         <Label className={styles.settingsLabel}>Login via Oauth with pkce</Label>
         {/* // redirect uri should be the current url */}
-        <AuthGate currentUrlObj={currentUrlObj} pkce />
+        <AuthButton currentUrlObj={currentUrlObj} pkce />
       </div>
     </main>
   );
@@ -177,6 +179,7 @@ const LogoutButton = () => {
     try {
       setLoading(true);
       // await IronSpiderAPI.logout();
+      // doesn't use bearer tokens, this is just supported for the x-pg-id cookie currently
       await fetcher(
         `${API_DOMAIN_VERSION}/logout`,
         {

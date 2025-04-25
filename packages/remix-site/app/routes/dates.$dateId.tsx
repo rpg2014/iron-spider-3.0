@@ -18,9 +18,8 @@ import {
 import { Suspense } from "react";
 import type { ClientLoaderFunctionArgs, Navigation, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import DateCard from "~/components/date_tracker/DateCard";
-import { DateService, getDateService } from "~/service/DateService";
-import { getHeaders, getLoginRedirect } from "~/utils";
-import { checkCookieAuth, checkIdTokenAuth } from "~/utils.server";
+import { getDateService } from "~/service/DateService";
+import { getLoginRedirect } from "~/utils/utils";
 import * as EB from "~/components/ErrorBoundary";
 import type { DateInfo } from "iron-spider-client";
 import { SetStateAction, useEffect, useMemo, useState } from "react";
@@ -34,34 +33,30 @@ import { commitSession, getSession } from "~/sessions.server";
 
 export const loader = async ({ request, params }: Route.LoaderArgs) => {
   try {
-    const { verified, userData, oauthDetails } = await checkIdTokenAuth(request);
     const session = await getSession(request.headers.get("Cookie"));
     // set oauthDetails
-    if (oauthDetails) {
-      session.set("oauthTokens", oauthDetails);
-    }
-    if (!verified && import.meta.env.PROD) {
+
+    if (!session.has("userId") && import.meta.env.PROD) {
       console.log("redirecting to " + request.url);
       return redirectDocument(getLoginRedirect(request.url));
     }
     if (!params.dateId) {
-      return redirect(`/dates`, { headers: { "Set-Cookie": await commitSession(session) }, status: 303 });
+      return redirect(`/dates`, { status: 303 });
     }
     try {
       // if dev, return fake date
       if (import.meta.env.DEV) {
-        return { date: { date: new Date(), dateThrower: "Fake User", location: "Fake Location", userId: "fake-user-id" }, userData, connectedUsers: [] };
+        return { date: { date: new Date(), dateThrower: "Fake User", location: "Fake Location", userId: "fake-user-id" }, connectedUsers: [] };
       }
       const dateService = getDateService();
       const date = await dateService.getDate({
         id: params.dateId,
-        headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }),
       });
-      const connectedUsers = await dateService.getConnectedUsers({ headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }) });
-      return data({ date, userData, connectedUsers: connectedUsers.users }, { headers: { "Set-Cookie": await commitSession(session) } });
+      const connectedUsers = await dateService.getConnectedUsers({});
+      return data({ date, connectedUsers: connectedUsers.users });
     } catch (e: any) {
       console.error(e);
-      throw data(JSON.stringify({ message: e.message }), { status: 500, headers: { "Set-Cookie": await commitSession(session) } });
+      throw data(JSON.stringify({ message: e.message }), { status: 500 });
     }
   } catch (e: any) {
     console.error(e);
@@ -77,7 +72,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   }
 
   try {
-    const { success } = await getDateService().delete({ id: dateId, headers: getHeaders(request, { accessToken: session.get("oauthTokens")?.accessToken }) });
+    const { success } = await getDateService().delete({ id: dateId });
     if (success) {
       return redirect("/dates");
     } else {
@@ -89,7 +84,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function DateDetails() {
-  const { date, userData, connectedUsers } = useLoaderData<typeof loader>();
+  const { date, connectedUsers } = useLoaderData<typeof loader>();
 
   const actionData = useActionData<typeof action>();
 
