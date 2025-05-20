@@ -8,7 +8,7 @@ import { data, Form, useLoaderData, useLocation, useNavigation, useRevalidator }
 import { Label } from "~/components/ui/Label";
 import { toast } from "sonner";
 import { Route } from "./+types/settings";
-import { destroySession, getSession } from "~/sessions.server";
+import { destroySession, getSession } from "~/sessions/sessions.server";
 import AuthButton from "~/components/AuthGate";
 import { IronSpiderAPI } from "~/service/IronSpiderClient";
 import { useAuth } from "~/hooks/useAuth";

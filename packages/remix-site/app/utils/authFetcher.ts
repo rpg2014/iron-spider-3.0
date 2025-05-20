@@ -5,50 +5,54 @@ import { getGlobalAuthToken, isTokenExpired, setGlobalAuthToken } from "./global
 export async function oauthFetcher<T>(input: RequestInfo | URL, init?: RequestInit, includeContentType?: boolean): Promise<any> {
   // Check if we already have a valid token in global state
   const currentToken = getGlobalAuthToken();
-  const headers = new Headers(init?.headers || {});
+  const headers: any = init?.headers ?? {};
 
   // If we have a valid token, use it directly, do we need  this check here, it should always get updated?
   if (currentToken && !isTokenExpired()) {
     console.log("Using global token");
-    headers.set("Authorization", `Bearer ${currentToken}`);
-
+    headers["Authorization"] = `Bearer ${currentToken}`;
     try {
-      return await fetcher<T>(input, { ...init, headers }, includeContentType);
+      return await fetcher<T>(input, { ...init, headers: headers }, includeContentType);
     } catch (error: any) {
       // Only fetch a new token if we get a 401
-      if (error.status !== 401) {
-        console.error(`Got error fetching that wasn't 401, re-throwing`, error)
-        throw error;
+      if (error.status !== 401 && error.status !== 403) {
+        console.error(`Got error fetching that wasn't 401 or 403, re-throwing`, error);
+        throw new Error("401, or 403 errror: " + error.toString());
       }
-      console.log("Global token was invalid, 401, Fetching new token from remix backend");
-      // Fall through to token refresh if 401
+      console.error("token should have been refreshed before this, but we still  got an unauthorized, rethrowing for now");
+      throw error;
     }
   }
-  console.log("Global token failed or was missing, Fetching new token from remix backend");
+  console.log("Global token failed or was missing, just sending request");
+  return await fetcher<T>(input, { ...init, headers }, includeContentType);
+  // throw new Error("Not supported for now");
   // Only fetch a new token if needed (no token or 401 error)
-  try {
-    console.log("Fetching new token from remix backend")
-    const tokenResponse = await fetch("/api/auth/tokens");
-    if (!tokenResponse.ok) {
-      throw new Error("Failed to refresh authentication");
-    }
+  // cant just fetch a new token here b/c we're on the server, we need it from the global context, but how, and from where? pass from context? like server context?
+  // is there a way to pass it out from the root route?
+  // going to make changes within the checkId token to always have the Global token present, so i can rewrite this
+  // try {
+  //   console.log("Fetching new token from remix backend")
+  //   const tokenResponse = await fetch("/api/auth/tokens");
+  //   if (!tokenResponse.ok) {
+  //     throw new Error("Failed to refresh authentication");
+  //   }
 
-    const { accessToken, expiresAt } = await tokenResponse.json();
-    console.log("Got token from remix backend")
-    headers.set("Authorization", `Bearer ${accessToken}`);
-    console.log("setting global token")
-    setGlobalAuthToken(accessToken, expiresAt);    
-    console.log("retrying fetch")
-    return await fetcher<T>(input, { ...init, headers }, includeContentType);
-  } catch (error) {
-    // If token fetch fails, try the original request anyway
-    // This handles cases where the endpoint doesn't require auth
-    try {
-      return await fetcher<T>(input, init, includeContentType);
-    } catch (innerError) {
-      throw innerError; // Throw the actual API error
-    }
-  }
+  //   const { accessToken, expiresAt } = await tokenResponse.json();
+  //   console.log("Got token from remix backend")
+  //   headers.set("Authorization", `Bearer ${accessToken}`);
+  //   console.log("setting global token")
+  //   setGlobalAuthToken(accessToken, expiresAt);
+  //   console.log("retrying fetch")
+  return await fetcher<T>(input, { ...init, headers }, includeContentType);
+  // } catch (error) {
+  //   // If token fetch fails, try the original request anyway
+  //   // This handles cases where the endpoint doesn't require auth
+  //   try {
+  //     return await fetcher<T>(input, init, includeContentType);
+  //   } catch (innerError) {
+  //     throw innerError; // Throw the actual API error
+  //   }
+  // }
 }
 
 // Check if we're in a browser environment

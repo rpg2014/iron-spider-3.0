@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/Button";
 import { Card, CardFooter } from "~/components/ui/Card";
 import { DateService, getDateService, LocationService } from "~/service/DateService";
 import type { Route } from "./+types/dates.new";
-import { getSession } from "~/sessions.server";
+import { getSession } from "~/sessions/sessions.server";
 
 export interface DateModel {
   id?: string;

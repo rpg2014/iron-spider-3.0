@@ -1,13 +1,8 @@
 import { Route } from "./+types/cookies";
-import { checkCookieAuth, getOauthDetails } from "~/utils/utils.server";
-import { commitSession, getOauthStateSession, getSession } from "~/sessions.server";
-import { data, Form, useActionData, useFetcher, useNavigation, useSubmit } from "react-router";
-import { Temporal } from "temporal-polyfill";
-import { IronSpiderAPI } from "~/service/IronSpiderClient";
+import { checkCookieAuth } from "~/utils/utils.server";
+import { commitSession, getSession } from "~/sessions/sessions.server";
+import { data, Form } from "react-router";
 import { Button } from "~/components/ui/Button";
-import { Alert } from "~/components/ui";
-import { useLocalStorage } from "~/hooks/useLocalStorage.client";
-import { useAuthLocalStorage } from "~/hooks/useAuthLocalStorage";
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
   // return the cookies on the request, parse them into Record<string, string>

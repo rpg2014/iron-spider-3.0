@@ -8,6 +8,7 @@ import "swiper/css";
 import { SwipeableGroceryItem } from "./GroceryItem";
 import type { GroceryItem as GroceryItemType } from "./GroceryModel";
 import { AddItemFAB } from "./AddItemFAB";
+import { Skeleton } from "../ui";
 
 export const GroceryList = () => {
   const items = useQuery(api.groceryList.getUncheckedItems);
@@ -44,6 +45,29 @@ export const GroceryList = () => {
       return 0;
     }),
   );
+
+  // shadow loader before the items load
+  if (!items) {
+    return (
+      <div className="bg-background  pb-16">
+        <div className="container mx-auto max-w-2xl p-4">
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Grocery List</h1>
+          </div>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Skeleton className="h-8 w-full rounded-md py-2" />
+              <Skeleton className="h-8 w-full rounded-md py-2" />
+              <Skeleton className="h-8 w-full rounded-md py-2" />
+              <Skeleton className="h-8 w-full rounded-md py-2" />
+              <Skeleton className="h-8 w-full rounded-md py-2" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background  pb-16">
       {/* Main content area */}
@@ -76,13 +100,13 @@ export const GroceryList = () => {
               Archived Items{" "}
               <span
                 className="cursor-pointer pl-1"
-                onClick={() => {
+                onClick={async () => {
                   setDeleting(true);
-                  deleteCheckedItems();
+                  await deleteCheckedItems();
                   setDeleting(false);
                 }}
               >
-                {deleting ? <Trash2 className="animate-spin" /> : <Trash2 />}
+                <Trash2 className={deleting ? "animate-spin" : ""} />
               </span>
             </h2>
             <div className="space-y-1">{checkedItems?.map((item: GroceryItemType) => <SwipeableGroceryItem key={item._id} item={item} archiveList />)}</div>

@@ -6,33 +6,41 @@ import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { Card, CardContent, Checkbox } from "../ui";
 import type { GroceryItem as GroceryItemType } from "./GroceryModel";
+import { RefreshCcw } from "lucide-react";
 
 export const GroceryItem = ({ item, archiveList }: { item: GroceryItemType; archiveList?: boolean }) => {
   const toggleItemChecked = useMutation(api.groceryList.toggleItemChecked);
-  const checked = item.checked;
-  // const [checked, setChecked] = useState(item.checked);
-  //   // Update checked state when item changes
-  //   useEffect(() => {
-  //     setChecked(item.checked);
-  //   }, [item.checked]);
+  const [checked, setChecked] = useState(item.checked);
+  const [strikethrough, setStrikethrough] = useState(item.checked);
+  const [loading, setLoading] = useState(false);
+
   const handleCheckChange = () => {
-    toggleItemChecked({ id: item._id as Id<"groceryList"> });
-    // setChecked(!checked);
+    setLoading(true);
+    setStrikethrough(!strikethrough);
+    setTimeout(async () => {
+      // uncomment to make it fade away before it's removed from the list,
+      // setChecked(!checked)
+      await toggleItemChecked({ id: item._id as Id<"groceryList"> });
+      setLoading(false);
+    }, 0);
   };
   return (
     <Card key={item._id} className={checked && !archiveList ? "animate-fade-out" : "animate-fade-in"}>
       <CardContent className="flex items-center gap-3 px-3 py-2">
         <Checkbox
-          checked={item.checked}
+          checked={strikethrough}
           // We'll implement this handler later
           onCheckedChange={handleCheckChange}
         />
         <div className="flex-1">
-          <h3 className={`font-medium ${item.checked ? "line-through" : ""}`}>{item.item}</h3>
-          {item.notes && <p className={`text-xs text-muted-foreground ${item.checked ? "line-through" : ""}`}>{item.notes}</p>}
+          <h3 className={`flex flex-row items-center justify-start font-medium ${strikethrough ? "line-through" : ""}`}>
+            {item.item}
+            {loading && <RefreshCcw size={16} className="ml-2 animate-spin" />}
+          </h3>
+          {item.notes && <p className={`text-xs text-muted-foreground ${strikethrough ? "line-through" : ""}`}>{item.notes}</p>}
         </div>
         {item.quantity && (
-          <div className={`text-sm text-muted-foreground ${item.checked ? "line-through" : ""}`}>
+          <div className={`text-sm text-muted-foreground ${strikethrough ? "line-through" : ""}`}>
             {item.quantity} {item.unit}
           </div>
         )}

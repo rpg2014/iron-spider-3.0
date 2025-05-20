@@ -75,9 +75,7 @@ export const ErrorBoundary = () => {
 
   //JS error branch
   console.error(error);
-  return (
-    <ErrorComponent error={error as Error} />
-  );
+  return <ErrorComponent error={error as Error} />;
 };
 
 // TODO, extract this into a component. + combine with http error component above

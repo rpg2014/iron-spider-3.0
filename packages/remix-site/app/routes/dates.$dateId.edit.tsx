@@ -6,7 +6,7 @@ import { Alert } from "~/components/ui";
 import { Button } from "~/components/ui/Button";
 import { Card, CardFooter } from "~/components/ui/Card";
 import { getDateService } from "~/service/DateService";
-import { getSession } from "~/sessions.server";
+import { getSession } from "~/sessions/sessions.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   console.log("Updating Date");

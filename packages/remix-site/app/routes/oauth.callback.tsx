@@ -1,15 +1,16 @@
-import { data, useNavigate} from "react-router";
+import { data, useNavigate } from "react-router";
 import { Alert, Button } from "~/components/ui";
 import { Route } from "./+types/oauth.callback";
 import { IronSpiderAPI } from "~/service/IronSpiderClient";
 import { useEffect, useState } from "react";
 import { GetOAuthTokensOutput } from "iron-spider-client";
-import { commitSession, getOauthStateSession, getSession } from "~/sessions.server";
+import { commitSession, getOauthStateSession, getSession } from "~/sessions/sessions.server";
 import { Temporal } from "temporal-polyfill";
 import { getOauthDetails, validateIronSpiderToken } from "~/utils/utils.server";
 import { JwtPayload } from "jsonwebtoken";
 import { toast } from "sonner";
 import { useLocalStorage } from "~/hooks/useLocalStorage.client";
+import { getGlobalAuthToken, isTokenExpired, setGlobalAuthToken } from "~/utils/globalAuth";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -29,21 +30,17 @@ export async function loader({ request }: Route.LoaderArgs) {
       oauthConfig: { ...getOauthDetails(), redirectUri: `${url.protocol}//${url.host}/oauth/callback` },
     });
 
-    console.log(`[OAuthCallbackPage] data: ${JSON.stringify(response)}`);
+    console.log(
+      `[OAuthCallbackPage] data: ${JSON.stringify({
+        ...response,
+        access_token: response.access_token ? `${response.access_token.slice(0, 4)}...${response.access_token.slice(-4)}` : "",
+        refresh_token: response.refresh_token ? `${response.refresh_token.slice(0, 4)}...${response.refresh_token.slice(-4)}` : "",
+        id_token: response.id_token ? `${response.id_token.slice(0, 4)}...${response.id_token.slice(-4)}` : "",
+      })}`,
+    );
     if (!response.access_token || !response.refresh_token || !response.id_token) {
       return { data: null, error: { message: "Invalid response" }, params: { code, state } };
     }
-
-    const { userData, verified } = await validateIronSpiderToken(response.id_token);
-    if (!verified) {
-      return { data: null, error: "Invalid ID Token", params: { code, state } };
-    }
-    // redirect to success
-    // return redirect("/oauth/callback/success");
-    // set tokens to the session via a cookie
-    session.set("userData", userData);
-    session.set("scopes", userData?.scopes);
-    session.set("userId", userData?.sub);
     session.set("oauthTokens", {
       accessToken: response.access_token,
       refreshToken: response.refresh_token,
@@ -51,6 +48,23 @@ export async function loader({ request }: Route.LoaderArgs) {
       // convert response.expires_in to expires at using temporal library
       expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
     });
+    // set the global token as well
+    if (!getGlobalAuthToken() || isTokenExpired()) {
+      console.log(`[OAuthCallbackPage] setting global token and expires in ${response.expires_in}`);
+      setGlobalAuthToken(response.access_token, Temporal.Now.instant().add({ seconds: response.expires_in }).toString());
+    }
+    const { userData, verified } = await validateIronSpiderToken(response.id_token);
+    if (!verified) {
+      return { data: null, error: "Invalid ID Token", params: { code, state } };
+    }
+    console.log(`[OAuthCallbackPage] userData: ${JSON.stringify(userData)}`);
+    // redirect to success
+    // return redirect("/oauth/callback/success");
+    // set tokens to the session via a cookie
+    session.set("userData", userData);
+    session.set("scopes", userData?.scopes);
+    session.set("userId", userData?.sub);
+    console.log(`[OAuthCallbackPage] session: ${JSON.stringify(session)}`);
     return data<{ data: GetOAuthTokensOutput & JwtPayload & { returnTo?: string }; params: { code?: string; state?: string }; error?: any }>(
       { data: { ...response, ...userData, returnTo: oauthState.get("returnUrl") }, params: { code, state } },
       { headers: { "Set-Cookie": await commitSession(session) } },
@@ -108,24 +122,6 @@ const OAuthCallbackPage = ({ loaderData }: Route.ComponentProps) => {
     }
   }, [loaderData?.data?.returnTo]);
 
-  // load tokens into local storage from loaderData // todo, do this via session? how do i get it client side? also have auth contxt?
-  useEffect(() => {
-    if (loaderData?.data && loaderData?.data?.access_token && loaderData?.data?.refresh_token) {
-      // this doesn't seem to be working?
-      toast.success("OAuth Success!", { description: "You have successfully logged in." });
-      setAccessToken(loaderData.data.access_token);
-      setRefreshToken(loaderData.data.refresh_token);
-      setIdToken(loaderData.data.id_token as string);
-      if (loaderData?.data?.sub) {
-        setUserId(loaderData.data.sub);
-      }
-      if (loaderData?.data?.sid) {
-        setAuthSessionId(loaderData.data.sid);
-      }
-    } else {
-      toast.error("OAuth Error", { description: "There was an error logging in." });
-    }
-  }, [loaderData.data]);
   return (
     <div className="space-y-4 overflow-auto">
       <Alert variant={loaderData.error ? "light_destructive" : "success"} className="animate-fade-in">

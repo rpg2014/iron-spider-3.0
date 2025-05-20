@@ -1,5 +1,5 @@
 import { data } from "react-router";
-import { getSession } from "~/sessions.server";
+import { getSession } from "~/sessions/sessions.server";
 import { Route } from "./+types/api.auth.tokens";
 
 export async function loader({ request }: Route.LoaderArgs) {

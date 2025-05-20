@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigation } from "react-router";
 import { useState } from "react";
 import { ErrorBoundary as EB } from "~/components/ErrorBoundary";
 import { Button } from "~/components/ui/Button";
+import { RefreshCw } from "lucide-react";
 
 export const meta: MetaFunction = () => [{ title: "ServerSide wasm demo" }];
 export type WASMOutletContext = {
@@ -19,7 +20,11 @@ export default function Pi() {
     const iterationsStr = iterations.toLocaleString();
     return (
       <NavLink onClick={onClick} to={iterations.toString()} className="mb-2 mr-2 inline-block">
-        {({ isActive, isPending }) => <Button variant={isActive ? "outline" : "default"}>{iterationsStr}</Button>}
+        {({ isActive, isPending }) => (
+          <Button className="flex flex-row items-center justify-start" variant={isActive ? "outline" : "default"}>
+            {iterationsStr} {isPending && <RefreshCw size={16} className="ml-2 animate-spin" />}
+          </Button>
+        )}
       </NavLink>
     );
   };

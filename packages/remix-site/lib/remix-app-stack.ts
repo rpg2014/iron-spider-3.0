@@ -3,6 +3,7 @@ import { BucketDeployment, CacheControl, Source } from "aws-cdk-lib/aws-s3-deplo
 import type { Construct } from "constructs";
 import type { StackProps } from "aws-cdk-lib";
 import { Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
+import { AttributeType, BillingMode, Table } from "aws-cdk-lib/aws-dynamodb";
 import { LogLevel, NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { HttpOrigin, S3BucketOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
@@ -39,6 +40,16 @@ type RemixAppStackProps = {
 export class RemixAppStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps & RemixAppStackProps) {
     super(scope, id, props);
+
+    // Create DynamoDB table for session storage
+    const sessionTable = new Table(this, "SessionTable", {
+      tableName: "RemixSiteSessionTable",
+      partitionKey: { name: "id", type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: "expires",
+
+      removalPolicy: RemovalPolicy.DESTROY, // Use RETAIN in production
+    });
 
     //Was attempting to support http streams, but AWS only supports them as lambda function URL's
     // which you cannot put behind a CDN or route 53, so it doesn't work currently. (you'll just need to fix the distribution)
@@ -86,6 +97,13 @@ export class RemixAppStack extends Stack {
     fn.role?.addManagedPolicy({
       managedPolicyArn: "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
     });
+
+    // Grant the Lambda function access to the DynamoDB table
+    sessionTable.grantReadWriteData(fn);
+
+    // Set environment variable for the Lambda function to access the table
+    // Mark it for removal in Lambda@Edge since environment variables aren't supported
+    fn.addEnvironment("SESSION_TABLE_NAME", sessionTable.tableName, { removeInEdge: true });
 
     // The only way to interact with http streams is lambda function urls, which you cannot put behind a CDN, and route 53,
     // so i'm not going to bother right now.

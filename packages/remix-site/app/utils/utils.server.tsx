@@ -11,12 +11,12 @@ import { createHash } from "crypto";
 import { PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "../constants";
 import pkg from "jsonwebtoken";
 import { fetcher, getAPIKey } from "./utils";
-import { commitSession, getSession, SessionData } from "../sessions.server";
+import { commitSession, getSession, SessionData } from "../sessions/sessions.server";
 import { data, Session } from "react-router";
 import { Temporal } from "temporal-polyfill";
 import { IronSpiderAPI } from "../service/IronSpiderClient";
 import apiKeys from "../../../../.api_keys.json";
-import { setGlobalAuthToken } from "./globalAuth";
+import { getGlobalAuthToken, setGlobalAuthToken } from "./globalAuth";
 
 const { verify } = pkg;
 export type JwtPayload = pkg.JwtPayload & { preferred_username: string };
@@ -26,6 +26,8 @@ export function hash(str: string) {
 }
 
 const API_KEY_HEADERS = { "spider-access-token": getAPIKey() };
+
+export const isLambda = !!process.env.LAMBDA_TASK_ROOT;
 
 const isPublicRoute = (url: string) => {
   //typecast to URL, throw on error
@@ -37,6 +39,30 @@ let publicKey: { keys?: string[] } | undefined;
 // Module-scoped variable to hold the current refresh promise.
 let refreshPromise: Promise<{ refreshed: boolean; oauthDetails?: OAuthDetails }> | null = null;
 
+const refreshToken = async (oauthTokens: SessionData["oauthTokens"]): Promise<OAuthDetails> => {
+  try {
+    const response = await IronSpiderAPI.getTokens({
+      refreshToken: oauthTokens.refreshToken,
+      oauthConfig: getOauthDetails(),
+    });
+
+    if (!response.access_token || !response.refresh_token || !response.id_token || !response.expires_in) {
+      console.error("[refreshToken] Error refreshing tokens, no tokens returned");
+      throw new Error("Error refreshing tokens, no tokens returned");
+    }
+    console.log("[refreshToken] Tokens refreshed, returning new tokens");
+    const newOauthDetails = {
+      accessToken: response.access_token,
+      refreshToken: response.refresh_token,
+      idToken: response.id_token,
+      expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
+    };
+    return newOauthDetails;
+  } catch (error) {
+    console.error("[refreshToken] Error refreshing tokens", error);
+    throw error;
+  }
+};
 /**
  * is refreshed needed as a return value?
  */
@@ -45,6 +71,7 @@ export const refreshTokenIfNeeded = async (
 ): Promise<{
   refreshed: boolean;
   oauthDetails?: OAuthDetails;
+  wipeSession?: boolean;
 }> => {
   if (!session.has("oauthTokens")) {
     console.error("[refreshTokenIfNeeded] No oauthTokens found in session");
@@ -53,27 +80,12 @@ export const refreshTokenIfNeeded = async (
 
   const oauthTokens = session.get("oauthTokens");
   const timeToCompareTo = Temporal.Now.instant().add({ minutes: 5 });
-  console.log(`[checkIdTokenAuth] oauthTokens: ${oauthTokens?.accessToken}, ${oauthTokens?.expiresAt}, Now+1: ${timeToCompareTo}`);
+  console.log(`[refreshTokenIfNeeded] oauthTokens: ${oauthTokens?.accessToken}, ${oauthTokens?.expiresAt}, Now+1: ${timeToCompareTo}`);
   // Only refresh if expiring soon
   if (Temporal.Instant.compare(Temporal.Instant.from(oauthTokens.expiresAt), timeToCompareTo) < 0) {
-    console.log(`[checkIdTokenAuth] Access token expired or about to expire, attempting refresh`);
+    console.log(`[refreshTokenIfNeeded] Access token expired or about to expire, attempting refresh`);
     try {
-      const response = await IronSpiderAPI.getTokens({
-        refreshToken: oauthTokens.refreshToken,
-        oauthConfig: getOauthDetails(),
-      });
-
-      if (!response.access_token || !response.refresh_token || !response.id_token || !response.expires_in) {
-        console.error("[checkIdTokenAuth] Error refreshing tokens, no tokens returned");
-        return { refreshed: false };
-      }
-      console.log("[checkIdTokenAuth] Tokens refreshed, returning new tokens");
-      const newOauthDetails = {
-        accessToken: response.access_token,
-        refreshToken: response.refresh_token,
-        idToken: response.id_token,
-        expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
-      };
+      const newOauthDetails = await refreshToken(oauthTokens);
 
       // Update session with new tokens
       session.set("oauthTokens", newOauthDetails);
@@ -82,13 +94,17 @@ export const refreshTokenIfNeeded = async (
       return { refreshed: true, oauthDetails: newOauthDetails };
     } catch (e) {
       console.error("[refreshTokenIfNeeded] Error refreshing tokens", e);
-      return { refreshed: false };
+      return { refreshed: false, wipeSession: true };
     }
   }
 
   return { refreshed: false, oauthDetails: oauthTokens };
 };
 
+/** This should be doing something else.
+ * This should take the session cookie, check the token expiry, refresh if needed, then save it to global state, / return it
+ *
+ */
 export const checkIdTokenAuth = async (request: Request): Promise<AuthResponse> => {
   console.log("[checkIdTokenAuth] Starting authentication check");
   try {
@@ -97,22 +113,18 @@ export const checkIdTokenAuth = async (request: Request): Promise<AuthResponse> 
     if (session.has("userData") && session.has("oauthTokens") && session.has("userId")) {
       console.log("[checkIdTokenAuth] Session has userId and oauthTokens, checking token");
       // If a refresh is already in progress, wait for it
-      if (refreshPromise) {
-        const result = await refreshPromise;
-        if (result.refreshed && result.oauthDetails) {
-          return {
-            verified: true,
-            userData: session.get("userData"),
-            oauthDetails: result.oauthDetails,
-          };
-        }
+      if (!refreshPromise) {
+        refreshPromise = refreshTokenIfNeeded(session);
       }
-
-      // Start a new refresh if needed
-      refreshPromise = refreshTokenIfNeeded(session);
       const { refreshed, oauthDetails } = await refreshPromise;
-      refreshPromise = null; // Reset for next time
 
+      refreshPromise = null; // Reset for next time
+      // if no global token, set it, or if it's refreshed
+      if (!getGlobalAuthToken() || refreshed) {
+        console.log("[checkIdTokenAuth] Setting global token", oauthDetails?.accessToken, oauthDetails?.expiresAt);
+        //@ts-expect-error
+        setGlobalAuthToken(oauthDetails?.accessToken, oauthDetails?.expiresAt);
+      }
       // Return auth response with possibly refreshed tokens
       return {
         verified: true,
@@ -128,6 +140,69 @@ export const checkIdTokenAuth = async (request: Request): Promise<AuthResponse> 
   }
 };
 
+/**
+ * Improved version of checkIdTokenAuth that:
+ * 1. Takes the session cookie
+ * 2. Checks the token expiry
+ * 3. Refreshes the token if needed
+ * 4. Saves the token to global state
+ * 5. Returns the authentication response
+ *
+ * This implementation avoids using the module-scoped refreshPromise variable
+ * for better concurrency handling and reuses the refreshTokenIfNeeded function.
+ */
+export const checkIdTokenAuthV2 = async (request: Request): Promise<AuthResponse> => {
+  console.log("[checkIdTokenAuthV2] Starting authentication check");
+  try {
+    // 1. Get session from cookie
+    const session = await getSession(request.headers.get("Cookie"));
+
+    // Check if session has required data, right now just oauthTokens, but could also look at id.
+    if (!session.has("oauthTokens")) {
+      console.error("[checkIdTokenAuthV2] No oauthTokens found in session");
+      return { verified: false };
+    }
+
+    // 2 & 3. Check token expiry and refresh if needed using the existing function
+    const { refreshed, oauthDetails, wipeSession } = await refreshTokenIfNeeded(session);
+
+    if (wipeSession) {
+      console.log("[checkIdTokenAuthV2] Wiping session");
+      session.unset("oauthTokens");
+      session.unset("userData");
+      session.unset("userId");
+      session.unset("scopes");
+      console.log("[checkIdTokenAuthV2] Session wiped, returning");
+      return { verified: false, cookieHeader: await commitSession(session) };
+    }
+
+    // We will always have oauthDetails if refreshed is true, but TypeScript doesn't know that
+    // If we have oauthDetails, we can proceed
+    if (oauthDetails) {
+      // 4. Save to global state if needed
+      if (refreshed || !getGlobalAuthToken()) {
+        console.log("[checkIdTokenAuthV2] Setting global token");
+        setGlobalAuthToken(oauthDetails.accessToken, oauthDetails.expiresAt);
+      }
+
+      // 5. Return authentication response
+      return {
+        verified: true,
+        userData: session.has("userData") ? session.get("userData") : undefined,
+        oauthDetails: oauthDetails,
+        // only return header if session was updated
+        cookieHeader: refreshed ? await commitSession(session) : undefined,
+      };
+    } else {
+      console.error("[checkIdTokenAuthV2] No oauthDetails available after refresh attempt");
+      return { verified: false };
+    }
+  } catch (e) {
+    console.error("[checkIdTokenAuthV2] Error in authentication process:", e);
+    return { verified: false };
+  }
+};
+
 type OAuthDetails = {
   accessToken: string;
   refreshToken: string;
@@ -139,6 +214,7 @@ type AuthResponse = {
   verified: boolean;
   userData?: JwtPayload;
   oauthDetails?: OAuthDetails;
+  cookieHeader?: string;
 };
 
 export const checkCookieAuth = async (request: Request): Promise<AuthResponse> => {
@@ -181,6 +257,7 @@ export const checkCookieAuth = async (request: Request): Promise<AuthResponse> =
 export const validateIronSpiderToken = async (token: string): Promise<{ userData?: JwtPayload; verified: boolean }> => {
   if (!publicKey) {
     try {
+      console.log(`[validateIronSpiderToken] No public key stored, fetching it`);
       // @ts-ignore
       publicKey = await refreshKey(API_KEY_HEADERS);
     } catch (e) {
@@ -190,6 +267,7 @@ export const validateIronSpiderToken = async (token: string): Promise<{ userData
   }
   if (publicKey && publicKey.keys) {
     try {
+      console.log(`[validateIronSpiderToken] Public key found, verifying token`);
       const decoded = verifyWithKey({ token, publicKey: publicKey.keys[0], issuer: "https://auth.parkergiven.com" });
       // good case return
       return { userData: decoded, verified: true }; //, authToken: authCookieString
@@ -210,6 +288,7 @@ export const validateIronSpiderToken = async (token: string): Promise<{ userData
 };
 
 const refreshKey = async (headers: Headers): Promise<{ keys?: string[] } | undefined> => {
+  console.log("[refreshKey] Refreshing public key");
   // no auth needed here
   return await fetcher(
     PUBLIC_KEYS_PATH,
@@ -241,11 +320,19 @@ export const verifyWithKey = (
     siteAccess: string[];
     apiAccess: string[];
   }> => {
-  return verify(props.token, props.publicKey, {
-    issuer: props.issuer ? props.issuer : `https://auth.${process.env.DOMAIN}`,
-    audience: props.aud,
-    algorithms: ["RS256"],
-  }) as JwtPayload;
+  console.log(`[verifyWithKey] Verifying token with key`);
+  try {
+    const payload = verify(props.token, props.publicKey, {
+      issuer: props.issuer ? props.issuer : `https://auth.${process.env.DOMAIN}`,
+      audience: props.aud,
+      algorithms: ["RS256"],
+    }) as JwtPayload;
+    console.log(`[verifyWithKey] Token verified with key`, payload);
+    return payload;
+  } catch (error) {
+    console.error(`[verifyWithKey] Error verifying token with key`, error);
+    throw error;
+  }
 };
 
 export const getOauthDetails = (): { clientId: string; clientSecret: string; redirectUris: string[] } => {

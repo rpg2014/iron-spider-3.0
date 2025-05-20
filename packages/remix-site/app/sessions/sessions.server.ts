@@ -1,6 +1,7 @@
 import { createCookieSessionStorage } from "react-router";
-import { authSessionCookie, oauthStateCookie } from "./cookies.server";
-import { JwtPayload } from "./utils/utils.server";
+import { oauthStateCookie } from "./cookies.server";
+import { JwtPayload } from "../utils/utils.server";
+import { createDynamoDbSessionStorage } from "./dynamoDbSession.server";
 
 export type SessionData = {
   userId?: string;
@@ -18,10 +19,8 @@ type SessionFlashData = {
   error: string;
 };
 
-const { getSession, commitSession, destroySession } = createCookieSessionStorage<SessionData, SessionFlashData>({
-  // a Cookie from `createCookie` or the CookieOptions to create one
-  cookie: authSessionCookie,
-});
+// Use DynamoDB session storage instead of cookie-based storage
+const { getSession, commitSession, destroySession } = createDynamoDbSessionStorage();
 
 export { getSession, commitSession, destroySession };
 

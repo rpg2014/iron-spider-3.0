@@ -4,7 +4,7 @@ import { LocationService } from "~/service/DateService";
 import * as EB from "~/components/ErrorBoundary";
 import { Button } from "~/components/ui/Button";
 import { Route } from "./+types/dates.create";
-import { getSession } from "~/sessions.server";
+import { getSession } from "~/sessions/sessions.server";
 
 export const action = async ({ request }: Route.ActionArgs) => {
   const formData = await request.formData();

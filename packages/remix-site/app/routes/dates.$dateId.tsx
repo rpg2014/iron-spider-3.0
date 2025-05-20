@@ -29,7 +29,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "~/components/ui/Drawer.client";
 import { useMediaQueryV2 } from "~/hooks/useMediaQuery";
 import { Route } from "./+types/dates.$dateId";
-import { commitSession, getSession } from "~/sessions.server";
+import { commitSession, getSession } from "~/sessions/sessions.server";
+import { useAuth } from "~/hooks/useAuth";
 
 export const loader = async ({ request, params }: Route.LoaderArgs) => {
   try {
@@ -46,14 +47,18 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
     try {
       // if dev, return fake date
       if (import.meta.env.DEV) {
-        return { date: { date: new Date(), dateThrower: "Fake User", location: "Fake Location", userId: "fake-user-id" }, connectedUsers: [] };
+        return {
+          date: { date: new Date(), dateThrower: "Fake User", location: "Fake Location", userId: "fake-user-id" },
+          connectedUsers: [],
+          userId: "fake-user-id",
+        };
       }
       const dateService = getDateService();
       const date = await dateService.getDate({
         id: params.dateId,
       });
       const connectedUsers = await dateService.getConnectedUsers({});
-      return data({ date, connectedUsers: connectedUsers.users });
+      return data({ date, connectedUsers: connectedUsers.users, userId: session.get("userId") });
     } catch (e: any) {
       console.error(e);
       throw data(JSON.stringify({ message: e.message }), { status: 500 });
@@ -84,7 +89,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function DateDetails() {
-  const { date, connectedUsers } = useLoaderData<typeof loader>();
+  const { date, connectedUsers, userId } = useLoaderData<typeof loader>();
 
   const actionData = useActionData<typeof action>();
 
@@ -109,9 +114,7 @@ export default function DateDetails() {
 
   return (
     <div className="">
-      {/* {userData && date && userData.userId === date.userId && ( */}
-      <ActionButtons />
-      {/* )} */}
+      {date && userId === date.userId && <ActionButtons />}
       <Outlet context={{ date, connectedUsers }} />
       {/* TODO: Need to move this stuff to the index, the date card + error + action stuff.  */}
       {date && <DateCard date={convertedDate as DateInfo} />}

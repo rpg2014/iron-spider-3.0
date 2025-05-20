@@ -58,6 +58,9 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
       return this.convertFromDDBToken(ddbToken);
     } catch (error) {
       console.error("Error getting token:", error);
+      if(error instanceof BadRequestError) {
+        throw error;
+      }
       throw new InternalServerError({ message: "Unable to retrieve token" });
     }
   }
@@ -86,6 +89,9 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
       return this.convertFromDDBToken(ddbToken);
     } catch (error) {
       console.error("Error getting token by ID:", error);
+      if(error instanceof BadRequestError) {
+        throw error;
+      }
       throw new InternalServerError({ message: "Unable to retrieve token" });
     }
   }

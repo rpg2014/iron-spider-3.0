@@ -1,44 +1,16 @@
-// mod utils;
-
-use cgmath::InnerSpace;
-use cgmath::Vector2;
-use js_sys::Math::{atan2, random};
-use wasm_bindgen::prelude::*;
-// use utils::set_panic_hook;
+use cgmath::{InnerSpace, Vector2};
+use js_sys::Math::atan2;
 use std::fmt;
+use wasm_bindgen::prelude::*;
+
+use crate::boids::boid::Boid;
+use crate::boids::settings::WorldSettings;
+use crate::boids::utils::LinearSerializable;
 
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Boid {
-    pub position: Vector2<f32>,
-    pub velocity: Vector2<f32>,
-    pub id: u32,
-}
-pub struct AvoidanceSettings {
-    avoidance_range: f32,
-    avoidance_modifier: f32,
-}
-pub struct PerceivedCenterSettings {
-    p_center_modifier: f32,
-}
-pub struct VelocityMatchingSettings {
-    velocity_matching_modifier: f32,
-}
-pub struct BorderConstraintSettings {
-    border_constraint_modifier: f32,
-}
-
-pub struct WorldSettings {
-    world_size: Vector2<u32>,
-    avoidance: AvoidanceSettings,
-    pc: PerceivedCenterSettings,
-    velocity_matching: VelocityMatchingSettings,
-    border_constraint: BorderConstraintSettings,
 }
 
 #[wasm_bindgen]
@@ -50,10 +22,12 @@ pub struct BoidOrchestrator {
 
 #[wasm_bindgen]
 impl BoidOrchestrator {
+    #[wasm_bindgen(constructor)]
     pub fn new(
         world_width: u32,
         world_height: u32,
         num_boids: u32,
+        velocity_limit: f32,
         pcModifier: f32,
         avoidanceModifier: f32,
         avoidanceRange: f32,
@@ -61,10 +35,8 @@ impl BoidOrchestrator {
         borderConstraintModifier: f32,
     ) -> BoidOrchestrator {
         // set_panic_hook();
-        let world_size = Vector2 {
-            x: world_width,
-            y: world_height,
-        };
+        use crate::boids::settings::WorldSettings;
+
         let mut t_array = Vec::with_capacity(num_boids as usize * 3);
         let mut boids = Vec::with_capacity(num_boids as usize);
 
@@ -72,8 +44,8 @@ impl BoidOrchestrator {
         for i in 0..num_boids {
             let boid = Boid {
                 position: Vector2 {
-                    x: random() as f32 * world_size.x as f32,
-                    y: random() as f32 * world_size.y as f32,
+                    x: js_sys::Math::random() as f32 * world_width as f32,
+                    y: js_sys::Math::random() as f32 * world_height as f32,
                 },
                 velocity: Vector2 { x: 0.0, y: 0.0 },
                 id: i,
@@ -84,28 +56,18 @@ impl BoidOrchestrator {
             t_array.push(boid.get_velocity_direction() as f32); // TODO get angle calcualtion.
             boids.push(boid);
         }
-        // Settings
-        // will eventaully get fed from input.
-        let avoidance_settings = AvoidanceSettings {
-            avoidance_range: avoidanceRange,
-            avoidance_modifier: avoidanceModifier,
-        };
-        let pc_settings = PerceivedCenterSettings {
-            p_center_modifier: pcModifier,
-        };
-        let vel_match_settings = VelocityMatchingSettings {
-            velocity_matching_modifier: velocityMatchingModifier,
-        };
-        let border_constraint_settings = BorderConstraintSettings {
-            border_constraint_modifier: borderConstraintModifier,
-        };
-        let settings = WorldSettings {
-            world_size,
-            avoidance: avoidance_settings,
-            pc: pc_settings,
-            velocity_matching: vel_match_settings,
-            border_constraint: border_constraint_settings,
-        };
+        
+        // Create world settings using the constructor from settings.rs
+        let settings = WorldSettings::new(
+            world_width,
+            world_height,
+            velocity_limit,
+            pcModifier,
+            avoidanceModifier,
+            avoidanceRange,
+            velocityMatchingModifier,
+            borderConstraintModifier,
+        );
         BoidOrchestrator {
             boids,
             transfer_array: t_array,
@@ -119,25 +81,34 @@ impl BoidOrchestrator {
         for i in 0..self.boids.len() {
             let boid = self.boids[i];
             let new_boid = self.apply_rules(&boid, dt);
-            // add x pos
-            self.transfer_array[i * 3] = boid.position.x;
-            // add y pos
-            self.transfer_array[(i * 3) + 1] = boid.position.y;
-            // add theta
-            self.transfer_array[(i * 3) + 2] = boid.get_velocity_direction() as f32;
+            
+            // // add x pos
+            // self.transfer_array[i * 3] = boid.position.x;
+            // // add y pos
+            // self.transfer_array[(i * 3) + 1] = boid.position.y;
+            // // add theta
+            // self.transfer_array[(i * 3) + 2] = boid.get_velocity_direction() as f32;
 
             // boid.position.x = new_boid.position.x;
 
             // boid.position.y = new_boid.position.y;
             // boid.velocity.x = new_boid.velocity.x;
             // boid.velocity.y = new_boid.velocity.y;
+            new_boid.serialize_to_array(&mut self.transfer_array, i);
             self.boids[i] = new_boid;
         }
         // log("after Tick");
         // log(&self.boids[0].position.x.to_string());
     }
-    pub fn items(&self) -> *const f32 {
+    
+    pub fn get_transfer_array_ptr(&self) -> *const f32 {
         self.transfer_array.as_ptr()
+    }
+    /**
+     * would be slower b/c it's cloning the data, before returning it, rather than not
+     */
+    pub fn get_boids(&self) -> Vec<Boid> {
+        self.boids.clone()
     }
 
     pub fn length(&self) -> u32 {
@@ -146,8 +117,8 @@ impl BoidOrchestrator {
 
     pub fn add_boid(&mut self) {
         let boid = Boid::new_random_boid_in_world(
-            self.world_settings.world_size.x,
-            self.world_settings.world_size.y,
+            self.world_settings.world_width,
+            self.world_settings.world_height,
             self.boids.len() as u32,
         );
 
@@ -157,6 +128,7 @@ impl BoidOrchestrator {
             .push(boid.get_velocity_direction() as f32); // TODO get angle calcualtion.
         self.boids.push(boid);
     }
+    
     pub fn remove_last_boid(&mut self) {
         self.transfer_array.pop();
         self.transfer_array.pop();
@@ -168,19 +140,24 @@ impl BoidOrchestrator {
         self.get_velocity_to_perceived_center(self.get_boid(boid_id))
             .x
     }
+    
     pub fn get_velocity_to_percived_center_y(&self, boid_id: usize) -> f32 {
         self.get_velocity_to_perceived_center(self.get_boid(boid_id))
             .y
     }
+    
     pub fn get_avoidance_velocity_x(&self, boid_id: usize) -> f32 {
         self.get_avoidance_velocity(self.get_boid(boid_id)).x
     }
+    
     pub fn get_avoidance_velocity_y(&self, boid_id: usize) -> f32 {
         self.get_avoidance_velocity(self.get_boid(boid_id)).y
     }
+    
     pub fn get_match_percived_velocity_x(&self, boid_id: usize) -> f32 {
         self.get_avoidance_velocity(self.get_boid(boid_id)).x
     }
+    
     pub fn get_match_percived_velocity_y(&self, boid_id: usize) -> f32 {
         self.get_avoidance_velocity(self.get_boid(boid_id)).y
     }
@@ -189,6 +166,7 @@ impl BoidOrchestrator {
         let boid: &Boid = self.get_boid(boid_id);
         boid.velocity.magnitude()
     }
+    
     pub fn get_velocity_direction(&self, boid_id: usize) -> f64 {
         let boid = self.get_boid(boid_id);
         return atan2(boid.velocity.y as f64, boid.velocity.x as f64);
@@ -203,23 +181,68 @@ impl BoidOrchestrator {
         let boid: &Boid = self.get_boid(boid_id);
         boid.velocity.y
     }
-}
 
-impl fmt::Display for Boid {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "id: {}; position: {}, {}; velocity: {}, {}",
-            self.id, self.position.x, self.position.y, self.velocity.x, self.velocity.y
-        )?;
-        Ok(())
+    // World settings getters and setters
+    pub fn get_world_width(&self) -> u32 {
+        self.world_settings.world_width
+    }
+
+    pub fn get_world_height(&self) -> u32 {
+        self.world_settings.world_height
+    }
+
+    pub fn set_world_width(&mut self, width: u32) {
+        self.world_settings.set_world_width(width);
+    }
+
+    pub fn set_world_height(&mut self, height: u32) {
+        self.world_settings.set_world_height(height);
+    }
+
+    pub fn get_avoidance_range(&self) -> f32 {
+        self.world_settings.avoidance.avoidance_range
+    }
+
+    pub fn set_avoidance_range(&mut self, range: f32) {
+        self.world_settings.set_avoidance_range(range);
+    }
+
+    pub fn get_avoidance_modifier(&self) -> f32 {
+        self.world_settings.avoidance.avoidance_modifier
+    }
+
+    pub fn set_avoidance_modifier(&mut self, modifier: f32) {
+        self.world_settings.set_avoidance_modifier(modifier);
+    }
+
+    pub fn get_p_center_modifier(&self) -> f32 {
+        self.world_settings.pc.p_center_modifier
+    }
+
+    pub fn set_p_center_modifier(&mut self, modifier: f32) {
+        self.world_settings.set_p_center_modifier(modifier);
+    }
+
+    pub fn get_velocity_matching_modifier(&self) -> f32 {
+        self.world_settings.velocity_matching.velocity_matching_modifier
+    }
+
+    pub fn set_velocity_matching_modifier(&mut self, modifier: f32) {
+        self.world_settings.set_velocity_matching_modifier(modifier);
+    }
+
+    pub fn get_border_constraint_modifier(&self) -> f32 {
+        self.world_settings.border_constraint.border_constraint_modifier
+    }
+
+    pub fn set_border_constraint_modifier(&mut self, modifier: f32) {
+        self.world_settings.set_border_constraint_modifier(modifier);
     }
 }
 
 impl fmt::Display for BoidOrchestrator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self.boids)?;
-
         Ok(())
     }
 }
@@ -231,6 +254,7 @@ impl BoidOrchestrator {
             .find(|boid| boid.id == boid_id as u32)
             .unwrap()
     }
+    
     fn apply_rules(&self, boid: &Boid, dt: f32) -> Boid {
         // Get all of the rule's velocities.
         let convergence_vel: Vector2<f32> =
@@ -259,7 +283,7 @@ impl BoidOrchestrator {
             + vel_matching_vel
             + border_constraint_velocity;
 
-        let vel_limit: f32 = 25.0;
+        let vel_limit: f32 = self.world_settings.velocity_limit; //25.0
         if new_velocity.magnitude() > (vel_limit) {
             new_velocity = new_velocity.normalize_to(vel_limit)
         }
@@ -327,10 +351,22 @@ impl BoidOrchestrator {
                     < self.world_settings.avoidance.avoidance_range;
             })
             .fold(Vector2::<f32> { x: 0.0, y: 0.0 }, |acc, other_boid| {
-                acc - (other_boid.position - boid.position)
+                // acc - (other_boid.position - boid.position)
+                
+                let diff = other_boid.position - boid.position;
+                let distance = diff.magnitude();
+                // Weight by inverse distance (closer boids have more influence)
+                let accu=  diff * (4.0 / distance);
+                // if other boid is almost on top of this one (within 0.1), then move away from it
+                // didn't work super well, was jittery
+                // if distance < 0.1 {
+                //     return acc - diff;
+                // }
+                acc - accu
             });
         sum_of_avoidance_vector
     }
+    
     fn get_match_percived_velocity(&self, boid: &Boid) -> Vector2<f32> {
         let sum_of_velocity: Vector2<f32> = self
             .boids
@@ -351,38 +387,14 @@ impl BoidOrchestrator {
         let mut border_velocity_vec: Vector2<f32> = Vector2::new(0.0, 0.0);
         if boid.position.x < 0.0 {
             border_velocity_vec.x = 10.0;
-        } else if boid.position.x > self.world_settings.world_size.x as f32 {
+        } else if boid.position.x > self.world_settings.world_width as f32 {
             border_velocity_vec.x = -10.0;
         }
         if boid.position.y < 0.0 {
             border_velocity_vec.y = 10.0;
-        } else if boid.position.y > self.world_settings.world_size.y as f32 {
+        } else if boid.position.y > self.world_settings.world_height as f32 {
             border_velocity_vec.y = -10.0;
         }
         border_velocity_vec
-    }
-}
-
-impl Boid {
-    pub fn new(position: Vector2<f32>, velocity: Vector2<f32>, id: u32) -> Boid {
-        Boid {
-            position,
-            velocity,
-            id,
-        }
-    }
-    pub fn new_random_boid_in_world(world_size_x: u32, world_size_y: u32, id: u32) -> Boid {
-        let boid = Boid {
-            position: Vector2 {
-                x: random() as f32 * world_size_x as f32,
-                y: random() as f32 * world_size_y as f32,
-            },
-            velocity: Vector2 { x: 0.0, y: 0.0 },
-            id,
-        };
-        boid
-    }
-    pub fn get_velocity_direction(&self) -> f64 {
-        return atan2(self.velocity.y as f64, self.velocity.x as f64);
     }
 }

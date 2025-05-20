@@ -6,7 +6,8 @@ import DateCard from "~/components/date_tracker/DateCard";
 import { Button } from "~/components/ui/Button";
 import { getDateService } from "~/service/DateService";
 import { Route } from "./+types/dates._index";
-import { commitSession, getSession } from "~/sessions.server";
+import { getSession } from "~/sessions/sessions.server";
+import { getGlobalAuthToken, setGlobalAuthToken } from "~/utils/globalAuth";
 
 /**
  *
@@ -17,6 +18,11 @@ import { commitSession, getSession } from "~/sessions.server";
  */
 export const loader = async ({ request }: Route.LoaderArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
+  // prime global token if not there already. This is an edge case where the user is logged in but the token is not in the session
+  if (session.has("oauthTokens") && !getGlobalAuthToken()) {
+    const oauthTokens = session.get("oauthTokens");
+    setGlobalAuthToken(oauthTokens.accessToken, oauthTokens.expiresAt);
+  }
 
   const dateService = getDateService();
   if (session.has("userId")) {
@@ -31,6 +37,10 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
       return data({ items: items, loggedIn: true });
     } catch (e: any) {
       console.error(e);
+      // if error is a 401 or 403, return error saying token expired
+      if (e.message === "401" || e.message === "403") {
+        throw new Response(JSON.stringify({ message: "Token expired" }), { status: 401 });
+      }
       throw new Response(JSON.stringify({ message: e.message }), { status: 500 });
     }
   }

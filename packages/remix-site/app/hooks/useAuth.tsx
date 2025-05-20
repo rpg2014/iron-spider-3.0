@@ -29,7 +29,7 @@ export function AuthProvider({
   const revalidator = useRevalidator();
 
   const refreshAuth = async () => {
-    toast.loading("Refreshing auth state from server");
+    const loadingToast = toast.loading("Refreshing auth state from server");
     console.log("Refreshing auth state from server");
     try {
       const response = await fetch("/api/auth/tokens");
@@ -51,6 +51,8 @@ export function AuthProvider({
       console.error("Failed to refresh auth state:", error);
       toast.error("Failed to refresh auth state from server", { description: error instanceof Error ? error.message : "Unknown error" });
       return { authenticated: false };
+    } finally {
+      toast.dismiss(loadingToast);
     }
   };
 

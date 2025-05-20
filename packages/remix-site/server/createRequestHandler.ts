@@ -3,7 +3,6 @@ import { createRequestHandler as createRemixRequestHandler } from "react-router"
 import * as AWSXRay from "aws-xray-sdk";
 import type { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontHeaders } from "aws-lambda";
 import type { AppLoadContext, ServerBuild } from "react-router";
-import { convertFetchToHttp } from "./utils";
 
 export interface GetLoadContextFunction {
   (event: CloudFrontRequestEvent): AppLoadContext;

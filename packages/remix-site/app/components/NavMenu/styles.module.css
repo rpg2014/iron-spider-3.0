@@ -1,1 +1,6 @@
-.NavigationMenuIndicator[data-orientation=horizontal]{transition:width,transform,250ms ease}
+.NavigationMenuIndicator[data-orientation="horizontal"] {
+  transition:
+    width,
+    transform,
+    250ms ease;
+}

@@ -1,5 +1,5 @@
-import { data, LoaderFunctionArgs, redirect } from "react-router";
-import { getOauthStateSession, commitOauthStateSession } from "../sessions.server";
+import { data, redirect } from "react-router";
+import { getOauthStateSession, commitOauthStateSession } from "../sessions/sessions.server";
 import { AUTH_DOMAIN } from "../constants";
 import crypto from "crypto";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";

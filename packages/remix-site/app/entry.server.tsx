@@ -86,6 +86,7 @@ function handleRequestWithoutStream(request: Request, responseStatusCode: number
 function handleRequestWithStream(request: Request, responseStatusCode: number, responseHeaders: Headers, reactRouterContext: EntryContext) {
   return new Promise((resolve, reject) => {
     let shellRendered = false;
+    console.log("[Streaming Handler] Streaming the shell to the client");
     const { pipe, abort } = renderToPipeableStream(<ServerRouter context={reactRouterContext} url={request.url} />, {
       onShellReady() {
         shellRendered = true;

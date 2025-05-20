@@ -1,5 +1,5 @@
 import type { HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, MetaFunction, useLoaderData } from "react-router";
+import { Outlet, MetaFunction, useLoaderData, data } from "react-router";
 import globalStylesUrl from "~/styles/global.css?url";
 import themeUrl from "~/styles/themes.css?url";
 import favicon from "~/images/favicon.ico";
@@ -10,10 +10,11 @@ import { ThemeProvider } from "./hooks/useTheme";
 import { ServerProvider } from "./hooks/MCServerHooks";
 import { MCServerApi } from "./service/MCServerService";
 import { Route } from "./+types/root";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Toaster } from "./components/ui/Sonner";
-import { checkIdTokenAuth } from "./utils/utils.server";
+import { checkIdTokenAuthV2, isLambda } from "./utils/utils.server";
 import { AuthProvider } from "./hooks/useAuth";
+import { toast } from "sonner";
 
 export const links: LinksFunction = () => {
   return [
@@ -36,16 +37,27 @@ export const meta: MetaFunction = () => [
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const authResult = await checkIdTokenAuth(request);
+  const authResult = await checkIdTokenAuthV2(request);
   const initialStatus = await MCServerApi.getStatus();
-  return {
-    auth: {
-      authenticated: authResult.verified,
-      accessToken: authResult.verified ? authResult.oauthDetails?.accessToken : undefined,
-      expiresAt: authResult.verified ? authResult.oauthDetails?.expiresAt : undefined,
+
+  return data(
+    {
+      auth: {
+        authenticated: authResult.verified,
+        accessToken: authResult.verified ? authResult.oauthDetails?.accessToken : undefined,
+        expiresAt: authResult.verified ? authResult.oauthDetails?.expiresAt : undefined,
+      },
+      initialStatus,
+      isLambda: isLambda,
     },
-    initialStatus,
-  };
+    authResult.cookieHeader
+      ? {
+          headers: {
+            "Set-Cookie": authResult.cookieHeader,
+          },
+        }
+      : undefined,
+  );
 }
 // export const headers: Route.HeadersFunction = () => ({
 //   // cache control 5 mins
@@ -67,6 +79,23 @@ export async function loader({ request }: Route.LoaderArgs) {
  */
 export default function App() {
   const data = useLoaderData<typeof loader>();
+  // this doesn't always work b/c sometimes it takes longer for the toaster to be rendered?
+  useEffect(() => {
+    console.log("Running on Lambda", data.isLambda);
+    if (data.isLambda) {
+      setTimeout(() => {
+        toast.info("Running on Lambda", {
+          description: "This is a lambda environment",
+        });
+      }, 10);
+    } else {
+      setTimeout(() => {
+        toast.info("Running in homelab", {
+          description: "This is not in AWS, some stuff might be broken",
+        });
+      }, 10);
+    }
+  }, [data.isLambda]);
   return (
     <ThemeProvider>
       <AuthProvider initialAuth={data.auth}>
@@ -82,7 +111,7 @@ export default function App() {
                 }
               >
                 <Outlet />
-                <Toaster />
+                <Toaster richColors swipeDirections={["left", "right"]} />
               </Suspense>
             </Layout>
           </Document>
