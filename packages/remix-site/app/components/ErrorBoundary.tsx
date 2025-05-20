@@ -76,6 +76,13 @@ export const ErrorBoundary = () => {
   //JS error branch
   console.error(error);
   return (
+    <ErrorComponent error={error as Error} />
+  );
+};
+
+// TODO, extract this into a component. + combine with http error component above
+export const ErrorComponent = ({ error }: { error: Error }) => {
+  return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
       <div className="w-full max-w-md space-y-6 rounded-xl border border-border bg-card p-8 shadow-lg">
         <h1 className="text-center text-4xl font-bold text-destructive">Unexpected Error</h1>

@@ -3,6 +3,7 @@ import { Link, useNavigation } from "react-router";
 import layoutStyles from "~/styles/layout.css?url";
 import { Suspense } from "react";
 import { NavMenu } from "./NavMenu/NavMenu";
+import { NavMenuV2 } from "./NavMenu/NavMenuV2";
 
 export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
 
@@ -18,20 +19,21 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
   return (
     <div className="remix-app dark">
       <header className={"remix-app__header"}>
-        <div className="remix-app__header-content">
-          <Suspense fallback={<p>loading...</p>}>
-            {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
+        {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
+        <Suspense fallback={<p>loading NavMenu...</p>}>
+          <div className="remix-app__header-content">
             <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
               <RemixLogo />
             </Link>
+
             <NavMenu />
-          </Suspense>
-        </div>
+          </div>
+          <div className="h-[1px] w-full bg-white" />
+          <NavMenuV2 />
+        </Suspense>
       </header>
       <div className={"remix-app__main " + (state !== "idle" ? "loading-indicator" : "")}>
-        <div className="remix-app__main-content">
-          <React.Suspense fallback={<div>Loading...</div>}>{children}</React.Suspense>
-        </div>
+        <div className="remix-app__main-content">{children}</div>
       </div>
       <footer className="remix-app__footer">
         <div className="remix-app__footer-content container">{/* <p>&copy; You!</p> */}</div>
