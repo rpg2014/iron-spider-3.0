@@ -24,8 +24,8 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.458.0",
-    "@aws-sdk/lib-dynamodb": "^3.767.0",
+    "@aws-sdk/client-dynamodb": "^3.806.0",
+    "@aws-sdk/lib-dynamodb": "^3.806.0",
     "aws-jwt-verify": "^3.1.0",
     "iron-spider-ssdk": "*",
     "jwt-lib": "workspace:*",
