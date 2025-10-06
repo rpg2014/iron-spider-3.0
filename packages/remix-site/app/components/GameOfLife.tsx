@@ -1,6 +1,7 @@
 import { Universe, Cell } from "../rust.client";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "./ui/Button";
+import { GameRenderer } from "./GameOfLife/GameRenderer";
 
 export type GameOfLifeProps = {
   width: number;
@@ -9,20 +10,16 @@ export type GameOfLifeProps = {
   gridColor: string;
   deadColor: string;
   aliveColor: string;
-  memory: any;
+  memory: WebAssembly.Memory;
 };
-//external of react so we don't cause rerenders
-let currentAnimationFrameId: number | undefined = undefined;
-export const GameOfLife = (props: GameOfLifeProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [universe, setUniverse] = useState(() => Universe.new(props.width, props.height));
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
 
-  const width = universe.width();
-  const height = universe.height();
-  const CANVAS_HEIGHT = (props.cellSize + 1) * height + 1;
-  const CANVAS_WIDTH = (props.cellSize + 1) * width + 1;
+// Animation frame ID stored outside React to prevent re-renders
+let currentAnimationFrameId: number | undefined = undefined;
+
+// Custom hook for canvas management
+const useCanvas = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -31,102 +28,141 @@ export const GameOfLife = (props: GameOfLifeProps) => {
     }
   }, []);
 
-  // the render loop
-  const renderLoop = () => {
-    universe.tick();
-    drawGrid();
-    drawCells();
-    currentAnimationFrameId = requestAnimationFrame(renderLoop);
-  };
+  return { canvasRef, ctx };
+};
 
-  const drawGrid = () => {
-    ctx.beginPath();
-    ctx.strokeStyle = props.gridColor;
+// Custom hook for game state and controls
+const useGameControls = (universe: Universe, setUniverse: (universe: Universe) => void, props: GameOfLifeProps) => {
+  const [isRunning, setIsRunning] = useState(false);
 
-    // Vertical lines.
-    for (let i = 0; i <= width; i++) {
-      ctx.moveTo(i * (props.cellSize + 1) + 1, 0);
-      ctx.lineTo(i * (props.cellSize + 1) + 1, (props.cellSize + 1) * height + 1);
-    }
-
-    // Horizontal lines.
-    for (let j = 0; j <= height; j++) {
-      ctx.moveTo(0, j * (props.cellSize + 1) + 1);
-      ctx.lineTo((props.cellSize + 1) * width + 1, j * (props.cellSize + 1) + 1);
-    }
-
-    ctx.stroke();
-  };
-
-  const getIndex = (row: number, column: number) => {
-    return row * width + column;
-  };
-
-  const drawCells = () => {
-    const cellsPtr = universe.cells();
-    const cells = new Uint8Array(props.memory.buffer, cellsPtr, width * height);
-
-    ctx.beginPath();
-
-    for (let row = 0; row < height; row++) {
-      for (let col = 0; col < width; col++) {
-        const idx = getIndex(row, col);
-
-        ctx.fillStyle = cells[idx] === Cell.Dead ? props.deadColor : props.aliveColor;
-
-        ctx.fillRect(col * (props.cellSize + 1) + 1, row * (props.cellSize + 1) + 1, props.cellSize, props.cellSize);
-      }
-    }
-
-    ctx.stroke();
-  };
-
-  const handleReset = () => {
-    // not sure why it needs to be paused to update but oh well
-    handlePause();
-    setUniverse(Universe.new(props.width, props.height));
-    handlePlay();
-  };
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     if (currentAnimationFrameId) {
-      console.log("pausing");
       setIsRunning(false);
       cancelAnimationFrame(currentAnimationFrameId);
+      currentAnimationFrameId = undefined;
     }
-  };
-  const handlePlay = () => {
-    console.log("playing");
-    setIsRunning(true);
-    requestAnimationFrame(renderLoop);
-  };
+  }, []);
 
-  useEffect(() => {
-    if (ctx) {
-      //initial draw
-      drawGrid();
-      drawCells();
+  const handleReset = useCallback(() => {
+    handlePause();
+    universe.clear();
+    setUniverse(Universe.new(props.width, props.height));
+  }, [handlePause, props.width, props.height, setUniverse]);
+
+  return {
+    isRunning,
+    setIsRunning,
+    handlePause,
+    handleReset,
+  };
+};
+
+
+
+export const GameOfLife = (props: GameOfLifeProps) => {
+  const [universe, setUniverse] = useState(() => Universe.new(props.width, props.height));
+  const { canvasRef, ctx } = useCanvas();
+  const gridCanvasRef = useRef<HTMLCanvasElement>(null);
+  const { isRunning, setIsRunning, handlePause, handleReset } = useGameControls(universe, setUniverse, props);
+  const [debugGrid, setDebugGrid] = useState(false);
+
+  // Memoized values
+  const dimensions = useMemo(() => {
+    const width = universe.width();
+    const height = universe.height();
+    const canvasWidth = (props.cellSize + 1) * width + 1;
+    const canvasHeight = (props.cellSize + 1) * height + 1;
+
+    return { width, height, canvasWidth, canvasHeight };
+  }, [universe, props.cellSize]);
+
+  // Memoized renderer
+  const renderer = useMemo(() => {
+    if (!ctx) return null;
+    return new GameRenderer(ctx, props, dimensions.width, dimensions.height, gridCanvasRef, debugGrid);
+  }, [ctx, props, dimensions.width, dimensions.height]);
+
+  // Render loop
+  const renderLoop = useCallback(() => {
+    if (!renderer) return;
+
+    universe.tick();
+    
+    renderer.drawCells(universe);
+    renderer.drawGrid();
+    currentAnimationFrameId = requestAnimationFrame(renderLoop);
+  }, [universe, renderer]);
+
+  // Game controls
+  const handlePlay = useCallback(() => {
+    if (!renderer) return;
+
+    setIsRunning(true);
+    currentAnimationFrameId = requestAnimationFrame(renderLoop);
+  }, [renderLoop, renderer]);
+
+  const togglePlayPause = useCallback(() => {
+    if (isRunning) {
+      handlePause();
+    } else {
+      handlePlay();
     }
-  }, [ctx, universe, drawCells, drawGrid]);
+  }, [isRunning, handlePause, handlePlay]);
+
+  // Initial draw effect
+  useEffect(() => {
+    if (renderer) {
+      
+      renderer.drawCells(universe);
+      // grid must be after cells, as cells arn't transparent
+      renderer.drawGrid();
+    }
+  }, [renderer, universe]);
+  
+  // redraw the grid when creating the debug canvas
+  useEffect(() => {
+    if(renderer) {
+      renderer.createStaticGrid()
+      renderer.drawGrid()
+    }
+}, [debugGrid])
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      if (currentAnimationFrameId) {
+        cancelAnimationFrame(currentAnimationFrameId);
+        currentAnimationFrameId = undefined;
+      }
+    };
+  }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center  p-2">
-      <div className=" w-full max-w-3xl rounded-lg shadow-md">
-        <p className="mb-4  text-center">
+    <div className="flex flex-col items-center justify-center p-2">
+      <div className="w-full max-w-3xl rounded-lg shadow-md">
+        <p className="mb-4 text-center">
           This is a web assembly implementation of Conway's Game of Life. Created using the{" "}
           <a href="https://rustwasm.github.io/book/game-of-life/introduction.html" className="text-blue-600 transition-colors hover:text-blue-800">
             wasm-game-of-life
           </a>{" "}
           rust tutorial.
         </p>
+
         <div className="mb-4 flex justify-center">
-          <canvas id="game-of-life-canvas" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} className="border border-gray-300" />
+          <canvas id="game-of-life-canvas" width={dimensions.canvasWidth} height={dimensions.canvasHeight} ref={canvasRef} className="border border-gray-300" />
         </div>
-        <div className="flex justify-center">
-          <Button onClick={handleReset} className="mx-2 bg-blue-500  px-4 py-2 transition-colors hover:bg-blue-700">
+
+        <div className="flex justify-center gap-2">
+          <Button onClick={() => setDebugGrid(!debugGrid)} variant={debugGrid ? 'secondary' :'outline'}>Debug Grid</Button>
+          <Button onClick={handleReset} className="bg-blue-500 px-4 py-2 transition-colors hover:bg-blue-700">
             Reset
           </Button>
-          <Button onClick={() => (isRunning ? handlePause() : handlePlay())}>{isRunning ? "Pause" : "Play"}</Button>
+          <Button onClick={togglePlayPause}>{isRunning ? "Pause" : "Play"}</Button>
         </div>
+        {/* {debugGrid && */}
+        <div className="flex mt-2 justify-center gap-2" style={{zIndex: "100", display: debugGrid ? undefined : 'none'}}>
+          <canvas ref={gridCanvasRef} width={dimensions.canvasWidth} height={dimensions.canvasHeight} className=" "  />
+          </div>
       </div>
     </div>
   );

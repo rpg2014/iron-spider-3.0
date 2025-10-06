@@ -1,8 +1,7 @@
 import * as React from "react";
-import { Link, useNavigation } from "react-router";
+import { useNavigation } from "react-router";
 import layoutStyles from "~/styles/layout.css?url";
 import { Suspense } from "react";
-import { NavMenu } from "./NavMenu/NavMenu";
 import { NavMenuV2 } from "./NavMenu/NavMenuV2";
 
 export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
@@ -18,18 +17,18 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
   const { state } = useNavigation();
   return (
     <div className="remix-app dark">
-      <header className={"remix-app__header"}>
+      <header className={"remix-app__header border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-10"}>
         {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
         <Suspense fallback={<p>loading NavMenu...</p>}>
-          <div className="remix-app__header-content">
+          {/* <div className="remix-app__header-content">
             <Link prefetch={"viewport"} to="/" title="Remix" className="remix-app__header-home-link">
               <RemixLogo />
             </Link>
 
             <NavMenu />
           </div>
-          <div className="h-[1px] w-full bg-white" />
-          <NavMenuV2 />
+          <div className="h-[1px] w-full bg-white" /> */}
+          <NavMenuV2 className="" />
         </Suspense>
       </header>
       <div className={"remix-app__main " + (state !== "idle" ? "loading-indicator" : "")}>

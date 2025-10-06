@@ -94,6 +94,7 @@ export class PasskeyInfraStack extends cdk.Stack {
     this.TokensTable = new Table(this, "OAuthTokensTable", {
       partitionKey: { name: "tokenId", type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: "ttl",
     });
     this.TokensTable.addGlobalSecondaryIndex({
       indexName: this.TokensTableByTokenIndexName,

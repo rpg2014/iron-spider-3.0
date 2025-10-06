@@ -236,6 +236,7 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
       ...token,
       issuedAt: token.issuedAt.toString(),
       expiresAt: token.expiresAt.toString(),
+      ttl: Math.floor(token.expiresAt.epochSeconds),
     };
   }
 

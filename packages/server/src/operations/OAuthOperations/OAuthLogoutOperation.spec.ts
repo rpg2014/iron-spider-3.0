@@ -58,7 +58,7 @@ describe("OAuthLogoutOperation", () => {
 
     it("should successfully logout and delete all related tokens", async () => {
         const input = {
-            client_id: "test-client",
+            clientId: "test-client",
             postLogoutRedirectUri: "https://test.com/logout",
             idTokenHint: "valid-token",
             state: "test-state"
@@ -86,7 +86,7 @@ describe("OAuthLogoutOperation", () => {
         });
 
         const input = {
-            client_id: "invalid-client",
+            clientId: "invalid-client",
             postLogoutRedirectUri: "https://test.com/logout",
             idTokenHint: "valid-token"
         };
@@ -103,7 +103,7 @@ describe("OAuthLogoutOperation", () => {
         });
 
         const input = {
-            client_id: "test-client",
+            clientId: "test-client",
             postLogoutRedirectUri: "https://test.com/logout",
             idTokenHint: "invalid-token"
         };
@@ -115,7 +115,7 @@ describe("OAuthLogoutOperation", () => {
 
     it("should throw error when required parameters are missing", async () => {
         const input = {
-            client_id: "test-client"
+            clientId: "test-client"
         };
 
         await expect(OAuthLogoutOperation(input as any, {}))

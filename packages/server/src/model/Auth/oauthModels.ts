@@ -72,6 +72,7 @@ export interface DDBToken {
     scopes?: string[];     // Scopes associated with this token
     issuedAt: string;
     expiresAt: string;     // Can be used for TTL
+    ttl: number;           // TTL field for DynamoDB (Unix timestamp in seconds)
     metadata?: Record<string, any>; // Optional additional data
 }
 /**

@@ -133,15 +133,26 @@ export const ListDates: Operation<ListDatesInput, ListDatesOutput, HandlerContex
     if (b.date === undefined) return -1;
     return b.date.getTime() - a.date.getTime();
   });
+
+  // pagination logic
+  const pageSize = input.pageSize || 20;
+  const startIndex = input.nextToken ? parseInt(Buffer.from(input.nextToken, 'base64').toString('utf-8')) : 0;
+  const endIndex = startIndex + pageSize;
+  
+  const paginatedItems = dates.slice(startIndex, endIndex);
+  const nextToken = endIndex < dates.length 
+    ? Buffer.from(endIndex.toString()).toString('base64') 
+    : undefined;
+
   // map connected user id to user name of date thrower
-  const datesToReturn = dates.map(date => {
+  const datesToReturn = paginatedItems.map(date => {
     const dateThrowerUser = connectedUsers.find(user => user.userId === date.dateThrower);
     return {
       ...date,
       dateThrower: dateThrowerUser?.displayName ?? context.displayName,
     };
   });
-  return { items: datesToReturn };
+  return { items: datesToReturn, nextToken };
 };
 
 export const GetConnectedUsers: Operation<{}, GetConnectedUsersOutput, HandlerContext> = async (input, context) => {

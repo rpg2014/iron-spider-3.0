@@ -43,8 +43,8 @@ function createUnderwaterPlants(context: BabylonSceneContext): void {
   const { scene, babylonModule, worldWidth, worldHeight } = context;
 
   for (let i = 0; i < 20; i++) {
-    const height = 20 + Math.random() * 3;
-    const plant = babylonModule.MeshBuilder.CreateCylinder("plant" + i, { height: height, diameterTop: 0.1, diameterBottom: 0.3 }, scene);
+    const height = 20 + Math.random() * 15;
+    const plant = babylonModule.MeshBuilder.CreateCylinder("plant" + i, { height: height, diameterTop: 0.1, diameterBottom: 0.7 }, scene);
 
     plant.position.x = Math.random() * worldWidth;
     plant.position.z = Math.random() * worldHeight;

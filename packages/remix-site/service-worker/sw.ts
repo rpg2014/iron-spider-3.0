@@ -24,7 +24,7 @@ const enableNavigationPreload = async () => {
   }
 };
 
-const deleteCache = async key => {
+const deleteCache = async (key: string) => {
   await caches.delete(key);
 };
 
@@ -43,6 +43,18 @@ sw.addEventListener("activate", event => {
   event.waitUntil(sw.clients.claim());
   //delete old caches
   event.waitUntil(deleteOldCaches());
+  // notify all clients that service worker is active
+  event.waitUntil(
+    sw.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: "cache-update",
+          url: sw.registration.scope,
+          status: "activated",
+        });
+      });
+    })
+  );
 });
 
 // sw.addEventListener("fetch", fetchIntercepter);
@@ -92,5 +104,16 @@ sw.addEventListener("notificationclick", event => {
     event.waitUntil(sw.clients.openWindow("/settings"));
   } else {
     event.waitUntil(sw.clients.openWindow("/"));
+  }
+});
+
+// listen for messages from the page
+sw.addEventListener("message", event => {
+  if (event.data?.type === "page-loaded") {
+    event.source?.postMessage({
+      type: "sw-status",
+      url: sw.registration.scope,
+      status: "ready",
+    });
   }
 });

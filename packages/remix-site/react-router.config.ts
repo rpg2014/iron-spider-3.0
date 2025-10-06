@@ -10,4 +10,5 @@ export default {
     unstable_optimizeDeps: true,
   },
   ssr: true,
+  routeDiscovery: { mode: "initial" },
 } satisfies Config;

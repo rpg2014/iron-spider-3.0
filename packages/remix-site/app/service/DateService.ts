@@ -17,7 +17,7 @@ import { API_DOMAIN_VERSION, DATES_PATH, LOCATIONS_PATH } from "~/constants";
 import { oauthFetcher } from "~/utils/authFetcher";
 
 export interface IDateClient {
-  listDates: (input: { pageSize: number; headers?: Headers }) => Promise<ListDatesCommandOutput>;
+  listDates: (input: { pageSize: number; nextToken?: string; headers?: Headers }) => Promise<ListDatesCommandOutput>;
   getDate: (input: { id: string; headers?: Headers }) => Promise<DateInfo>;
   createDate: (input: { date: CreateDateCommandInput; headers?: Headers }) => Promise<DateInfo>;
   updateDate: (input: { date: UpdateDateCommandInput; headers?: Headers }) => Promise<DateInfo>;
@@ -36,8 +36,9 @@ export const getDateService = (): DateService => {
 export class DateService implements IDateClient {
   constructor() {}
 
-  async listDates(input: { pageSize: number; headers?: Headers }): Promise<ListDatesCommandOutput> {
-    const dates: ListDatesCommandOutput = await oauthFetcher(`${DATES_PATH}?pageSize=${input.pageSize}`, {
+  async listDates(input: { pageSize: number; nextToken?: string; headers?: Headers }): Promise<ListDatesCommandOutput> {
+    const url = `${DATES_PATH}?pageSize=${input.pageSize}${input.nextToken ? `&nextToken=${input.nextToken}` : ''}`;
+    const dates: ListDatesCommandOutput = await oauthFetcher(url, {
       mode: "cors",
       headers: input.headers,
       credentials: "include",
