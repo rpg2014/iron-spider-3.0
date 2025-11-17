@@ -22,15 +22,17 @@
     "deploy:domain-auth": "cdk deploy --profile personal DomainAuth",
     "deploy:service": "cdk deploy --profile personal IronSpiderService",
     "synth:service": "cdk synth --profile personal IronSpiderService > template.yaml",
-    "deploy:remix-site": "cdk deploy --profile personal RemixApp"
+    "deploy:remix-site": "cdk deploy --profile personal RemixApp",
+    "synth:remix-site": "cdk synth --profile personal RemixApp > template.yaml",
+    "re-bootstrap": "cdk bootstrap --profile personal aws://593242635608/us-east-1"
   },
   "devDependencies": {
     "@aws-sdk/protocol-http": "^3.374.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/node": "^22.1.0",
     "authorizer": "workspace:^",
-    "aws-cdk": "^2.160.0",
-    "aws-cdk-lib": "^2.160.0",
+    "aws-cdk": "^2.1031.0",
+    "aws-cdk-lib": "^2.221.0",
     "constructs": "^10.3.0",
     "domain-auth-assets": "workspace:^",
     "esbuild": "^0.25.0",

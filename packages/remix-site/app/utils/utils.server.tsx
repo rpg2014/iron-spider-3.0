@@ -80,7 +80,7 @@ export const refreshTokenIfNeeded = async (
 
   const oauthTokens = session.get("oauthTokens");
   const timeToCompareTo = Temporal.Now.instant().add({ minutes: 5 });
-  console.log(`[refreshTokenIfNeeded] oauthTokens: ${oauthTokens?.accessToken}, ${oauthTokens?.expiresAt}, Now+1: ${timeToCompareTo}`);
+  console.log(`[refreshTokenIfNeeded] oauthTokens: ${oauthTokens?.expiresAt}, Now+1: ${timeToCompareTo}`);
   // Only refresh if expiring soon
   if (Temporal.Instant.compare(Temporal.Instant.from(oauthTokens.expiresAt), timeToCompareTo) < 0) {
     console.log(`[refreshTokenIfNeeded] Access token expired or about to expire, attempting refresh`);

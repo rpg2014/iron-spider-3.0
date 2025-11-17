@@ -115,7 +115,7 @@ describe("OAuthLogoutOperation", () => {
 
     it("should throw error when required parameters are missing", async () => {
         const input = {
-            clientId: "test-client"
+            client_id: "test-client"
         };
 
         await expect(OAuthLogoutOperation(input as any, {}))

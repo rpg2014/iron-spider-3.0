@@ -7,6 +7,7 @@ export default {
   // I cant get lambda to fully support esm, i get dynamic import related errors. jk i guess
   serverModuleFormat: "esm",
   future: {
+    v8_middleware: true,
     unstable_optimizeDeps: true,
   },
   ssr: true,

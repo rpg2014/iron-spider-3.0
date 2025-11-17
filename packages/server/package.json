@@ -61,7 +61,7 @@
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "authorizer": "workspace:^",
-    "aws-cdk-lib": "^2.160.0",
+    "aws-cdk-lib": "^2.221.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.25.0",
     "eslint": "^8.48.0",

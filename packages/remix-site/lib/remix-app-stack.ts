@@ -25,6 +25,7 @@ import {
 } from "aws-cdk-lib/aws-cloudfront";
 import type { FunctionUrl } from "aws-cdk-lib/aws-lambda";
 import { Code, FunctionUrlAuthType, InvokeMode, Runtime, Tracing } from "aws-cdk-lib/aws-lambda";
+import { ManagedPolicy } from "aws-cdk-lib/aws-iam";
 import path from "path";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { AaaaRecord, ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
@@ -94,9 +95,9 @@ export class RemixAppStack extends Stack {
       // tracing: Tracing.ACTIVE, // not supported on Lambda@Edge
     });
 
-    fn.role?.addManagedPolicy({
-      managedPolicyArn: "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
-    });
+    fn.role?.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName("AWSXRayDaemonWriteAccess")
+    );
 
     // Grant the Lambda function access to the DynamoDB table
     sessionTable.grantReadWriteData(fn);

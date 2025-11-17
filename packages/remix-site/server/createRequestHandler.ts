@@ -2,10 +2,11 @@ import { URL } from "url";
 import { createRequestHandler as createRemixRequestHandler } from "react-router";
 import * as AWSXRay from "aws-xray-sdk";
 import type { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontHeaders } from "aws-lambda";
-import type { AppLoadContext, ServerBuild } from "react-router";
+import {  RouterContextProvider, ServerBuild } from "react-router";
+import { xrayContext } from "./context";
 
 export interface GetLoadContextFunction {
-  (event: CloudFrontRequestEvent): AppLoadContext;
+  (event: CloudFrontRequestEvent): any;
 }
 
 export type RequestHandler = ReturnType<typeof createRequestHandler>;
@@ -18,11 +19,9 @@ export type RequestHandler = ReturnType<typeof createRequestHandler>;
  */
 export function createRequestHandler({
   build,
-  getLoadContext,
   mode = process.env.NODE_ENV,
 }: {
   build: ServerBuild;
-  getLoadContext?: GetLoadContextFunction;
   mode?: string;
 }): CloudFrontRequestHandler {
   //This gets the server handler from the build files
@@ -30,13 +29,15 @@ export function createRequestHandler({
 
   // Return a handler function that wraps the remix created handlers, converting the requests and responses from the
   // ones the env (Lambda@edge) expects, to what Remix expects.  Currently just supports These CloudfrontRequests,
-  //TODO: add streaming support
-  return (async (event, context) => {
+  // Also sets up aws xray tracing manually, if the daemon is present. 
+  // todo, user Auth? for an auth context? or do that in middleware?
+  const eventHandler = (async (event, context) => {
     // start timings
     const startTime = Date.now();
     const request = createRemixRequest(event);
     console.log(`Got Request for path: ${request.url}`);
-    let loadContext = typeof getLoadContext === "function" ? getLoadContext(event) : undefined;
+    let loadContext = undefined;
+    let routeContext: RouterContextProvider = new RouterContextProvider();
     // is the below worth it? xray tracing?
     let segment: AWSXRay.Segment | AWSXRay.Subsegment | undefined, ns;
 
@@ -63,8 +64,10 @@ export function createRequestHandler({
       AWSXRay.middleware.setDefaultName("RemixSite");
       segment = new AWSXRay.Segment(`RemixSite`);
       ns = AWSXRay.getNamespace();
-
-      loadContext = { ...loadContext, traceId: segment.trace_id };
+      
+      loadContext = {traceId: segment.trace_id };
+      routeContext.set(xrayContext, loadContext)
+      Object.assign(routeContext, loadContext);
       if (context.awsRequestId) {
         segment.addAnnotation("awsRequestId", context.awsRequestId);
         console.log(`AWS X-Ray filter:  Annotation.awsRequestId = "${context.awsRequestId}"`);
@@ -74,10 +77,11 @@ export function createRequestHandler({
     const response = await (ns && segment
       ? ns.runPromise<Response>(() => {
           AWSXRay.setSegment(segment);
-          const res = handleRequest(request as unknown as Request, loadContext);
+          console.log(`AWS X-Ray Segment started: ${segment?.name}`);
+          const res = handleRequest(request, routeContext);
           return res;
         })
-      : handleRequest(request as unknown as Request, loadContext));
+      : handleRequest(request, routeContext));
     // await AWSXRay.captureAsyncFunc('EdgeHandler', async (subsegment) => {
     //   try {
     //     if(!subsegment)
@@ -123,6 +127,9 @@ export function createRequestHandler({
       body: await response.text(),
     };
   }) as CloudFrontRequestHandler;
+  
+  
+  return eventHandler
 }
 
 /**

@@ -1,6 +1,6 @@
 import { useAuth } from "~/hooks/useAuth";
 import { fetcher } from "~/utils/utils";
-import { getGlobalAuthToken, isTokenExpired, setGlobalAuthToken } from "./globalAuth";
+import { getGlobalAuthToken, isTokenExpired } from "./globalAuth";
 
 export async function oauthFetcher<T>(input: RequestInfo | URL, init?: RequestInit, includeContentType?: boolean): Promise<any> {
   // Check if we already have a valid token in global state

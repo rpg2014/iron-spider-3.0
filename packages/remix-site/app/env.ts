@@ -3,6 +3,9 @@ declare module "react-router" {
   interface AppLoadContext {
     traceId?: string;
   }
+  interface RouterContextProvider {
+    traceId?: string;
+  }
 
   // TODO: remove this once we've migrated to `Route.LoaderArgs` instead for our loaders
   interface LoaderFunctionArgs {

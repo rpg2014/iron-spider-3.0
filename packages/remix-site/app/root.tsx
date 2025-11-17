@@ -15,6 +15,7 @@ import { Toaster } from "./components/ui/Sonner";
 import { checkIdTokenAuthV2, isLambda } from "./utils/utils.server";
 import { AuthProvider } from "./hooks/useAuth";
 import { toast } from "sonner";
+import { xrayContext } from "../server/context";
 
 export const links: LinksFunction = () => {
   return [
@@ -36,7 +37,13 @@ export const meta: MetaFunction = () => [
   { title: "Parker's Remix site" },
 ];
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  console.log(`[root loader] Handling request for ${request.url}, with context ${context}`);
+  try {
+    console.log(`[root loader] new context: ${context.get(xrayContext)}`)
+  }catch (e) {
+    console.log("error when accessing new context");
+  }
   const authResult = await checkIdTokenAuthV2(request);
   const initialStatus = await MCServerApi.getStatus();
 

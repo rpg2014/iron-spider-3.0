@@ -33,24 +33,29 @@ export default function handleRequest(
   reactRouterContext: EntryContext,
   loadContext: AppLoadContext,
 ) {
+  console.log(`[handleRequest] Handling request for ${request.url}, with loadContext: ${loadContext}`);
+  
+  // we are on lambda, so this doens't matter, we never stream.
   // If using https streaming compatble runtime, stream the response depending on if its a crawler
   // otherwise handle without the stream
-  if (useStreams) {
-    return isbot(request.headers.get("user-agent"))
-      ? // for SEO purposes, we still want to not stream if it's a bot
-        handleRequestWithoutStream(request, responseStatusCode, responseHeaders, reactRouterContext)
-      : handleRequestWithStream(request, responseStatusCode, responseHeaders, reactRouterContext);
-  } else {
+  // if (useStreams) {
+  //   return isbot(request.headers.get("user-agent"))
+  //     ? // for SEO purposes, we still want to not stream if it's a bot
+  //       handleRequestWithoutStream(request, responseStatusCode, responseHeaders, reactRouterContext)
+  //     : handleRequestWithStream(request, responseStatusCode, responseHeaders, reactRouterContext);
+  // } else {
     // handle without streaming
     return handleRequestWithoutStream(request, responseStatusCode, responseHeaders, reactRouterContext);
-  }
+  // }
 }
 
 function handleRequestWithoutStream(request: Request, responseStatusCode: number, responseHeaders: Headers, reactRouterContext: EntryContext) {
   return new Promise((resolve, reject) => {
     let shellRendered = false;
+    console.log("[Non-Streaming Handler] Rendering the full document before sending to the client");
     const { pipe, abort } = renderToPipeableStream(<ServerRouter context={reactRouterContext} url={request.url} />, {
       onAllReady() {
+        console.log(`[Non-Streaming Handler] Full document ready, sending to client`);
         shellRendered = true;
         const body = new PassThrough();
         const stream = createReadableStreamFromReadable(body);

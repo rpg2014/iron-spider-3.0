@@ -30,7 +30,6 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, Dr
 import { useMediaQueryV2 } from "~/hooks/useMediaQuery";
 import { Route } from "./+types/dates.$dateId";
 import { commitSession, getSession } from "~/sessions/sessions.server";
-import { useAuth } from "~/hooks/useAuth";
 
 export const loader = async ({ request, params }: Route.LoaderArgs) => {
   try {

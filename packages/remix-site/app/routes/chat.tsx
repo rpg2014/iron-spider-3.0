@@ -22,15 +22,18 @@ export type OutletState = {
   temperature?: number;
   maxTokens?: number;
   storage?: "dynamodb" | "valkey";
+  backend?: "local" | "home-net";
   status?: StatusResponse;
 };
 
 export default function Chat({ loaderData }: Route.ComponentProps) {
-  const [status, setStatus] = useState<StatusResponse | undefined>();
+  // chatbot state
+  const [status, setStatus] = useState<StatusResponse>({status: "loading"});
   const [temperature, setTemperature] = useLocalStorage("modelTemperature", 0.5);
   const [maxTokens, setMaxTokens] = useLocalStorage("modelMaxTokens", 2048);
   const [storage, setStorage] = useLocalStorage<"dynamodb" | "valkey">("chatAgentStorage", "dynamodb");
   const [shareUrl, setShareUrl] = useState<string | undefined>();
+  const [backend, setBackend] = useLocalStorage<"local" | "home-net">("chatAgentStorage", "local");
 
   const outletState = useMemo(() => {
     return {

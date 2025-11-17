@@ -10,6 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { AttributeType, BillingMode, ProjectionType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { KeyPairSyncResult } from "node:crypto";
+import { Architecture, Runtime } from "aws-cdk-lib/aws-lambda";
 
 type PasskeyInfraProps = {
   userTableName: string;
@@ -158,11 +159,32 @@ export class PasskeyInfraStack extends cdk.Stack {
         }),
       ),
     );
-
+    // Create rotation Lambda function
+    const rotationLambda = new NodejsFunction(this, id + "PasskeySecretsRotationLambda", {
+      entry: path.join(__dirname, "passkeyRotationLambda.ts"), // Adjust path as needed
+      handler: "handler",
+      runtime: Runtime.NODEJS_22_X,
+      architecture: Architecture.ARM_64,
+      timeout: cdk.Duration.minutes(3),
+      memorySize: 256,
+      bundling: {
+        externalModules: [
+          '@aws-sdk/client-secrets-manager' // AWS SDK is included in Lambda runtime
+        ],
+        minify: true,
+        sourceMap: true,
+      },
+    });
+    // Grant the Lambda permission to rotate the secret
+    this.rsaSecret.grantRead(rotationLambda);
+    this.rsaSecret.grantWrite(rotationLambda);
     //TODO: create rotation lambda
-    // this.rsaSecret.addRotationSchedule(id+"VerficationCodeKeyRotation", {
-    //     rotationLambda: //TODO
-    // })
+    this.rsaSecret.addRotationSchedule(id + "VerficationCodeKeyRotation", {
+      rotationLambda: rotationLambda,
+      automaticallyAfter: cdk.Duration.days(30),
+      // Set to false if you want to manually trigger first rotation
+      rotateImmediatelyOnUpdate: false,
+    })
     //outputs for use in functions
     props.operationsAccess
       // .filter(operation => operation.functionName.includes("CreateUser"))

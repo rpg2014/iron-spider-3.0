@@ -9,6 +9,7 @@ import { Slider } from "~/components/ui/Slider";
 import { Input } from "~/components/ui/Input";
 import { Label } from "~/components/ui/Label";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "../ui/Drawer.client";
+import { Spinner } from "../ui/Spinner";
 
 export const AIBackendStatus = ({
   status,
@@ -17,7 +18,7 @@ export const AIBackendStatus = ({
   maxTokens,
   setMaxTokens,
 }: {
-  status: StatusResponse | undefined;
+  status: StatusResponse ;
   temperature: number;
   setTemperature: (value: number) => void;
   maxTokens: number;
@@ -45,9 +46,6 @@ export const AIBackendStatus = ({
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  if (!status) {
-    return <Circle style={{ color: "yellow" }} />;
-  }
 
   const handleTemperatureChange = (e: number[] | string[]) => {
     if (typeof e[0] === "number") setTemperature(e[0]);
@@ -74,6 +72,12 @@ export const AIBackendStatus = ({
           <AlertDescription>{status.message}</AlertDescription>
         </Alert>
       )}
+      {status?.status === "loading" && (
+        <Alert className="" variant="default">
+          <AlertTitle className="flex">Loading: <Spinner className="ml-2"/> </AlertTitle>
+          <AlertDescription>{status.message}</AlertDescription>
+        </Alert>
+      )} 
       <div className="settings-content">
         <h2 className="mb-1">Global Settings</h2>
         <Label className="model-label my-2">
@@ -108,8 +112,8 @@ export const AIBackendStatus = ({
   );
 
   const triggerButton = (
-    <div className="mx-5" style={{ color: status?.status == "ok" ? "green" : "red" }}>
-      {status?.status == "ok" ? <CheckCircle2 /> : <CircleX />}
+    <div className="mx-5" style={{ color: status?.status == "ok" ? "green" : status?.status === "loading" ? "yellow" : "red" }}>
+      {status?.status == "ok" ? <CheckCircle2 /> : status?.status === "loading" ? <Spinner /> : <CircleX />}
     </div>
   );
 

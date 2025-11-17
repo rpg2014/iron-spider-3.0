@@ -128,9 +128,7 @@ export class DomainAuthAssetsStack extends Stack {
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        responseHeadersPolicy: {
-          responseHeadersPolicyId: policy.responseHeadersPolicyId,
-        },
+        responseHeadersPolicy: policy,
         functionAssociations: [
           {
             function: pathRewriteFunction,

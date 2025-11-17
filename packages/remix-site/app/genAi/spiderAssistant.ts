@@ -30,7 +30,7 @@ export type Output = {
   steps?: Step[] | AgentStep[];
   finalPart?: boolean;
 };
-export type StatusResponse = { status: "ok" | "error"; message?: string; availibleModels?: string[]; availibleBackends?: string[] };
+export type StatusResponse = { status: "ok" | "error" | "loading"; message?: string; availibleModels?: string[]; availibleBackends?: string[] };
 /**
  * @deprecated I think? use Step isntead.
  */

@@ -193,7 +193,7 @@ export type AIChatProps = {
 export const useAIChat = (props?: AIChatProps) => {
   const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const { temperature, maxTokens } = useOutletContext<OutletState>();
+  const { temperature, maxTokens, backend } = useOutletContext<OutletState>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>();
   const [chatId, setChatId] = useLocalStorage("ai-chat-chatId", "2");
