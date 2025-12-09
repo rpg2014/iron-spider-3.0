@@ -11,6 +11,10 @@ import { JwtPayload } from "jsonwebtoken";
 import { toast } from "sonner";
 import { useLocalStorage } from "~/hooks/useLocalStorage.client";
 import { getGlobalAuthToken, isTokenExpired, setGlobalAuthToken } from "~/utils/globalAuth";
+import { authMiddleware } from "~/middleware/auth.server";
+
+// Middleware will refresh auth context after tokens are set in session
+export const middleware = [authMiddleware];
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -48,7 +52,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       // convert response.expires_in to expires at using temporal library
       expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
     });
-    // set the global token as well
+    // Note: Global token will be set by authMiddleware after this loader completes
+    // Keeping this for immediate availability within this request
     if (!getGlobalAuthToken() || isTokenExpired()) {
       console.log(`[OAuthCallbackPage] setting global token and expires in ${response.expires_in}`);
       setGlobalAuthToken(response.access_token, Temporal.Now.instant().add({ seconds: response.expires_in }).toString());
@@ -77,12 +82,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 const OAuthCallbackPage = ({ loaderData }: Route.ComponentProps) => {
   const [showDetails, setShowDetails] = useState(false);
-  // move the localstorage calls from below to useLocalStorage hooks
-  const [accessToken, setAccessToken] = useLocalStorage<string | null>("access-token", null);
-  const [refreshToken, setRefreshToken] = useLocalStorage<string | null>("refresh-token", null);
-  const [idToken, setIdToken] = useLocalStorage<string | null>("id-token", null);
-  const [userId, setUserId] = useLocalStorage<string | null>("user-id", null);
-  const [authSessionId, setAuthSessionId] = useLocalStorage<string | null>("auth-session-id", null);
 
   const navigate = useNavigate();
   // clean query params out of the url

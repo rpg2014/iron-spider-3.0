@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Route } from "react-router";
 import Layout from "./pages/Layout.tsx";
 import Login, { loader as LoginLoader } from "./pages/Login.tsx";
 import Signup from "./pages/signup.tsx";

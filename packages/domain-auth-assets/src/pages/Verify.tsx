@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import Spinner from "../components/Spinner";
 import Alert from "../components/Alert";
 import { useEffect, useState } from "react";
@@ -10,7 +10,7 @@ const EMAIL_TOKEN_QUERY_PARAM = "magic";
 
 export const Verify = () => {
   const [searchParams] = useSearchParams();
-  const [results, setResults] = useState();
+  const [results, setResults] = useState<boolean | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [state, setState] = useState("Initial State");
 
@@ -36,10 +36,10 @@ export const Verify = () => {
 
         setState("Starting Registration");
         console.log("startRegistrationCall with above JSON");
-        const attResp = await startRegistration(registrationOptions);
+        const attResp = await startRegistration(registrationOptions as any);
         console.log("attResp: ", JSON.stringify(attResp, null, 2));
         setState("Verifying Registration");
-        const verificationResponse = await fetcher("https://api.parkergiven.com/v1/registration/verification", {
+        const verificationResponse = await fetcher<{verified: boolean, userId: string}>("https://api.parkergiven.com/v1/registration/verification", {
           method: "POST",
           body: JSON.stringify({
             verficationResponse: JSON.stringify(attResp),

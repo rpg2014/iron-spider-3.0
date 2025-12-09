@@ -1,6 +1,5 @@
 import { renderToString } from "react-dom/server";
-import { createStaticHandler, createStaticRouter, StaticRouterProvider } from "react-router-dom/server";
-import { createRoutesFromElements } from "react-router-dom";
+import { createStaticHandler, createStaticRouter, StaticRouterProvider, createRoutesFromElements } from "react-router";
 import { AppRoutes } from "./Routes.tsx";
 
 export async function render(url: string) {

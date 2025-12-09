@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router";
 import { useLoginContext } from "../context/LoginContext";
 import { fetcher } from "../util";
 import { API_PATH } from "../constants";

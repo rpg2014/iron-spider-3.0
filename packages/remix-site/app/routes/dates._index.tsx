@@ -21,11 +21,6 @@ import { Skeleton } from "~/components/ui/Skeleton";
  */
 export const loader = async ({ request }: Route.LoaderArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
-  // prime global token if not there already. This is an edge case where the user is logged in but the token is not in the session
-  if (session.has("oauthTokens") && !getGlobalAuthToken()) {
-    const oauthTokens = session.get("oauthTokens");
-    setGlobalAuthToken(oauthTokens.accessToken, oauthTokens.expiresAt);
-  }
 
   const dateService = getDateService();
   if (session.has("userId")) {

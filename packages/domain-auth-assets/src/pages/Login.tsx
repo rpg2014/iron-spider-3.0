@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData } from "react-router";
 import { GenerateAuthOptionsResults } from "../hooks/useLogin.ts";
 import { LoginForm } from "../components/LoginForm.tsx";
 import { generateAuthOptions, useLoginContext } from "../context/LoginContext.tsx";

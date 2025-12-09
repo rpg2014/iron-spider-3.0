@@ -3,7 +3,7 @@ import { AUTH_OPTIONS, AUTH_VERIFICATION, USER_ID_TOKEN_KEY } from "../constants
 import { fetcher, isSSR } from "../util";
 import { startAuthentication, browserSupportsWebAuthnAutofill } from "@simplewebauthn/browser";
 import { GenerateAuthenticationOptionsCommandOutput, VerifyAuthenticationCommandOutput } from "iron-spider-client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 export function getRedirectURL(): string | undefined {
   if (isSSR) {

@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router";
 import styles from "./Layout.module.scss";
 import { useState, useEffect } from "react";
 import { fetcher } from "../util";

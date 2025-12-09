@@ -16,6 +16,8 @@ import { checkIdTokenAuthV2, isLambda } from "./utils/utils.server";
 import { AuthProvider } from "./hooks/useAuth";
 import { toast } from "sonner";
 import { xrayContext } from "../server/context";
+import { authMiddleware } from "./middleware/auth.server";
+import { authUserContext, isAuthenticatedContext } from "./contexts/auth";
 
 export const links: LinksFunction = () => {
   return [
@@ -37,6 +39,9 @@ export const meta: MetaFunction = () => [
   { title: "Parker's Remix site" },
 ];
 
+// Middleware handles auth checking and token refresh
+export const middleware = [authMiddleware];
+
 export async function loader({ request, context }: Route.LoaderArgs) {
   console.log(`[root loader] Handling request for ${request.url}, with context ${context}`);
   try {
@@ -44,27 +49,22 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   }catch (e) {
     console.log("error when accessing new context");
   }
-  const authResult = await checkIdTokenAuthV2(request);
+  
+  // Auth is now handled by middleware - just read from context
+  const isAuthenticated = context.get(isAuthenticatedContext);
+  const authUser = context.get(authUserContext);
+  
   const initialStatus = await MCServerApi.getStatus();
 
-  return data(
-    {
-      auth: {
-        authenticated: authResult.verified,
-        accessToken: authResult.verified ? authResult.oauthDetails?.accessToken : undefined,
-        expiresAt: authResult.verified ? authResult.oauthDetails?.expiresAt : undefined,
-      },
-      initialStatus,
-      isLambda: isLambda,
+  return data({
+    auth: {
+      authenticated: isAuthenticated,
+      accessToken: authUser?.accessToken,
+      expiresAt: authUser?.expiresAt,
     },
-    authResult.cookieHeader
-      ? {
-          headers: {
-            "Set-Cookie": authResult.cookieHeader,
-          },
-        }
-      : undefined,
-  );
+    initialStatus,
+    isLambda: isLambda,
+  });
 }
 // export const headers: Route.HeadersFunction = () => ({
 //   // cache control 5 mins

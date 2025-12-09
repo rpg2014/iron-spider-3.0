@@ -25,6 +25,8 @@ export const ErrorBoundary = () => {
         error.data = JSON.parse(error.data) as ErrorMessage;
       } catch (e) {
         console.warn(`Error parsing error data as JSON: `, e);
+        const errorIsString = typeof error.data === "string";
+        console.log(`Error data is a string: `, errorIsString)
         error.data = { message: error.data } as ErrorMessage;
       }
     }
