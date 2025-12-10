@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { toast } from "sonner";
 import { AUTH_DOMAIN } from "../constants";
 import apiKeys from "../../../../.api_keys.json";
 export const isServer = typeof window === "undefined";
@@ -53,7 +54,10 @@ export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, i
       headers,
     });
     console.log(`Got ${res.status} from path: ${init?.method ?? "GET"} ${input.toString()}`);
-
+    // if request path contains date, don't show toast
+    if (input.toString().includes('date') === false) {
+      serverTimingsToast(input.toString());
+    }
     const data: T | Error = await res.json();
     if (res.status >= 400) {
       console.error(`Got ${res.status} error from backend`);
@@ -79,3 +83,33 @@ export function cn(...inputs: ClassValue[]) {
 
 export const getLoginRedirect = (returnLocation: string) =>
   `${AUTH_DOMAIN}?return_url=${encodeURIComponent(returnLocation)}&message=${encodeURIComponent(`Need To login`)}`;
+
+/**
+ * Displays server timing metrics from the Performance API in a toast notification.
+ * 
+ * @param {string} path - The path/URL to search for in performance entries
+ */
+export const serverTimingsToast = (path: string = '/') => {
+  setTimeout(() => {
+    const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+    // Find the most recent entry that matches the provided path
+    const recentEntry = entries
+      .filter(entry => entry.name.includes(path))
+      .sort((a, b) => b.startTime - a.startTime)[0];
+    
+    if (recentEntry && recentEntry.serverTiming && recentEntry.serverTiming.length > 0) {
+      const timingInfo = recentEntry.serverTiming
+        .map(timing => `${timing.name}: ${timing.duration.toFixed(2)}ms`)
+        .join('\n');
+      // TODO setup a setting for this
+      toast.info('Server Timing Metrics', {
+        description: timingInfo,
+        duration: Infinity,
+        action: {
+          label: 'Dismiss',
+          onClick: () => toast.dismiss()
+        }
+      });
+    }
+  }, 50); // Small delay to ensure performance entry is recorded
+};

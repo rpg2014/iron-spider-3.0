@@ -1,25 +1,21 @@
-import { HandlerContext } from "./model/models";
+import { AuthorizerPolicy, HandlerContext, PolicyDocument } from "./model/models";
+
+
 
 // Help function to generate an IAM policy
-const generatePolicy = function(principalId: string, effect: string, resource: string, context?: any | HandlerContext) {
+const generatePolicy = function(principalId: string, effect: string, resource: string, context?: any | HandlerContext): AuthorizerPolicy {
     // Required output:
-    var authResponse: {
-        principalId?: string,
-        policyDocument?: any,
-        context?: {
-            [key: string]: string | number | boolean
-        } | HandlerContext
-    } = {};
+    var authResponse: AuthorizerPolicy = {};
     authResponse.principalId = principalId;
     if (effect && resource) {
-        var policyDocument:any = {};
-        policyDocument.Version = '2012-10-17'; // default version
-        policyDocument.Statement = [];
-        var statementOne:any = {};
-        statementOne.Action = 'execute-api:Invoke'; // default action
-        statementOne.Effect = effect;
-        statementOne.Resource = resource;
-        policyDocument.Statement[0] = statementOne;
+        var policyDocument: PolicyDocument = {
+            Version: '2012-10-17',
+            Statement: [{
+                Action: 'execute-api:Invoke',
+                Effect: effect as 'Allow' | 'Deny',
+                Resource: resource
+            }]
+        };
         authResponse.policyDocument = policyDocument;
     }
     // Optional output with custom properties of the String, Number or Boolean type.

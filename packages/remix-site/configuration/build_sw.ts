@@ -5,7 +5,8 @@ import esbuild from "esbuild";
 /**
  *
  * NOT USED YET
- * Builds the service worker and copies public files to the build directory. NOT USED YET
+ * Builds the service worker and copies public files to the build directory. NOT USED YET, prob need to figure out how to run ts
+ * the complication comes from the migration to esm, ts-node doens't like it. 
  *
  * @param {Object} options - Options for building the service worker.
  * @param {string} options.serviceWorkerEntry - The entry point for the service worker file.

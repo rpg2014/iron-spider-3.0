@@ -1,5 +1,20 @@
 import { IronSpiderService } from "iron-spider-ssdk"
+export interface PolicyStatement {
+    Action: string;
+    Effect: 'Allow' | 'Deny';
+    Resource: string;
+}
 
+export interface PolicyDocument {
+    Version: string;
+    Statement: PolicyStatement[];
+}
+
+export interface AuthorizerPolicy {
+    principalId?: string;
+    policyDocument?: PolicyDocument;
+    context?: HandlerContext | { [key: string]: string | number | boolean };
+}
 export interface event {
     "type": "REQUEST",
     "methodArn": string,
@@ -53,4 +68,8 @@ export interface event {
    oauth?: string;//{
     // clientId?: string;
 // }
+   // Performance timing metrics
+   authV1DurationMs?: number;
+   authV2DurationMs?: number;
+   totalAuthDurationMs?: number;
  }

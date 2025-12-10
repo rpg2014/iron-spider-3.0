@@ -61,7 +61,7 @@ export default function BabylonjsRenderer() {
         createUnderwaterEnvironment(sceneContext);
 
         // Create fish meshes for each boid
-        const fishMeshes = createFishMeshes(sceneContext, serializedBoids);
+        const fishMeshes = await createFishMeshes(sceneContext, serializedBoids);
         fishMeshesRef.current = fishMeshes;
 
         // Create bubbles

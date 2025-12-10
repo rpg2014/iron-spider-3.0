@@ -1,5 +1,5 @@
 import { ServerNavMenuItem } from "./ServerNavMenuItem";
-import { Wrench, Zap, Code, Box, ExternalLink, MessageSquare, Link2, Cookie, Settings } from "lucide-react";
+import { Wrench, Zap, Code, Box, ExternalLink, MessageSquare, Link2, Cookie, Settings, Activity } from "lucide-react";
 
 export const ProjectsNavItems = [
   {
@@ -29,6 +29,13 @@ export const ProjectsNavItems = [
     icon: Cookie,
     color: "from-red-500 to-blue-500",
     description: "Cookie Management",
+  },
+  {
+    to: "/server-timing",
+    label: "Server Timing",
+    icon: Activity,
+    color: "from-indigo-500 to-purple-500",
+    description: "Performance timing data",
   },
   {
     to: "/settings",

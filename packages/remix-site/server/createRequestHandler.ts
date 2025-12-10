@@ -112,14 +112,14 @@ export function createRequestHandler({
     // res.end();
     // until here =================================================================================
     console.log(`Returning Response for path: ${request.url} with status: ${response.status}`);
+    
     const cloudfrontHeaders = createCloudFrontHeaders(response.headers);
-    // add server timing header to headers
-    cloudfrontHeaders["server-timing"] = [
-      {
-        key: "server-timing",
-        value: `total;dur=${Date.now() - startTime}`,
-      },
-    ];
+    
+    // Add server-timing header after conversion to capture full processing time
+    cloudfrontHeaders["Server-Timing"] = [{
+      key: "Server-Timing",
+      value: `total;dur=${Date.now() - startTime}`
+    }];
     return {
       status: String(response.status),
       headers: cloudfrontHeaders,

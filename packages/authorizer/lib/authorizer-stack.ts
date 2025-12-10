@@ -6,6 +6,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import * as path from "path";
+import * as iam from 'aws-cdk-lib/aws-iam';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class AuthorizerStack extends cdk.Stack {
@@ -28,6 +29,15 @@ export class AuthorizerStack extends cdk.Stack {
     })
 
     this.AuthorizerFunction.role?.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonDynamoDBFullAccess"))
+    
+    // Add CloudWatch permission for PutMetricData
+    this.AuthorizerFunction.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['cloudwatch:PutMetricData'],
+        resources: ['*'],
+      })
+    )
 
     this.role = new Role(this, "IronSpiderAuthorizerRole", {
       assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),

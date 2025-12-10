@@ -18,6 +18,7 @@ const addCORSHeaders = (allowed?: { origin: string; headers: string }): Record<s
     "access-control-allow-headers": allowed.headers,
     "access-control-allow-methods": "POST, GET, OPTIONS, DELETE, PUT",
     "access-control-allow-credentials": "true",
+    "Timing-Allow-Origin": allowed.origin,
     Vary: "Origin",
   };
 };
@@ -144,6 +145,15 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
 
         addToHeader("x-pg-response-time", timingMetric);
         addToHeader("Server-Timing", `api;dur=${responseTime}`);
+        if (authContext.authV1DurationMs) {
+          addToHeader("Server-Timing", `authV1;dur=${authContext.authV1DurationMs}`);
+        }
+        if (authContext.authV2DurationMs) {
+          addToHeader("Server-Timing", `authV2;dur=${authContext.authV2DurationMs}`);
+        }
+        const equalResult: boolean = authContext.authV2MigrationShadowMode === 'success'
+        // add shadow mode result
+        addToHeader("Server-Timing", `shadow;dur=${equalResult ? 1 : 0};desc=${equalResult ? "success" : "failure"}`);
         //@ts-ignore: We know this is present from logs
         if (authContext.integrationLatency) {
           //@ts-ignore: We know this is present from logs
@@ -152,6 +162,7 @@ export function getApiGatewayHandler(handler: ServiceHandler<HandlerContext>): A
           responseTime = Number.parseInt(responseTime) + Number.parseInt(authContext.integrationLatency);
         }
         addToHeader("Server-Timing", `total;dur=${responseTime}`);
+
       }
       // console.debug("apiResponse: ", apiResponse);
       return apiResponse;

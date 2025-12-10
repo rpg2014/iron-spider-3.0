@@ -9,7 +9,7 @@ const getFromCache = async (request: Request) => {
   return cache.match(request);
 };
 
-export const fetchIntercepter = event => {
+export const fetchIntercepter = (event: FetchEvent) => {
   const startTime = Date.now();
   // attempt network fetch, then show 404 page on error.
   event.respondWith(handleFetch(event, startTime));
@@ -43,12 +43,24 @@ const handleFetch = async (event: FetchEvent, startTime: number) => {
     // }
 
     //try to use cache, if its not present, show 404
-    handleFetchError(event.request);
+    return handleFetchError(event.request);
   }
 };
 function addResponseTimeHeader(response: Response, startTime: number) {
   const headers = new Headers(response.headers);
-  headers.set("x-pg-sw-response-time", `${Date.now() - startTime}ms`);
+  const responseTime = Date.now() - startTime;
+  headers.set("x-pg-sw-response-time", `${responseTime}ms`);
+  
+  // Handle Server-Timing header
+  const existingTiming = headers.get("Server-Timing");
+  const swTiming = `sw;dur=${responseTime}`;
+  
+  if (existingTiming) {
+    headers.set("Server-Timing", `${existingTiming}, ${swTiming}`);
+  } else {
+    headers.set("Server-Timing", swTiming);
+  }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -75,27 +87,28 @@ async function handle3pCall(request: Request, event: FetchEvent) {
   console.log("Fetching external data", request.url);
   console.log(`Headers of interest: spider-token:${request.headers.get("spider-access-token")}`);
   try {
-    const res = await fetch(request); //, {
+    const res = await fetch(request); 
 
     console.log("Got response from network", res.status);
 
     return res;
   } catch (e) {
     console.warn("Error fetching external data", e);
+    const error = e instanceof Error ? e : new Error(String(e));
     if (request.url.includes("/server/stop")) {
       return Response.json(
         {
-          message: "Error in service worker" + e.message + "\n\nThis is probably due to stop taking a long time, try refreshing, it might have succeeded.",
-          error: JSON.stringify(e),
-          cause: e.cause,
-          stack: e.stack,
+          message: "Error in service worker" + error.message + "\n\nThis is probably due to stop taking a long time, try refreshing, it might have succeeded.",
+          error: JSON.stringify(error),
+          cause: error.cause,
+          stack: error.stack,
         },
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     } else {
       console.log("Returning error");
       return Response.json(
-        { message: "Error in service worker: " + e.message, error: JSON.stringify(e), cause: e.cause, stack: e.stack },
+        { message: "Error in service worker: " + error.message, error: JSON.stringify(error), cause: error.cause, stack: error.stack },
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }

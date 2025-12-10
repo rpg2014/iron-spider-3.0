@@ -1,11 +1,60 @@
 import type * as BABYLON_TYPES from "@babylonjs/core";
+import { ImportMeshAsync } from "@babylonjs/core/Loading/sceneLoader";
 import type { BabylonSceneContext, FishMeshes } from "./types";
 import type { JSBoid } from "../../model";
 
 /**
  * Creates fish meshes for each boid and returns an object with the meshes and update function
+ * Set USE_3D_MODEL to true and provide a model path to use imported 3D models
  */
-export function createFishMeshes(context: BabylonSceneContext, boids: JSBoid[]): FishMeshes {
+export async function createFishMeshes(context: BabylonSceneContext, boids: JSBoid[]): Promise<FishMeshes> {
+  const USE_3D_MODEL = false; // Set to true to use 3D models
+  const MODEL_PATH = "/models/"; // Path to your model files
+  const MODEL_FILE = "fish.glb"; // Your model filename
+
+  if (USE_3D_MODEL) {
+    return await createFishMeshesFrom3DModel(context, boids, MODEL_PATH, MODEL_FILE);
+  }
+  
+  return createFishMeshesFromPrimitives(context, boids);
+}
+
+/**
+ * Creates fish meshes from imported 3D models
+ */
+async function createFishMeshesFrom3DModel(
+  context: BabylonSceneContext,
+  boids: JSBoid[],
+  modelPath: string,
+  modelFile: string
+): Promise<FishMeshes> {
+  const { scene, babylonModule } = context;
+  const fishMeshes: BABYLON_TYPES.Mesh[] = [];
+
+  // Load the model once
+  const result = await ImportMeshAsync(modelPath,scene);
+  const originalMesh = result.meshes[0] as BABYLON_TYPES.Mesh;
+  originalMesh.setEnabled(false); // Hide the original
+
+  // Clone for each boid
+  boids.forEach((boid, index) => {
+    const fish = originalMesh.clone("fish" + index, null) as BABYLON_TYPES.Mesh;
+    fish.setEnabled(true);
+    fish.position = new babylonModule.Vector3(boid.x, 0, boid.y);
+    fish.rotation.y = boid.theta;
+    fishMeshes.push(fish);
+  });
+
+  return {
+    meshes: fishMeshes,
+    update: (boids: JSBoid[], ticks: number) => updateFishPositions(context, fishMeshes, boids, ticks),
+  };
+}
+
+/**
+ * Creates fish meshes from primitive shapes (original implementation)
+ */
+function createFishMeshesFromPrimitives(context: BabylonSceneContext, boids: JSBoid[]): FishMeshes {
   const { scene, babylonModule } = context;
   const fishMeshes: BABYLON_TYPES.Mesh[] = [];
 
@@ -56,7 +105,6 @@ export function createFishMeshes(context: BabylonSceneContext, boids: JSBoid[]):
     fishMeshes.push(fish);
   });
 
-  // Return the meshes and update function
   return {
     meshes: fishMeshes,
     update: (boids: JSBoid[], ticks: number) => updateFishPositions(context, fishMeshes, boids, ticks),

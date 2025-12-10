@@ -2,26 +2,75 @@ import { event } from "./model/models";
 import { generateAllow, generateDeny } from "./utils";
 import { AUTH_CONFIG, OPERATION_CONFIG } from "./config/authConfig";
 import { AuthenticationResult, AuthenticationService } from "./services/AuthenticationService";
+import { CloudWatchClient, PutMetricDataCommand } from "@aws-sdk/client-cloudwatch";
 
 const authService = new AuthenticationService();
+const cloudWatchClient = new CloudWatchClient({});
 export const authHandler = async (event: event, context) => {
+    const totalStartTime = performance.now();
     console.log(`[AuthHandler] Received request for operation: ${event.requestContext.operationName}, path: ${event.path}, method: ${event.httpMethod}`);
     console.log(`[AuthHandler] Request id: ${JSON.stringify(event.requestContext.requestId)}, Extended RequestId: ${event.requestContext.extendedRequestId}`);
     console.debug(`[AuthHandler] Request: ${JSON.stringify(event)}`);
+    
+    const v1StartTime = performance.now();
     const v1Result = await authHandlerV1(event, context);
+    const v1Duration = performance.now() - v1StartTime;
+    
+    const v2StartTime = performance.now();
     const v2Result = await authHandlerV2(event, context);
+    const v2Duration = performance.now() - v2StartTime;
+    
+    console.log(`[AuthHandler] V1 duration: ${v1Duration.toFixed(2)}ms`);
+    console.log(`[AuthHandler] V2 duration: ${v2Duration.toFixed(2)}ms`);
     console.log(`[AuthHandler] V1 result: ${JSON.stringify(v1Result)}`)
     console.log(`[AuthHandler] V2 result: ${JSON.stringify(v2Result)}`);
     // check shadow mode
     if (!v1Result.context) v1Result.context = {};
-    if(JSON.stringify(v1Result) === JSON.stringify(v2Result)) {
-        console.log(`[AuthHandler] V1 and V2 results are the same`)
-        // emit cloudwatch metric
+    if(v1Result.policyDocument?.Statement[0].Effect === v2Result.policyDocument?.Statement[0].Effect) {
         v1Result.context['authV2MigrationShadowMode'] = 'success'
     } else {
         console.log(`[AuthHandler] V1 and V2 results are different`)
         v1Result.context['authV2MigrationShadowMode'] = 'failure'
     }
+
+    // Add timing metrics to context
+    v1Result.context['authV1DurationMs'] = parseFloat(v1Duration.toFixed(2));
+    v1Result.context['authV2DurationMs'] = parseFloat(v2Duration.toFixed(2));
+    
+
+    
+    // Calculate total duration
+    const totalDuration = performance.now() - totalStartTime;
+    v1Result.context['totalAuthDurationMs'] = parseFloat(totalDuration.toFixed(2));
+    console.log(`[AuthHandler] Total auth duration: ${totalDuration.toFixed(2)}ms`);
+    
+    // emit cloudwatch metric
+    console.log(`[AuthHandler] Emitting CloudWatch metric for authV2MigrationShadowMode: ${v1Result.context['authV2MigrationShadowMode']}`);
+    // put metric to cloudwatch
+    try {
+        const command = new PutMetricDataCommand({
+            MetricData: [
+                {
+                    MetricName: 'authV2MigrationShadowMode',
+                    Dimensions: [
+                        {
+                            Name: 'authV2MigrationShadowMode',
+                            Value: v1Result.context['authV2MigrationShadowMode']
+                        }
+                    ],
+                    Unit: 'Count',
+                    Value: 1
+                }
+            ],
+            Namespace: 'IronAuth'
+        });
+        await cloudWatchClient.send(command);
+        console.log(`[AuthHandler] Successfully emitted CloudWatch metric`);
+    } catch (err) {
+        console.log(`[AuthHandler] Error putting metric data: ${err}`);
+    }
+
+
     // todo remove v1 stuff
     // if operation take client basic or bearer auth auth, return v2 result
     if (event.headers && event.headers['Authorization'] && event.headers['Authorization'].startsWith('Basic')) {

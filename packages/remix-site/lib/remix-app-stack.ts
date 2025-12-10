@@ -21,6 +21,7 @@ import {
   OriginRequestPolicy,
   OriginRequestQueryStringBehavior,
   PriceClass,
+  ResponseHeadersPolicy,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import type { FunctionUrl } from "aws-cdk-lib/aws-lambda";
@@ -116,6 +117,17 @@ export class RemixAppStack extends Stack {
       });
     }
 
+    const responseHeadersPolicy = new ResponseHeadersPolicy(this, "ResponseHeadersPolicy", {
+      // serverTimingSamplingRate: 100,
+      customHeadersBehavior: {
+        customHeaders: [
+          { header: "x-pg-sw-response-time", value: "{0}", override: true },
+          { header: "x-pg-sw-response-time-dur", value: "{0}", override: true },
+          { header: "Server-Timing", value: "{0}", override: false}
+        ],
+      },
+    });
+
     const distribution = new Distribution(this, id + "Distribution", {
       certificate: Certificate.fromCertificateArn(this, "certArn", props.certificateArn),
       enableLogging: false,
@@ -148,6 +160,7 @@ export class RemixAppStack extends Stack {
           queryStringBehavior: OriginRequestQueryStringBehavior.all(),
           cookieBehavior: OriginRequestCookieBehavior.all(),
         }),
+        responseHeadersPolicy,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
       // Static assets are retrieved from the /assets path.
