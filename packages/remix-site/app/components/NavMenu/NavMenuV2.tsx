@@ -21,7 +21,7 @@ export const NavMenuV2 = ({ className }: NavMenuV2Props) => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className={cn("relative w-full ", className)}>
+    <nav className={cn(" w-full py-2", className)}>
       {/* Desktop Navigation */}
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-12 items-center justify-between">
@@ -80,7 +80,7 @@ export const NavMenuV2 = ({ className }: NavMenuV2Props) => {
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right animate-fade-in rounded-md bg-background shadow-lg ring-1 ring-gray-300 ring-opacity-50 focus:outline-none  ">
+                  <div className="absolute right-0 z-50 mt-2 w-48 origin-top-right animate-fade-in rounded-md bg-background shadow-lg ring-1 ring-gray-300 ring-opacity-50 focus:outline-none  ">
                     <div className="border-white py-1">
                       {ProjectsNavItems.map((link, index) => (
                         <Link

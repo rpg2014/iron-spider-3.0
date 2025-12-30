@@ -24,10 +24,11 @@ const handleFetch = async (event: FetchEvent, startTime: number) => {
     // console.log("Fetching page", event.request.url.replace("https://remix.parkergiven.com", ""));
     const response = await fetch(event.request);
 
-    // emit message to client on whats being cached.
-    await notifyClient(event, response);
+    
     // only cache if under /assets
     if (event.request.url.includes("/assets/")) {
+      // emit message to client on whats being cached.
+      await notifyClient(event, response);
       putInCache(event.request, response.clone());
     }
 

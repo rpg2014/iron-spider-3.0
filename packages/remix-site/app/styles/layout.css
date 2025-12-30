@@ -13,20 +13,17 @@
 }
 
 .remix-app__header {
-  padding-top: 0.5rem; /* Smaller padding by default (mobile) */
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border);
   overflow: visible;
   transition: all 0.3s ease-in-out; /* Smooth transition for all properties */
+  
 }
 
 .loading-indicator {
-  position: relative;
-  overflow: hidden;
-  /* z-index: 100; */
+  overflow-x: hidden;
 }
 
-.loading-indicator::before {
+.loading-indicator::after {
+  overflow: hidden;
   content: "";
   position: absolute;
   top: 0;
@@ -55,7 +52,7 @@
   }
   100% {
     /* used to be 100% */
-    transform: translateX(110vw);
+    transform: translateX(100vw);
   }
 }
 .remix-app__header-content {
@@ -115,10 +112,7 @@
 }
 
 @media print, screen and (min-width: 640px) {
-  .remix-app__header {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-  }
+  
   .remix__page {
     --gap: 2rem;
     grid-auto-rows: unset;

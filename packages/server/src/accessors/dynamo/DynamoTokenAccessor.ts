@@ -158,6 +158,7 @@ export class DynamoTokenAccessor extends OAuthTokenAccessor {
    * @param tokenId The ID of the token to delete
    */
   async deleteToken(tokenId: string): Promise<void> {
+    console.log("Deleting token with ID:", tokenId);
     try {
       await this.ddbdocClient.send(
         new DeleteCommand({

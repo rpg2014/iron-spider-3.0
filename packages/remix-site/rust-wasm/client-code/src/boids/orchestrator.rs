@@ -137,49 +137,73 @@ impl BoidOrchestrator {
     }
 
     pub fn get_velocity_to_percived_center_x(&self, boid_id: usize) -> f32 {
-        self.get_velocity_to_perceived_center(self.get_boid(boid_id))
-            .x
+        match self.get_boid(boid_id) {
+            Some(boid) => self.get_velocity_to_perceived_center(boid).x,
+            None => 0.0,
+        }
     }
     
     pub fn get_velocity_to_percived_center_y(&self, boid_id: usize) -> f32 {
-        self.get_velocity_to_perceived_center(self.get_boid(boid_id))
-            .y
+        match self.get_boid(boid_id) {
+            Some(boid) => self.get_velocity_to_perceived_center(boid).y,
+            None => 0.0,
+        }
     }
     
     pub fn get_avoidance_velocity_x(&self, boid_id: usize) -> f32 {
-        self.get_avoidance_velocity(self.get_boid(boid_id)).x
+        match self.get_boid(boid_id) {
+            Some(boid) => self.get_avoidance_velocity(boid).x,
+            None => 0.0,
+        }
     }
     
     pub fn get_avoidance_velocity_y(&self, boid_id: usize) -> f32 {
-        self.get_avoidance_velocity(self.get_boid(boid_id)).y
+        match self.get_boid(boid_id) {
+            Some(boid) => self.get_avoidance_velocity(boid).y,
+            None => 0.0,
+        }
     }
     
     pub fn get_match_percived_velocity_x(&self, boid_id: usize) -> f32 {
-        self.get_avoidance_velocity(self.get_boid(boid_id)).x
+        match self.get_boid(boid_id) {
+            Some(boid) => self.get_match_percived_velocity(boid).x,
+            None => 0.0,
+        }
     }
     
     pub fn get_match_percived_velocity_y(&self, boid_id: usize) -> f32 {
-        self.get_avoidance_velocity(self.get_boid(boid_id)).y
+        match self.get_boid(boid_id) {
+            Some(boid) => self.get_match_percived_velocity(boid).y,
+            None => 0.0,
+        }
     }
 
     pub fn get_velocity_mag(&self, boid_id: usize) -> f32 {
-        let boid: &Boid = self.get_boid(boid_id);
-        boid.velocity.magnitude()
+        match self.get_boid(boid_id) {
+            Some(boid) => boid.velocity.magnitude(),
+            None => 0.0,
+        }
     }
     
     pub fn get_velocity_direction(&self, boid_id: usize) -> f64 {
-        let boid = self.get_boid(boid_id);
-        return atan2(boid.velocity.y as f64, boid.velocity.x as f64);
+        match self.get_boid(boid_id) {
+            Some(boid) => atan2(boid.velocity.y as f64, boid.velocity.x as f64),
+            None => 0.0,
+        }
     }
 
     pub fn get_velocity_x(&self, boid_id: usize) -> f32 {
-        let boid: &Boid = self.get_boid(boid_id);
-        boid.velocity.x
+        match self.get_boid(boid_id) {
+            Some(boid) => boid.velocity.x,
+            None => 0.0,
+        }
     }
 
     pub fn get_velocity_y(&self, boid_id: usize) -> f32 {
-        let boid: &Boid = self.get_boid(boid_id);
-        boid.velocity.y
+        match self.get_boid(boid_id) {
+            Some(boid) => boid.velocity.y,
+            None => 0.0,
+        }
     }
 
     // World settings getters and setters
@@ -248,11 +272,10 @@ impl fmt::Display for BoidOrchestrator {
 }
 
 impl BoidOrchestrator {
-    fn get_boid(&self, boid_id: usize) -> &Boid {
+    fn get_boid(&self, boid_id: usize) -> Option<&Boid> {
         self.boids
             .iter()
             .find(|boid| boid.id == boid_id as u32)
-            .unwrap()
     }
     
     fn apply_rules(&self, boid: &Boid, dt: f32) -> Boid {

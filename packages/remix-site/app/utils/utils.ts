@@ -56,14 +56,15 @@ export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, i
     console.log(`Got ${res.status} from path: ${init?.method ?? "GET"} ${input.toString()}`);
     // if request path contains date, don't show toast
     if (input.toString().includes('date') === false) {
-      serverTimingsToast(input.toString());
+      // TODO: make settings based
+      // serverTimingsToast(input.toString());
     }
     const data: T | Error = await res.json();
     if (res.status >= 400) {
       console.error(`Got ${res.status} error from backend`);
       throw { message: (data as Error).message, status: res.status, statusText: res.statusText };
     }
-    console.log(`Got Data: ${JSON.stringify(data, null, 2)}`);
+    console.log(`Got Data: ${JSON.stringify(data, null, 2).split('\n').slice(0,10).join('\n')}...`);
     return data as T;
   } catch (e: any) {
     console.error(`Error caught when fetching response ${e}: message: ${e.message}`, e);

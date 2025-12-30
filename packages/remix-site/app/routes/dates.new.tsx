@@ -75,7 +75,6 @@ export const action = async ({ request }: Route.ActionArgs) => {
 
 export const loader = async ({ request, context, params }: Route.LoaderArgs) => {
   try {
-    const session = await getSession(request.headers.get("Cookie"));
     const url = new URL(request.url);
     const placeId = url.searchParams.get("placeId");
     if (placeId) {
@@ -94,6 +93,7 @@ export const loader = async ({ request, context, params }: Route.LoaderArgs) => 
             connectedUsers: [{ displayName: "testUser", userId: "1" }] as ConnectedUser[],
           });
       }
+      // todo, I should make this expereinece better, such as retuning null and redirecting after a message, or seomting
       console.log(`Location not found for place, redirecting back.`);
     }
     // return null;

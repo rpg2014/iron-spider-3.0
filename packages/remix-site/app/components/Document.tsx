@@ -98,6 +98,7 @@ export function Document({ children, title }: { children: React.ReactNode; title
         {title ? <title>{title}</title> : null}
         <Meta />
         <Links />
+        <link rel="preconnect" href="https://api.parkergiven.com" />
       </head>
       <body data-theme={theme} className="dark">
         {children}

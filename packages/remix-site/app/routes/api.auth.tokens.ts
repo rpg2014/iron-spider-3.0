@@ -1,10 +1,7 @@
 import { data } from "react-router";
 import { Route } from "./+types/api.auth.tokens";
-import { authMiddleware } from "~/middleware/auth.server";
 import { authUserContext, isAuthenticatedContext } from "~/contexts/auth";
 
-// Middleware handles auth checking and token refresh
-export const middleware = [authMiddleware];
 
 export async function loader({ context }: Route.LoaderArgs) {
   // Auth is now handled by middleware - just read from context

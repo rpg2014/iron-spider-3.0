@@ -58,6 +58,12 @@ export const ServerProvider = ({ children, initialState }: { children: React.Rea
     if (!initialState) {
       actions.status();
       actions.details();
+    } else {
+      // delayed hydration
+      setTimeout(() => {
+        actions.status();
+        // actions.details();
+      }, 500);
     }
   }, []);
 

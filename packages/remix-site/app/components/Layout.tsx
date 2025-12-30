@@ -16,8 +16,8 @@ export const links = () => [{ rel: "stylesheet", href: layoutStyles }];
 export function Layout({ children }: React.PropsWithChildren<{}>) {
   const { state } = useNavigation();
   return (
-    <div className="remix-app dark">
-      <header className={"remix-app__header border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-10"}>
+    <div className="remix-app dark ">
+      <header className={"remix-app__header sticky top-0 z-50"}>
         {/* Needed bc something in the nav menu breaks hydration / causes a mismatch */}
         <Suspense fallback={<p>loading NavMenu...</p>}>
           {/* <div className="remix-app__header-content">
@@ -28,10 +28,10 @@ export function Layout({ children }: React.PropsWithChildren<{}>) {
             <NavMenu />
           </div>
           <div className="h-[1px] w-full bg-white" /> */}
-          <NavMenuV2 className="" />
+          <NavMenuV2 className={"bg-slate-900/50 backdrop-blur-sm  " + (state !== "idle" ? "loading-indicator" : "")} />
         </Suspense>
       </header>
-      <div className={"remix-app__main " + (state !== "idle" ? "loading-indicator" : "")}>
+      <div className={"remix-app__main "+ (state !== "idle" ? "opacity-50" : "") }>
         <div className="remix-app__main-content">{children}</div>
       </div>
       <footer className="remix-app__footer">

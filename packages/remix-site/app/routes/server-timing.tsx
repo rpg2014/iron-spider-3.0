@@ -45,7 +45,7 @@ function ServerTimingTable() {
     authV2DurationMs: null,
     authV2MigrationShadowMode: null,
   });
-  
+
   const [authV1Average, setAuthV1Average] = useLocalStorage('authV1Average', { sum: 0, count: 0 });
   const [authV2Average, setAuthV2Average] = useLocalStorage('authV2Average', { sum: 0, count: 0 });
 
@@ -77,20 +77,20 @@ function ServerTimingTable() {
 
     if (serverTimingEntries.length > 0) {
       setTimings(serverTimingEntries);
-      
+
       // Extract auth metrics from serverTimingEntries
       const authV1Entries = serverTimingEntries.filter(st => st.name === "authV1");
       const authV2Entries = serverTimingEntries.filter(st => st.name === "authV2");
       const shadowModeEntries = serverTimingEntries.filter(st => st.name === "shadow");
-      
-      const authV1Avg = authV1Entries.length > 0 
-        ? authV1Entries.reduce((sum, entry) => sum + entry.duration, 0) / authV1Entries.length 
+
+      const authV1Avg = authV1Entries.length > 0
+        ? authV1Entries.reduce((sum, entry) => sum + entry.duration, 0) / authV1Entries.length
         : null;
-      
-      const authV2Avg = authV2Entries.length > 0 
-        ? authV2Entries.reduce((sum, entry) => sum + entry.duration, 0) / authV2Entries.length 
+
+      const authV2Avg = authV2Entries.length > 0
+        ? authV2Entries.reduce((sum, entry) => sum + entry.duration, 0) / authV2Entries.length
         : null;
-      
+
       // Update long-running averages
       if (authV1Avg !== null) {
         setAuthV1Average(prev => ({
@@ -98,21 +98,21 @@ function ServerTimingTable() {
           count: prev.count + 1
         }));
       }
-      
+
       if (authV2Avg !== null) {
         setAuthV2Average(prev => ({
           sum: prev.sum + authV2Avg,
           count: prev.count + 1
         }));
       }
-      
-      const allShadowSuccess = shadowModeEntries.length > 0 && 
+
+      const allShadowSuccess = shadowModeEntries.length > 0 &&
         shadowModeEntries.every(entry => entry.duration === 1);
-      
+
       setAuthMetrics({
         authV1DurationMs: authV1Avg,
         authV2DurationMs: authV2Avg,
-        authV2MigrationShadowMode: shadowModeEntries.length > 0 
+        authV2MigrationShadowMode: shadowModeEntries.length > 0
           ? (allShadowSuccess ? "success" : "failure")
           : null,
       });
@@ -148,7 +148,7 @@ function ServerTimingTable() {
       <div>
         <h1 className="text-3xl font-bold mb-2">Server Timing</h1>
         <p className="text-muted-foreground">
-          Performance timing data from server-timing headers and performance API
+          Performance timing data from server-timing headers and performance API.   Mainly doing this to see specific function performance data from the backend.
         </p>
       </div>
 
@@ -170,8 +170,8 @@ function ServerTimingTable() {
                     <TableRow>
                       <TableCell className="font-mono text-sm">Auth V1 Average</TableCell>
                       <TableCell className="text-right">
-                        {authMetrics.authV1DurationMs !== null 
-                          ? authMetrics.authV1DurationMs.toFixed(2) 
+                        {authMetrics.authV1DurationMs !== null
+                          ? authMetrics.authV1DurationMs.toFixed(2)
                           : "-"}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">Current</TableCell>
@@ -179,8 +179,8 @@ function ServerTimingTable() {
                     <TableRow>
                       <TableCell className="font-mono text-sm">Auth V2 Average</TableCell>
                       <TableCell className="text-right">
-                        {authMetrics.authV2DurationMs !== null 
-                          ? authMetrics.authV2DurationMs.toFixed(2) 
+                        {authMetrics.authV2DurationMs !== null
+                          ? authMetrics.authV2DurationMs.toFixed(2)
                           : "-"}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">Migration</TableCell>
@@ -188,7 +188,7 @@ function ServerTimingTable() {
                     <TableRow >
                       <TableCell className="font-mono text-sm">Auth V1 Long-Running Avg</TableCell>
                       <TableCell className="text-right">
-                        {authV1Average.count > 0 
+                        {authV1Average.count > 0
                           ? (authV1Average.sum / authV1Average.count).toFixed(2)
                           : "-"}
                       </TableCell>
@@ -197,7 +197,7 @@ function ServerTimingTable() {
                     <TableRow>
                       <TableCell className="font-mono text-sm">Auth V2 Long-Running Avg</TableCell>
                       <TableCell className="text-right">
-                        {authV2Average.count > 0 
+                        {authV2Average.count > 0
                           ? (authV2Average.sum / authV2Average.count).toFixed(2)
                           : "-"}
                       </TableCell>
@@ -210,11 +210,10 @@ function ServerTimingTable() {
                           {((authMetrics.authV1DurationMs + authMetrics.authV2DurationMs) / 2).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-sm">
-                          <span className={`font-semibold ${
-                            authMetrics.authV2MigrationShadowMode === 'success' 
-                              ? 'text-green-600' 
+                          <span className={`font-semibold ${authMetrics.authV2MigrationShadowMode === 'success'
+                              ? 'text-green-600'
                               : 'text-red-600'
-                          }`}>
+                            }`}>
                             {authMetrics.authV2MigrationShadowMode === 'success' ? '✓ Match' : '✗ Mismatch'}
                           </span>
                         </TableCell>
@@ -323,41 +322,18 @@ function ServerTimingTable() {
       ) : (
         <div className="border border-dashed rounded-lg p-8 text-center">
           <p className="text-muted-foreground">
-            No server timing data available. Ensure your server is sending Server-Timing headers.
+            No server timing data available yet.
           </p>
           <p className="text-xs text-muted-foreground mt-4">
-            Server-Timing headers are captured by the browser's Performance API automatically.
+            Server-Timing headers are captured by the browser automatically. Try clicking around some, mainly the server page returns them
           </p>
         </div>
       )}
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Supported Entry Types</h2>
-        <div className="border rounded-lg overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Entry Type</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {PerformanceObserver.supportedEntryTypes.map((entryType) => (
-                <TableRow key={entryType}>
-                  <TableCell className="font-mono text-sm">{entryType}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          These are the performance entry types supported by this browser.
-        </p>
-      </div>
-
       <div className="bg-muted p-4 rounded-lg">
         <h3 className="font-semibold mb-2">About Server Timing</h3>
         <p className="text-sm text-muted-foreground">
-          The Server-Timing header is used to communicate one or more metrics and descriptions for the request-response cycle. 
+          The Server-Timing header is used to communicate one or more metrics and descriptions for the request-response cycle.
           This page displays those metrics along with standard page load performance metrics from the Performance API.
         </p>
       </div>

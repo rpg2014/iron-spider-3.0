@@ -37,9 +37,9 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.806.0",
-    "@aws-sdk/client-sts": "^3.821.0",
-    "@aws-sdk/lib-dynamodb": "^3.806.0",
+    "@aws-sdk/client-dynamodb": "^3.958.0",
+    "@aws-sdk/client-sts": "^3.958.0",
+    "@aws-sdk/lib-dynamodb": "^3.958.0",
     "@babylonjs/core": "^8.6.1",
     "@babylonjs/loaders": "^8.6.1",
     "@convex-dev/eslint-plugin": "^0.0.1-alpha.4",
@@ -75,8 +75,8 @@
     "lucide-react": "^0.358.0",
     "morgan": "^1.10.0",
     "next-themes": "^0.4.4",
-    "react": "^19",
-    "react-dom": "^19",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "react-markdown": "^9.0.1",
     "react-router": "^7.10.1",
     "remark-gfm": "^4.0.0",

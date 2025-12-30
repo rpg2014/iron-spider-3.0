@@ -20,7 +20,7 @@ export const NavButton = ({
     variants = { active: "outline", notActive: "default" };
   }
   return (
-    <NavLink to={to}>
+    <NavLink prefetch="intent" to={to}>
       {({ isActive, isPending }) => (
         <Button className={cn(`items-center justify-start ${isActive ?" bg-accent " :""}`, className)} variant={isActive ? variants.active : variants.notActive}>
           {children} {isPending && <RefreshCw size={16} className="ml-2 animate-spin" />}

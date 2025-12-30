@@ -29,7 +29,7 @@ export function createDynamoDbSessionStorage() {
           Item: {
             id,
             data,
-            expires: expires ? expires.getTime() : undefined,
+            expires: expires ? Math.floor(expires.getTime() /1000) : undefined,
           },
         }),
       );
@@ -56,7 +56,7 @@ export function createDynamoDbSessionStorage() {
       }
 
       // Check if session has expired
-      if (result.Item.expires < Date.now()) {
+      if (result.Item.expires < Math.floor(Date.now()/1000)) {
         console.log("[DynamoDbSessionStorage] Session expired, deleting:", id);
         // Delete expired session
         await docClient.send(
@@ -77,8 +77,7 @@ export function createDynamoDbSessionStorage() {
       // Update the session data in DynamoDB
       const updateExpression = expires ? "set #data = :data, expires = :expires" : "set #data = :data";
 
-      const expressionAttributeValues = expires ? { ":data": data, ":expires": expires.getTime() } : { ":data": data };
-
+      const expressionAttributeValues = expires ? { ":data": data, ":expires": Math.floor(expires.getTime() /1000) } : { ":data": data };
       await docClient.send(
         new UpdateCommand({
           TableName: TABLE_NAME,

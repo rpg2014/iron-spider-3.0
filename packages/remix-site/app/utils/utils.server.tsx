@@ -65,6 +65,7 @@ const refreshToken = async (oauthTokens: SessionData["oauthTokens"]): Promise<OA
 };
 /**
  * is refreshed needed as a return value?
+ *
  */
 export const refreshTokenIfNeeded = async (
   session: Session,
@@ -81,9 +82,13 @@ export const refreshTokenIfNeeded = async (
   const oauthTokens = session.get("oauthTokens");
   const timeToCompareTo = Temporal.Now.instant().add({ minutes: 5 });
   console.log(`[refreshTokenIfNeeded] oauthTokens: ${oauthTokens?.expiresAt}, Now+1: ${timeToCompareTo}`);
-  // Only refresh if expiring soon
+  // Only refresh if expiring soon or expired
   if (Temporal.Instant.compare(Temporal.Instant.from(oauthTokens.expiresAt), timeToCompareTo) < 0) {
     console.log(`[refreshTokenIfNeeded] Access token expired or about to expire, attempting refresh`);
+    // print all timings easily readable
+    console.log(
+      `[refreshTokenIfNeeded] oauthTokens: ${Temporal.Instant.from(oauthTokens.expiresAt)}, Now+1: ${timeToCompareTo}, Now: ${Temporal.Now.instant()}`,
+    );
     try {
       const newOauthDetails = await refreshToken(oauthTokens);
 
@@ -93,7 +98,7 @@ export const refreshTokenIfNeeded = async (
       setGlobalAuthToken(newOauthDetails.accessToken, newOauthDetails.expiresAt);
       return { refreshed: true, oauthDetails: newOauthDetails };
     } catch (e) {
-      console.error("[refreshTokenIfNeeded] Error refreshing tokens", e);
+      console.error("[refreshTokenIfNeeded] Error refreshing tokens, probably need a new refresh token", e);
       return { refreshed: false, wipeSession: true };
     }
   }
@@ -101,44 +106,6 @@ export const refreshTokenIfNeeded = async (
   return { refreshed: false, oauthDetails: oauthTokens };
 };
 
-/** This should be doing something else.
- * This should take the session cookie, check the token expiry, refresh if needed, then save it to global state, / return it
- *
- */
-export const checkIdTokenAuth = async (request: Request): Promise<AuthResponse> => {
-  console.log("[checkIdTokenAuth] Starting authentication check");
-  try {
-    const session = await getSession(request.headers.get("Cookie"));
-    console.log("[checkIdTokenAuth] Got session", session.data);
-    if (session.has("userData") && session.has("oauthTokens") && session.has("userId")) {
-      console.log("[checkIdTokenAuth] Session has userId and oauthTokens, checking token");
-      // If a refresh is already in progress, wait for it
-      if (!refreshPromise) {
-        refreshPromise = refreshTokenIfNeeded(session);
-      }
-      const { refreshed, oauthDetails } = await refreshPromise;
-
-      refreshPromise = null; // Reset for next time
-      // if no global token, set it, or if it's refreshed
-      if (!getGlobalAuthToken() || refreshed) {
-        console.log("[checkIdTokenAuth] Setting global token", oauthDetails?.accessToken, oauthDetails?.expiresAt);
-        //@ts-expect-error
-        setGlobalAuthToken(oauthDetails?.accessToken, oauthDetails?.expiresAt);
-      }
-      // Return auth response with possibly refreshed tokens
-      return {
-        verified: true,
-        userData: session.get("userData"),
-        oauthDetails: oauthDetails,
-      };
-    } else {
-      return { verified: false };
-    }
-  } catch (e) {
-    console.error("[checkIdTokenAuth] Error getting session", e);
-    return { verified: false };
-  }
-};
 
 /**
  * Improved version of checkIdTokenAuth that:
@@ -183,6 +150,7 @@ export const checkIdTokenAuthV2 = async (request: Request): Promise<AuthResponse
       if (refreshed || !getGlobalAuthToken()) {
         console.log("[checkIdTokenAuthV2] Setting global token");
         setGlobalAuthToken(oauthDetails.accessToken, oauthDetails.expiresAt);
+        
       }
 
       // 5. Return authentication response
@@ -191,6 +159,8 @@ export const checkIdTokenAuthV2 = async (request: Request): Promise<AuthResponse
         userData: session.has("userData") ? session.get("userData") : undefined,
         oauthDetails: oauthDetails,
         // only return header if session was updated
+        // TODO: might need to update this to always re-commit the session, so the cookie doesn't expire?
+        // but tbh i should only need to do that when the tokens are refreshed ie, every day, but i should look
         cookieHeader: refreshed ? await commitSession(session) : undefined,
       };
     } else {

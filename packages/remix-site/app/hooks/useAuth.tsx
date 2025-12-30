@@ -28,6 +28,13 @@ export function AuthProvider({
   const [expiresAt, setExpiresAt] = useState(initialAuth.expiresAt || null);
   const revalidator = useRevalidator();
 
+  // Update state when initialAuth changes (e.g., after navigation/revalidation)
+  useEffect(() => {
+    setIsAuthenticated(initialAuth.authenticated);
+    setAccessToken(initialAuth.accessToken || null);
+    setExpiresAt(initialAuth.expiresAt || null);
+  }, [initialAuth.authenticated, initialAuth.accessToken, initialAuth.expiresAt]);
+
   const refreshAuth = async () => {
     const loadingToast = toast.loading("Refreshing auth state from server");
     console.log("Refreshing auth state from server");
@@ -73,7 +80,7 @@ export function AuthProvider({
     return () => clearTimeout(timerId);
   }, [expiresAt, isAuthenticated]);
   useEffect(() => {
-    console.log("Setting global auth token", accessToken, expiresAt);
+    console.log("Setting global auth token. Expires: ", expiresAt);
     setGlobalAuthToken(accessToken, expiresAt);
     toast.success("Global Access token set");
   }, [accessToken, expiresAt]);

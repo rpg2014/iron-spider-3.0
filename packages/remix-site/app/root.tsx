@@ -12,7 +12,7 @@ import { MCServerApi } from "./service/MCServerService";
 import { Route } from "./+types/root";
 import { Suspense, useEffect } from "react";
 import { Toaster } from "./components/ui/Sonner";
-import { checkIdTokenAuthV2, isLambda } from "./utils/utils.server";
+import { isLambda } from "./utils/utils.server";
 import { AuthProvider } from "./hooks/useAuth";
 import { toast } from "sonner";
 import { xrayContext } from "../server/context";
@@ -43,7 +43,7 @@ export const meta: MetaFunction = () => [
 export const middleware = [authMiddleware];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  console.log(`[root loader] Handling request for ${request.url}, with context ${context}`);
+  console.log(`[root loader] Handling request for ${request.url}, with context ${JSON.stringify(context)}`);
   try {
     console.log(`[root loader] new context: ${context.get(xrayContext)}`)
   }catch (e) {
@@ -91,14 +91,14 @@ export default function App() {
     console.log("Running on Lambda", data.isLambda);
     if (data.isLambda) {
       setTimeout(() => {
-        toast.info("Running on Lambda", {
-          description: "This is a lambda environment",
+        toast.info("Data fetched from backend", {
+          description: "The data has been refreshed",
         });
       }, 10);
     } else {
       setTimeout(() => {
-        toast.info("Running in homelab", {
-          description: "This is not in AWS, some stuff might be broken",
+        toast.info("Prerendered Data / Page", {
+          description: "Using the prerendered data on initial load.",
         });
       }, 10);
     }

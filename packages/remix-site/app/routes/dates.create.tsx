@@ -8,7 +8,6 @@ import { getSession } from "~/sessions/sessions.server";
 
 export const action = async ({ request }: Route.ActionArgs) => {
   const formData = await request.formData();
-  const session = await getSession(request.headers.get("Cookie"));
   const searchText = formData.get("searchText");
   if (!searchText) {
     throw data("Search text is required", { status: 400 });
@@ -29,6 +28,13 @@ export const action = async ({ request }: Route.ActionArgs) => {
   }
 };
 
+/**
+ * TODO: update this to use the actionData, and maybe make it operate through a loader, would def be better, using a query param?
+ * see: https://reactrouter.com/tutorials/address-book#urlsearchparams-and-get-submissions
+ * would need to chagne form to a get call and the above to a loader
+ * @param param0 
+ * @returns 
+ */
 export default function StartDateCreation({ actionData }: Route.ComponentProps) {
   const { Form, data, state } = useFetcher<typeof action>({ key: "location-data" });
   const isSubmitting = state === "submitting";

@@ -1,7 +1,7 @@
 import { URL } from "url";
 import { createRequestHandler as createRemixRequestHandler } from "react-router";
 import * as AWSXRay from "aws-xray-sdk";
-import type { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontHeaders } from "aws-lambda";
+import type { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontHeaders, CloudFrontResultResponse } from "aws-lambda";
 import {  RouterContextProvider, ServerBuild } from "react-router";
 import { xrayContext } from "./context";
 
@@ -116,16 +116,19 @@ export function createRequestHandler({
     const cloudfrontHeaders = createCloudFrontHeaders(response.headers);
     
     // Add server-timing header after conversion to capture full processing time
-    cloudfrontHeaders["Server-Timing"] = [{
+    cloudfrontHeaders["server-timing"] = [{
       key: "Server-Timing",
       value: `total;dur=${Date.now() - startTime}`
     }];
-    return {
+    const returnValue: CloudFrontResultResponse = {
       status: String(response.status),
       headers: cloudfrontHeaders,
       bodyEncoding: "text",
       body: await response.text(),
-    };
+    }
+    // show headers
+    console.log(`Response Headers: ${JSON.stringify(cloudfrontHeaders)}`);
+    return returnValue;
   }) as CloudFrontRequestHandler;
   
   
@@ -142,7 +145,7 @@ export function createCloudFrontHeaders(responseHeaders: Headers): CloudFrontHea
   for (const [key, value] of responseHeaders) {
     const values = value.split(", ");
     for (const v of values) {
-      headers[key] = [...(headers[key] || []), { key, value: v }];
+      headers[key.toLocaleLowerCase()] = [...(headers[key.toLocaleLowerCase()] || []), { key, value: v }];
     }
   }
 

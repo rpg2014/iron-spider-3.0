@@ -1,10 +1,13 @@
 import type { MetaFunction } from "react-router";
 import { Suspense, useEffect, useState } from "react";
-import { Link } from "react-router";
-import { Activity, ExternalLink } from "lucide-react";
+import { Link, useRevalidator } from "react-router";
+import { Activity, CheckCircle, ExternalLink } from "lucide-react";
 import { ProjectsNavItems, mainNavItems } from "~/components/NavMenu/navLinkConfig";
 import { toast } from "sonner";
 import { Skeleton } from "~/components/ui";
+import { useFetcher } from "react-router";
+import { Spinner } from "~/components/ui/Spinner";
+import { useAuth } from "~/hooks/useAuth";
 
 export const meta: MetaFunction = () => {
   return [
@@ -58,13 +61,14 @@ function ToolsSection() {
     });
 
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <h2 className="text-2xl font-bold mb-6">Tools</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {tools.map((tool, i) => (
           <Link
             key={i}
             to={tool.href}
+            prefetch="intent"
             className="group p-6 bg-secondary border border-border rounded-xl hover:border-accent hover:scale-105 transition-all"
           >
             <div className="flex items-start gap-4">
@@ -88,49 +92,12 @@ function ToolsSection() {
 
 
 
-function ServiceWorkerStatusSection({ cacheUpdates }: { cacheUpdates: CacheUpdate[] }) {
+function ServiceWorkerStatusSection() {
   const [isClient, setIsClient] = useState(false);
-
+  const [cacheUpdates, setCacheUpdates] = useState<CacheUpdate[]>([]);
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  return (
-    <section>
-      <h2 className="text-2xl font-bold mb-6">Service Worker Status</h2>
-      {isClient ? (
-        <>
-          <ServiceWorkerIndicator />
-          <div className="p-6 bg-secondary border border-border rounded-xl">
-            <div className="space-y-4">
-              {cacheUpdates && cacheUpdates.length > 0 ? cacheUpdates.map(cacheUpdate => {
-                return (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{cacheUpdate.url}</span>
-                    <span className="font-mono text-sm text-muted-foreground">
-                      {cacheUpdate.status}
-                    </span>
-                  </div>
-                )
-              }) : <span className="font-mono text-sm text-muted-foreground" >Waiting for cache updates</span>}
-
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="p-6 bg-card border border-border rounded-xl">
-          <div className="space-y-4">
-            
-          </div>
-        </div>
-      )}
-    </section>
-  );
-}
-
-
-export default function Index() {
-  const [cacheUpdates, setCacheUpdates] = useState<CacheUpdate[]>([]);
 
   useEffect(() => {
     const cacheUpdateEventListener = (event: MessageEvent<any>) => {
@@ -181,7 +148,94 @@ export default function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <section className="my-6">
+      <h2 className="text-2xl font-bold mb-6">Service Worker Status</h2>
+      {isClient ? (
+        <>
+          <ServiceWorkerIndicator />
+          <div className="p-6 bg-secondary border border-border rounded-xl">
+            <div className="space-y-4">
+              {cacheUpdates && cacheUpdates.length > 0 ? cacheUpdates.map(cacheUpdate => {
+                return (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">{cacheUpdate.url}</span>
+                    <span className="font-mono text-sm text-muted-foreground">
+                      {cacheUpdate.status}
+                    </span>
+                  </div>
+                )
+              }) : <span className="font-mono text-sm text-muted-foreground" >Waiting for cache updates</span>}
+
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="p-6 bg-card border border-border rounded-xl">
+          <div className="space-y-4">
+            
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LambdaStatusSection({ revalidated }: { revalidated: boolean }) {
+ 
+  return (
+    <section className="my-6">
+      <h2 className="text-2xl font-bold mb-6">Lambda Status</h2>
+      <div className="p-6 bg-secondary border border-border rounded-xl">
+        <div className="flex items-center gap-4">
+          <div className={`p-3 rounded-lg bg-gradient-to-br ${revalidated ? 'from-green-500 to-emerald-500' : 'from-orange-500 to-yellow-500'} transition-all`}>
+            {revalidated ? <CheckCircle size={24} /> : <Spinner scale={0.8} />}
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold mb-1">
+              {revalidated ? 'Lambda Ready' : 'Initializing Lambda'}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {revalidated ? 'Edge function is warmed up and ready' : 'Warming up edge function...'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+export default function Index() {
+  const fetcher = useFetcher()
+  const revalidator = useRevalidator();
+  const [revalidated, setRevalidated] = useState(false);
+  const [triggeredRevalidation, setTriggeredRevalidation] = useState(false);
+  
+
+  // wake the edge lambda by loading the dates index
+  useEffect(() => {
+    // if on client, load
+    console.log("Index route useEffect running");
+    if(typeof window !== 'undefined') {
+      console.log("Loading /dates to wake both lambdas");
+      fetcher.load("/dates")
+
+      revalidator.revalidate();
+      setTriggeredRevalidation(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (revalidator.state === 'idle' && triggeredRevalidation) {
+      setRevalidated(true);
+    }
+  },[revalidator.state, triggeredRevalidation])
+
+
+
+  const auth =useAuth();
+  return (
+    <div className="min-h-screen text-foreground">
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Parker's Tools</h1>
@@ -190,9 +244,14 @@ export default function Index() {
 
         <ToolsSection />
 
-        <ServiceWorkerStatusSection cacheUpdates={cacheUpdates} />
-
-      </main>
+        <ServiceWorkerStatusSection />
+         <LambdaStatusSection revalidated={revalidated} />
+         
+          <div className="flex items-center gap-2 text-xs my-1">
+            <Activity size={14} className={auth.isAuthenticated  ? 'text-success' : 'text-muted-foreground'} />
+            <span className="text-muted-foreground">isAuthenticated: {auth.isAuthenticated ? "Yes" : 'No'}</span>
+         </div>
+        </main>
     </div>
   );
 }

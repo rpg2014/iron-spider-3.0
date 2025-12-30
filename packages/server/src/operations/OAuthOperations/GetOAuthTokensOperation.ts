@@ -149,9 +149,20 @@ const refreshTokens = async (tokenInput: Nullable<OIDCTokenInput>, client: OIDCC
       });
     }
   
-    logger.info("Getting token by value");
+    logger.info("Getting token by value", tokenInput.refresh_token);
     // First get the token itself to check its expiration
-    const refreshToken = await tokenAccessor.getToken(tokenInput.refresh_token);
+    let refreshToken;
+    try {
+      refreshToken = await tokenAccessor.getToken(tokenInput.refresh_token);
+      // need this b/c getToken throws when token isn't found. 
+    }catch (error) {
+      logger.error("Error getting token by value", error);
+      throw new OAuthError({
+        message: "Invalid refresh token - unable to get the token from ddb",
+        error: ERROR_INVALID_GRANT,
+        error_description: "Invalid refresh token",
+      });
+    }
     if (!refreshToken || !refreshToken.tokenId || refreshToken.tokenType !== "refresh") {
       logger.error("Refresh token not found or invalid");
       throw new OAuthError({

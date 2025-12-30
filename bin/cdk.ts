@@ -83,6 +83,3 @@ const homelabStack = new HomelabStack(app, "HomelabStack", {
   env,
   // TODO input domain and stuff to template the hosted zone
 })
-
-
-

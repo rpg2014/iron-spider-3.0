@@ -1,4 +1,4 @@
-import { data, useNavigate } from "react-router";
+import { data, useNavigate, useRevalidator } from "react-router";
 import { Alert, Button } from "~/components/ui";
 import { Route } from "./+types/oauth.callback";
 import { IronSpiderAPI } from "~/service/IronSpiderClient";
@@ -11,10 +11,8 @@ import { JwtPayload } from "jsonwebtoken";
 import { toast } from "sonner";
 import { useLocalStorage } from "~/hooks/useLocalStorage.client";
 import { getGlobalAuthToken, isTokenExpired, setGlobalAuthToken } from "~/utils/globalAuth";
-import { authMiddleware } from "~/middleware/auth.server";
+import { useAuth } from "~/hooks/useAuth";
 
-// Middleware will refresh auth context after tokens are set in session
-export const middleware = [authMiddleware];
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -82,14 +80,25 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 const OAuthCallbackPage = ({ loaderData }: Route.ComponentProps) => {
   const [showDetails, setShowDetails] = useState(false);
-
   const navigate = useNavigate();
+  // might need to trigger re-auth on load?
+  const { refreshAuth } = useAuth();
   // clean query params out of the url
   useEffect(() => {
     const url = new URL(window.location.href);
     url.search = "";
     window.history.replaceState({}, "", url.toString());
   }, []);
+
+  // Refresh auth state when OAuth is successful
+  useEffect(() => {
+    if (loaderData?.data && !loaderData.error) {
+      console.log("[OAuthCallbackPage] OAuth successful, revalidating to update auth state");
+      refreshAuth()
+      toast.success("OAuth successful, updating auth state");
+      
+    }
+  }, [loaderData?.data, loaderData?.error]);
 
   //if returnTo exists redirect there after a second
   //todo this doesnt toast correctly in order to cancel the redirect.

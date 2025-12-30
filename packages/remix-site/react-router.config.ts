@@ -11,5 +11,6 @@ export default {
     unstable_optimizeDeps: true,
   },
   ssr: true,
+  prerender: ["/"],
   routeDiscovery: { mode: "initial" },
 } satisfies Config;

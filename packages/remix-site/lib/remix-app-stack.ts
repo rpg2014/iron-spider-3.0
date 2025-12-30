@@ -122,8 +122,7 @@ export class RemixAppStack extends Stack {
       customHeadersBehavior: {
         customHeaders: [
           { header: "x-pg-sw-response-time", value: "{0}", override: true },
-          { header: "x-pg-sw-response-time-dur", value: "{0}", override: true },
-          { header: "Server-Timing", value: "{0}", override: false}
+          { header: "x-pg-sw-response-time-dur", value: "{0}", override: true }
         ],
       },
     });
@@ -133,6 +132,8 @@ export class RemixAppStack extends Stack {
       enableLogging: false,
       domainNames: [`${props.subDomain}.${props.domainName}`],
       httpVersion: HttpVersion.HTTP2_AND_3,
+      // handles serving the prerendered root, if we want to expand pre-rendering we'll need to do more
+      defaultRootObject: "index.html",
       priceClass: PriceClass.PRICE_CLASS_100,
       // Default behavior, all requests get handled by edge function, with the fall through origin as s3.
       defaultBehavior: {
@@ -165,6 +166,13 @@ export class RemixAppStack extends Stack {
       },
       // Static assets are retrieved from the /assets path.
       additionalBehaviors: {
+        "/index.html": {
+          allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+          compress: true,
+          origin: assetsBucketS3Origin,
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
         "assets/*": {
           allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
           cachePolicy: CachePolicy.CACHING_OPTIMIZED,
