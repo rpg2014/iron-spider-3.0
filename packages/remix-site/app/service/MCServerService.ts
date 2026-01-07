@@ -97,10 +97,11 @@ class MCServerStatusCache {
         status: response.status,
       });
       if (!isServer) {
-        toast.success("Server status successfully fetched", {
-          description: `Server status: ${response.status}`,
-          duration: 3000,
-        });
+        // TODO: Settings addition
+        // toast.success("Server status successfully fetched", {
+        //   description: `Server status: ${response.status}`,
+        //   duration: 3000,
+        // });
       }
       return response.status;
     } catch (error) {

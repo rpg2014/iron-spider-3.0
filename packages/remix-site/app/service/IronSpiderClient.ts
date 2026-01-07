@@ -44,6 +44,7 @@ export const IronSpiderAPI = {
     if (codeVerifier) {
       body.set("code_verifier", codeVerifier ?? "");
     }
+    console.log("[IronSpiderAPI] getTokens request body", body.toString());
     // use raw fetcher b/c this api doesn't accept bearer tokens
     const response = await fetcher(`${OAUTH_TOKEN_ENDPOINT}`, {
       method: "POST",
@@ -70,6 +71,7 @@ export const IronSpiderAPI = {
     console.log("[IronSpiderAPI] generated state", state);
 
     const params = new URLSearchParams({
+      client_id: getClientId(),
       id_token_hint: encodeURIComponent(idToken),
       post_logout_redirect_uri: getLogoutRedirectUrl(),
       state: state,

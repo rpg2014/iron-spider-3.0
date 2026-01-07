@@ -9,11 +9,11 @@ export async function loader({ context }: Route.LoaderArgs) {
   const authUser = context.get(authUserContext);
 
   if (!isAuthenticated || !authUser) {
-    return data({ authenticated: false }, { status: 401 });
+    return data({ isAuthenticated: false }, { status: 401 });
   }
 
   return data({
-    authenticated: true,
+    isAuthenticated: true,
     accessToken: authUser.accessToken,
     expiresAt: authUser.expiresAt,
   });

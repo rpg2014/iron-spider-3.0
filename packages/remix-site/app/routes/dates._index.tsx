@@ -8,9 +8,8 @@ import DateCard from "~/components/date_tracker/DateCard";
 import { Button } from "~/components/ui/Button";
 import { getDateService } from "~/service/DateService";
 import { Route } from "./+types/dates._index";
-import { getSession } from "~/sessions/sessions.server";
-import { getGlobalAuthToken, setGlobalAuthToken } from "~/utils/globalAuth";
 import { Skeleton } from "~/components/ui/Skeleton";
+import { authUserContext } from "~/contexts/auth";
 
 /**
  *
@@ -19,11 +18,12 @@ import { Skeleton } from "~/components/ui/Skeleton";
  * @param param0
  * @returns
  */
-export const loader = async ({ request }: Route.LoaderArgs) => {
-  const session = await getSession(request.headers.get("Cookie"));
-
+export const loader = async ({ request, context }: Route.LoaderArgs) => {
+  // const session = await getSession(request.headers.get("Cookie"));
+  const authContext = context.get(authUserContext)
+  console.log(`[dates._index loader] authContext : ${JSON.stringify(authContext)}`);
   const dateService = getDateService();
-  if (session.has("userId")) {
+  if (authContext?.accessToken) {
     try {
       const userDates = await dateService.listDates({
         pageSize: 10,
@@ -96,7 +96,7 @@ export default function Index({ loaderData }: Route.ComponentProps) {
         {/* Header Section */}
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white">Your Dates</h1>
-          <Link to="create">
+          <Link  to="create">
             <Button variant={"outline"} className="flex items-center gap-2 shadow-lg transition-all duration-300 hover:shadow-xl">
               <Plus className="h-5 w-5" />
               Create New Date

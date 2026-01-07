@@ -2,7 +2,7 @@ import { Button } from "~/components/ui/Button";
 import styles from "../styles/settings.module.css";
 import { useEffect, useState } from "react";
 import { API_DOMAIN_VERSION, AUTH_DOMAIN, notificationSettingKey } from "~/constants";
-import { fetcher } from "~/utils/utils";
+import { DEFAULT_CLIENT_LOADER, fetcher } from "~/utils/utils";
 import { DEFAULT_URL_LOADER } from "~/utils/utils.server";
 import { data, Form, useLoaderData, useLocation, useNavigation, useRevalidator } from "react-router";
 import { Label } from "~/components/ui/Label";
@@ -12,15 +12,18 @@ import { destroySession, getSession } from "~/sessions/sessions.server";
 import AuthButton from "~/components/AuthGate";
 import { IronSpiderAPI } from "~/service/IronSpiderClient";
 import { useAuth } from "~/hooks/useAuth";
+import { authUserContext } from "~/contexts/auth";
 
 //TODO: remove this loader if this adds latency and shit
-export const loader = DEFAULT_URL_LOADER;
+export const clientLoader = DEFAULT_CLIENT_LOADER;
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
+  const authContext = context.get(authUserContext)
   // todo call oauthlogout api with the id token
-  const idToken = session.get("oauthTokens")?.idToken;
+  const idToken = authContext?.idToken
   let authServerLoggedOut = false;
+  // API route doesn't exist yet.
   if (idToken) {
     // shouldn't this be redirecting to the auth domain logout page, then that hits this api???
     const response = await IronSpiderAPI.oauthLogout({ idToken });
@@ -147,9 +150,11 @@ export default function Settings({ actionData, loaderData: { currentUrlObj } }: 
             <Label className={styles.settingsLabel}>Sign out</Label>
             <Form
               method="post"
-              onSubmit={() => {
+              onSubmit={async () => {
                 // TODO logout of Auth server as well by calling Oauth logout api with the id token.
                 toast.success("Logged Out. TODO: delete tokens", {});
+                // delete cache on logout submit
+                await caches.delete('date-cache');
               }}
             >
               <Button type="submit" disabled={navigation.state !== "idle"} variant="destructive">

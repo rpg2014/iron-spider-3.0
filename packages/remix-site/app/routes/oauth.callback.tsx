@@ -9,8 +9,7 @@ import { Temporal } from "temporal-polyfill";
 import { getOauthDetails, validateIronSpiderToken } from "~/utils/utils.server";
 import { JwtPayload } from "jsonwebtoken";
 import { toast } from "sonner";
-import { useLocalStorage } from "~/hooks/useLocalStorage.client";
-import { getGlobalAuthToken, isTokenExpired, setGlobalAuthToken } from "~/utils/globalAuth";
+import { getGlobalAuthInfo, isTokenExpired, setGlobalAuthInfo } from "~/utils/globalAuth";
 import { useAuth } from "~/hooks/useAuth";
 
 
@@ -50,15 +49,25 @@ export async function loader({ request }: Route.LoaderArgs) {
       // convert response.expires_in to expires at using temporal library
       expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
     });
-    // Note: Global token will be set by authMiddleware after this loader completes
-    // Keeping this for immediate availability within this request
-    if (!getGlobalAuthToken() || isTokenExpired()) {
-      console.log(`[OAuthCallbackPage] setting global token and expires in ${response.expires_in}`);
-      setGlobalAuthToken(response.access_token, Temporal.Now.instant().add({ seconds: response.expires_in }).toString());
-    }
+   
     const { userData, verified } = await validateIronSpiderToken(response.id_token);
     if (!verified) {
       return { data: null, error: "Invalid ID Token", params: { code, state } };
+    }
+
+     // Note: Global token will be set by authMiddleware after this loader completes
+    // Keeping this for immediate availability within this request
+    if (!getGlobalAuthInfo() || isTokenExpired()) {
+      console.log(`[OAuthCallbackPage] setting global token and expires in ${response.expires_in}`);
+      // setGlobalAuthToken(response.access_token, Temporal.Now.instant().add({ seconds: response.expires_in }).toString());
+      setGlobalAuthInfo({
+        accessToken: response.access_token,
+        expiresAt: Temporal.Now.instant().add({ seconds: response.expires_in }).toString(),
+        idToken: response.id_token,
+        //TODO: need to provide user id here?
+        id: userData?.sub,
+        username: userData?.preferred_username,
+      })
     }
     console.log(`[OAuthCallbackPage] userData: ${JSON.stringify(userData)}`);
     // redirect to success

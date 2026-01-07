@@ -37,13 +37,13 @@ export const OPERATION_CONFIG: Record<keyof IronSpiderService<any>, OperationCon
     GenerateAuthenticationOptions: { mechanism: "public" },
     VerifyAuthentication: { mechanism: 'public' },
     Logout: { mechanism: [...MODERN_AUTHS] },
-    UserInfo: { mechanism: [...MODERN_AUTHS, 'client_secret_basic_auth'] },
+    UserInfo: { mechanism: [...MODERN_AUTHS, 'client_secret_basic_auth'], doNotRequireSpiderAccessToken: true},
     GetJwks: { mechanism: [...MODERN_AUTHS, 'client_secret_basic_auth', 'public'], doNotRequireSpiderAccessToken: true },
     GetOIDCDiscovery: {
         mechanism: [...MODERN_AUTHS, 'client_secret_basic_auth', 'public'],
         doNotRequireSpiderAccessToken: true
     },
-    GetPublicKeys: { mechanism: [...MODERN_AUTHS, 'client_secret_basic_auth'] },
+    GetPublicKeys: { mechanism: [...MODERN_AUTHS, 'client_secret_basic_auth', "api_key"] },
     // oauth
     // called from auth website using cookie auth
     GetOAuthDetails: { mechanism: ['cookie'] },

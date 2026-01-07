@@ -77,8 +77,8 @@ export const authHandler = async (event: event, context) => {
         console.log(`[AuthHandler] Operation takes client basic auth, returning V2 result`);
         return v2Result;
     }
-    console.log(`[AuthHandler] Returning V1 result: ${JSON.stringify(v1Result)}`)
-    return v1Result;
+    console.log(`[AuthHandler] Returning V2 result: ${JSON.stringify(v2Result)}`)
+    return v2Result;
 };
 
 

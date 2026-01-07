@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigation } from "react-router";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { ServerNavMenuItem } from "./ServerNavMenuItem";
 import { ProjectsNavItems, mainNavItems } from "./navLinkConfig";
@@ -16,8 +16,16 @@ export const NavMenuV2 = ({ className }: NavMenuV2Props) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const location = useLocation();
 
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const [menuHeight, setMenuHeight] = useState(0);
+  useEffect(() => {
+    if (mobileMenuRef.current) {
+      const height = mobileMenuRef.current.scrollHeight;
+      setMenuHeight(height);
+    }
+  }, [mainNavItems, ProjectsNavItems]);
 
-
+  
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -128,15 +136,20 @@ export const NavMenuV2 = ({ className }: NavMenuV2Props) => {
               </div>
             </button>
           </div>
+
         </div>
       </div>
 
       {/* Mobile menu */}
       <div
+        ref={mobileMenuRef}
         className={cn(
           "overflow-hidden transition-all duration-300 ease-in-out md:hidden", // change to auto to see if we're overlfowing
-          mobileMenuOpen ? "max-h-[454px] opacity-100" : "max-h-0 opacity-0",
+          mobileMenuOpen ? " opacity-100" : "max-h-0 opacity-0",
         )}
+        style={{
+          maxHeight: mobileMenuOpen ? `${menuHeight}px` : '0px'
+        }}
       >
         <div className="animate-slide-in space-y-1 px-2 pt-2">
           {mainNavItems.map((item, index) => (

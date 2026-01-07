@@ -168,6 +168,8 @@ structure UserInfoOutput with [CommonHeaders] {
     apiAccess: SiteAccessList,
     credentials: SiteAccessList,
     tokenExpiry: Timestamp,
+    // todo: Add these fields: https://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse
+    
 }
 
 structure LogoutOutput with [CommonHeaders] {

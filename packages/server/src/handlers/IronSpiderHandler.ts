@@ -60,6 +60,7 @@ const service: IronSpiderService<HandlerContext> = {
   GetOAuthTokens,
   GetOIDCDiscovery: GetOIDCDiscoveryOperation,
   OAuthLogout: OAuthLogoutOperation,
+  // OAuthFormLogout: Oauth
 };
 
 export const ironSpiderHandler: APIGatewayProxyHandler = getApiGatewayHandler(getIronSpiderServiceHandler(service));

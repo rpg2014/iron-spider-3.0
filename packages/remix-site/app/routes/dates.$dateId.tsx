@@ -30,13 +30,16 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, Dr
 import { useMediaQueryV2 } from "~/hooks/useMediaQuery";
 import { Route } from "./+types/dates.$dateId";
 import { commitSession, getSession } from "~/sessions/sessions.server";
+import { authUserContext, clientAuthContext, isAuthenticatedContext } from "~/contexts/auth";
 
-export const loader = async ({ request, params }: Route.LoaderArgs) => {
+
+export const loader = async ({ request, params, context }: Route.LoaderArgs) => {
   try {
     const session = await getSession(request.headers.get("Cookie"));
     // set oauthDetails
+    const authed = context.get(isAuthenticatedContext)
 
-    if (!session.has("userId") && import.meta.env.PROD) {
+    if (!authed && import.meta.env.PROD) {
       console.log("redirecting to " + request.url);
       return redirectDocument(getLoginRedirect(request.url));
     }
@@ -67,6 +70,58 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
     throw data(JSON.stringify({ message: e.message }), { status: 500 });
   }
 };
+
+/**
+ * Client-side loader that manages a cached date from the server loader.
+ * Handles authentication checks and cache invalidation on refresh.
+ * Uses the Cache API to store and retrieve date information per user.
+ * TODO: make a client side cache for dates in memory that can be shared across the list as well.
+ * @param {Route.ClientLoaderArgs} args - The client loader arguments containing params, serverLoader and context
+ * @returns {Promise<{date: DateInfo, connectedUsers: Array<any>, userId: string}>} The loaded date data
+ */
+export const clientLoader = async ({ params, serverLoader, context, request }: Route.ClientLoaderArgs) => {
+  const { dateId } = params;
+  // this doesn't work b/c there isn't a clientside middleware for auth
+  // how do i get auth into the client side? see:
+  const auth = context.get(clientAuthContext)
+  console.log('[clientLoader] Loading date', dateId, 'for user', auth?.id);
+  
+  const cache = await caches.open('date-cache');
+  console.log('[clientLoader] Opened cache');
+
+  // if the cache contains keys with a different user, wipe it
+  const cacheKeys = await cache.keys();
+  for (const request of cacheKeys) {
+    if (!request.url.includes(auth?.id || '')) {
+      console.log('[clientLoader] Clearing stale cache entry:', request.url);
+      await cache.delete(request);
+    }
+  }
+  
+  const cacheKey = `${auth?.id}-date-${dateId}`;
+  console.log('[clientLoader] Using cache key:', cacheKey);
+
+  // Try to get from cache first
+  const cachedResponse = await cache.match(cacheKey);
+  if (cachedResponse) {
+    console.log('[clientLoader] Cache hit - returning cached data');
+    // revalidate in background
+    serverLoader().then(async (data) => {
+      console.log('[clientLoader] Background revalidation complete');
+      await cache.put(cacheKey, new Response(JSON.stringify(data)));
+    });
+    return cachedResponse.json();
+  }
+
+  console.log('[clientLoader] Cache miss - fetching from server');
+  // If not in cache, get from server and cache
+  const data = await serverLoader();
+  await cache.put(cacheKey, new Response(JSON.stringify(data)));
+  console.log('[clientLoader] Cached server response');
+  
+  return { date: data.date, connectedUsers: data.connectedUsers, userId: data.userId };
+};
+
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { dateId } = params;

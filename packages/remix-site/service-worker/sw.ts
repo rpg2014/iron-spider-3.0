@@ -2,7 +2,7 @@
 /// <reference lib="WebWorker" />
 
 import { sw, VERSION } from "./constants";
-import { fetchIntercepter } from "./utils";
+import { fetchIntercepter } from "./fetchIntercepter";
 
 const addResourcesToCache = async (resources: Request[]) => {
   const cache = await caches.open(VERSION);

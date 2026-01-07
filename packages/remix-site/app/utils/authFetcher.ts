@@ -6,9 +6,10 @@ import { getGlobalAuthToken, isTokenExpired } from "./globalAuth";
 export async function oauthFetcher<T>(input: RequestInfo | URL, init?: RequestInit, includeContentType?: boolean): Promise<any> {
   let toastId 
   // Check if we already have a valid token in global state
+  
   const currentToken = getGlobalAuthToken();
   const headers: any = init?.headers ?? {};
-
+  // console.log(`oauthFetcher V1 called, currentToken: ${currentToken}`);
   // If we have a valid token, use it directly, do we need  this check here, it should always get updated?
   if (currentToken && !isTokenExpired()) {
     toastId = toast.info("[oauthFetcher V1] Using global token", { id: toastId });

@@ -21,6 +21,7 @@ export const authMiddleware: MiddlewareFunction = async ({ request, context }, n
     context.set(authUserContext, {
       ...authResult.userData,
       accessToken: authResult.oauthDetails.accessToken,
+      idToken: authResult.oauthDetails.idToken,
       expiresAt: authResult.oauthDetails.expiresAt,
     });
   }

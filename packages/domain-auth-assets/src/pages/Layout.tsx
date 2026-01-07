@@ -23,6 +23,9 @@ export default function Layout() {
         "https://api.parkergiven.com/v1/userInfo",
         {
           credentials: "include",
+          headers: {
+            "x-pg-debug": "AuthSiteLayout-useEffect",
+          },
         },
         false,
       );

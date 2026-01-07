@@ -1,10 +1,11 @@
 import * as React from "react";
 import "../styles/intranetLinks.css?url";
-import { DEFAULT_URL_LOADER } from "~/utils/utils.server";
 import { Button } from "~/components/ui/Button";
 import { useEffect, useState } from "react";
 import { AuthGateV2 } from "~/components/AuthGate";
 import { Route } from "./+types/IntranetLinks";
+import { DEFAULT_CLIENT_LOADER } from "~/utils/utils";
+import { DEFAULT_URL_LOADER } from "~/utils/utils.server";
 
 interface IDynamicDNSResponse {
   serviceName: string;
@@ -26,6 +27,7 @@ const intranetLinkConfig: UrlConfig[] = [
   { url: "https://nextjs.parkergiven.com", name: "NextJs Tutorial" },
 ];
 export const loader = DEFAULT_URL_LOADER;
+export const clientLoader = DEFAULT_CLIENT_LOADER;
 
 export default function IntranetLinks({ loaderData }: Route.ComponentProps) {
   const [ipAddress, setIpAddress] = useState<string | null>(null);
@@ -45,7 +47,7 @@ export default function IntranetLinks({ loaderData }: Route.ComponentProps) {
   }, []);
 
   return (
-    <AuthGateV2 currentUrlObj={window?.location?.href ? new URL(window.location.href) : new URL(loaderData.currentUrlObj)}>
+    <AuthGateV2 currentUrlObj={loaderData.currentUrlObj}>
       <div className="row translucent-bg d-flex flex-column width-control mx-auto rounded">
         <p /*className="  text-muted px-3 pt-3 h5 lead" */>These links only work when you're on my network</p>
         <div className="row-md p-2 text-center">

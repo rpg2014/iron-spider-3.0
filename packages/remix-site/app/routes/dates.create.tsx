@@ -4,7 +4,6 @@ import { LocationService } from "~/service/DateService";
 import * as EB from "~/components/ErrorBoundary";
 import { Button } from "~/components/ui/Button";
 import { Route } from "./+types/dates.create";
-import { getSession } from "~/sessions/sessions.server";
 
 export const action = async ({ request }: Route.ActionArgs) => {
   const formData = await request.formData();
@@ -45,7 +44,11 @@ export default function StartDateCreation({ actionData }: Route.ComponentProps) 
         <div className="border-light h-auto rounded-md border-2">
           <Form method="post">
             <div className="border-light flex items-center border-b px-4 py-2">
-              <Input className="flex-1 border-none focus:outline-none" name="searchText" id="searchText" placeholder="Search for a location..." required />
+              <Input className="flex-1 border-none focus:outline-none" 
+                name="searchText" 
+                id="searchText" 
+                placeholder="Search for a location..." 
+                required />
               <Button
                 variant={"secondary"}
                 type="submit"

@@ -413,6 +413,14 @@ export class DynamoAuthorizationAccessor extends AuthorizationAccessor {
       throw new InternalServerError({ message: "Unable to update authorization" });
     }
   }
+
+  public cleanAuthorizationOfExpiredTokens(authorizationId: string): {
+    removedAccessTokenIds: string[];
+    removedRefreshTokenIds: string[];
+  } {
+    //TODO
+    return null;
+  }
 }
 
 

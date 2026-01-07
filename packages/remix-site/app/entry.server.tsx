@@ -33,7 +33,7 @@ export default function handleRequest(
   reactRouterContext: EntryContext,
   loadContext: AppLoadContext,
 ) {
-  console.log(`[handleRequest] Handling request for ${request.url}, with loadContext: ${loadContext}`);
+  console.log(`[handleRequest] Handling request for ${request.url}, with loadContext: ${JSON.stringify(loadContext)}`);
   
   // we are on lambda, so this doens't matter, we never stream.
   // If using https streaming compatble runtime, stream the response depending on if its a crawler

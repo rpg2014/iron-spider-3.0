@@ -1,20 +1,42 @@
 import { Temporal } from "temporal-polyfill";
+import { ClientAuthInfo } from "~/contexts/auth";
 
+type GlobalAuthInfo = ClientAuthInfo
 // Only initialize state variables in browser environment
-let globalAccessToken: string | null = null;
-let tokenExpiresAt: string | null = null;
+let globalAuthInfo: Partial<GlobalAuthInfo> | undefined;
 
-export function setGlobalAuthToken(token: string | null, expiresAt: string | null) {
-  globalAccessToken = token;
-  tokenExpiresAt = expiresAt;
+
+/**
+ * @deprecated
+ * @returns 
+ */
+export function getGlobalAuthToken() {
+  return globalAuthInfo?.accessToken;
+}
+/**
+ * @deprecated
+ * @returns 
+ */
+export function getGlobalAuthTokenExpiresAt() {
+  return globalAuthInfo?.expiresAt;
 }
 
-export function getGlobalAuthToken() {
-  return globalAccessToken;
+export function getGlobalAuthInfo() {
+  return globalAuthInfo;
+}
+export function setGlobalAuthInfo(info: Partial<GlobalAuthInfo> | undefined) {
+  if (!info) {
+    globalAuthInfo = undefined;
+    return;
+  }
+  globalAuthInfo = {
+    ...globalAuthInfo,
+    ...info
+  };
 }
 
 export function isTokenExpired() {
-  if (!tokenExpiresAt) return true;
-  const expiresTime = Temporal.Instant.from(tokenExpiresAt);
+  if (!globalAuthInfo?.expiresAt) return true;
+  const expiresTime = Temporal.Instant.from(globalAuthInfo.expiresAt);
   return Temporal.Now.instant().equals(expiresTime) || Temporal.Now.instant().since(expiresTime).sign >= 0;
 }

@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { toast } from "sonner";
 import { AUTH_DOMAIN } from "../constants";
 import apiKeys from "../../../../.api_keys.json";
+import { ClientLoaderFunctionArgs } from "react-router";
 export const isServer = typeof window === "undefined";
 
 export const getAPIKey = () => {
@@ -46,7 +47,7 @@ export const fetcher = async <T>(input: RequestInfo | URL, init?: RequestInit, i
     delete headers["Content-Type"];
   }
 
-  console.log(`Making request to ${input.toString()} with body ${init?.body?.toString()} and headers ${JSON.stringify(headers, null, 2)}`); //
+  console.log(`Making request to ${input.toString()} with body ${init?.body?.toString().slice(0, 10) + '...' + init?.body?.toString().slice(-10,-1)} and headers ${JSON.stringify(headers, null, 2)}`); //
   try {
     const res = await fetch(input, {
       mode: "no-cors", // todo: fix cors
@@ -113,4 +114,10 @@ export const serverTimingsToast = (path: string = '/') => {
       });
     }
   }, 50); // Small delay to ensure performance entry is recorded
+};
+
+
+export const DEFAULT_CLIENT_LOADER = async ({ request }: ClientLoaderFunctionArgs) => {
+  const currentUrlObj = new URL(request.url);
+  return { currentUrlObj };
 };

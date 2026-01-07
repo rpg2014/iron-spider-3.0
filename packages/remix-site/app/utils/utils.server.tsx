@@ -6,7 +6,7 @@
 // Remix won't even try to figure things out on its own, it'll just completely
 // ignore it for the browser bundles. On a related note, crypto can't be
 // imported directly into a route module, but if it's in this file you're fine.
-import type { LoaderFunctionArgs } from "react-router";
+import type { ClientLoaderFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { createHash } from "crypto";
 import { PUBLIC_KEYS_PATH, PUBLIC_ROUTES } from "../constants";
 import pkg from "jsonwebtoken";
@@ -16,7 +16,7 @@ import { data, Session } from "react-router";
 import { Temporal } from "temporal-polyfill";
 import { IronSpiderAPI } from "../service/IronSpiderClient";
 import apiKeys from "../../../../.api_keys.json";
-import { getGlobalAuthToken, setGlobalAuthToken } from "./globalAuth";
+import { setGlobalAuthInfo } from "./globalAuth";
 
 const { verify } = pkg;
 export type JwtPayload = pkg.JwtPayload & { preferred_username: string };
@@ -39,7 +39,7 @@ let publicKey: { keys?: string[] } | undefined;
 // Module-scoped variable to hold the current refresh promise.
 let refreshPromise: Promise<{ refreshed: boolean; oauthDetails?: OAuthDetails }> | null = null;
 
-const refreshToken = async (oauthTokens: SessionData["oauthTokens"]): Promise<OAuthDetails> => {
+export const refreshToken = async (oauthTokens: SessionData["oauthTokens"]): Promise<OAuthDetails> => {
   try {
     const response = await IronSpiderAPI.getTokens({
       refreshToken: oauthTokens.refreshToken,
@@ -67,12 +67,13 @@ const refreshToken = async (oauthTokens: SessionData["oauthTokens"]): Promise<OA
  * is refreshed needed as a return value?
  *
  */
-export const refreshTokenIfNeeded = async (
+export const getOrRefreshTokens = async (
   session: Session,
 ): Promise<{
   refreshed: boolean;
   oauthDetails?: OAuthDetails;
   wipeSession?: boolean;
+  retry?: boolean;
 }> => {
   if (!session.has("oauthTokens")) {
     console.error("[refreshTokenIfNeeded] No oauthTokens found in session");
@@ -94,11 +95,14 @@ export const refreshTokenIfNeeded = async (
 
       // Update session with new tokens
       session.set("oauthTokens", newOauthDetails);
-      // set global token as well to pass within this request
-      setGlobalAuthToken(newOauthDetails.accessToken, newOauthDetails.expiresAt);
       return { refreshed: true, oauthDetails: newOauthDetails };
     } catch (e) {
       console.error("[refreshTokenIfNeeded] Error refreshing tokens, probably need a new refresh token", e);
+      if(e.status == 400) {
+        console.warn("[refreshTokenIfNeeded] 400 error refreshing tokens, session might have been updated in parallel, lets retry")
+        return {refreshed: false,retry: true}
+      }
+      //TODO: we should wait a second, then refetch the session and try again, sometimes there's a race condition. 
       return { refreshed: false, wipeSession: true };
     }
   }
@@ -117,12 +121,14 @@ export const refreshTokenIfNeeded = async (
  *
  * This implementation avoids using the module-scoped refreshPromise variable
  * for better concurrency handling and reuses the refreshTokenIfNeeded function.
+ * This should only get run once during the intiial auth middleware execution. 
  */
 export const checkIdTokenAuthV2 = async (request: Request): Promise<AuthResponse> => {
   console.log("[checkIdTokenAuthV2] Starting authentication check");
+  const cookie = request.headers.get("Cookie");
   try {
     // 1. Get session from cookie
-    const session = await getSession(request.headers.get("Cookie"));
+    let session = await getSession(cookie);
 
     // Check if session has required data, right now just oauthTokens, but could also look at id.
     if (!session.has("oauthTokens")) {
@@ -131,8 +137,17 @@ export const checkIdTokenAuthV2 = async (request: Request): Promise<AuthResponse
     }
 
     // 2 & 3. Check token expiry and refresh if needed using the existing function
-    const { refreshed, oauthDetails, wipeSession } = await refreshTokenIfNeeded(session);
-
+    let { refreshed, oauthDetails, wipeSession, retry } = await getOrRefreshTokens(session);
+    if(retry){
+      console.log("[checkIdTokenAuthV2] Retry refreshing tokens after session refetch");
+      session = await getSession(cookie)
+      const refreshResult = await getOrRefreshTokens(session);
+      refreshed = refreshResult.refreshed;
+      oauthDetails = refreshResult.oauthDetails;
+      wipeSession = refreshResult.wipeSession;
+      retry = refreshResult.retry;
+    }
+    
     if (wipeSession) {
       console.log("[checkIdTokenAuthV2] Wiping session");
       session.unset("oauthTokens");
@@ -140,18 +155,28 @@ export const checkIdTokenAuthV2 = async (request: Request): Promise<AuthResponse
       session.unset("userId");
       session.unset("scopes");
       console.log("[checkIdTokenAuthV2] Session wiped, returning");
+      // empty global token
+      setGlobalAuthInfo(undefined)
       return { verified: false, cookieHeader: await commitSession(session) };
     }
 
     // We will always have oauthDetails if refreshed is true, but TypeScript doesn't know that
     // If we have oauthDetails, we can proceed
     if (oauthDetails) {
-      // 4. Save to global state if needed
-      if (refreshed || !getGlobalAuthToken()) {
-        console.log("[checkIdTokenAuthV2] Setting global token");
-        setGlobalAuthToken(oauthDetails.accessToken, oauthDetails.expiresAt);
-        
-      }
+      console.log(`[checkIdTokenAuthV2] OAuth details available, token refreshed: ${refreshed}, validating id token`);
+      //validate the id token
+      const userData = await validateIronSpiderToken(oauthDetails?.idToken);
+      console.log("[checkIdTokenAuthV2] userData", userData);
+      // 4. Save to global state if needed - already done in getOrRefreshTokens\
+      // we should be doing this every time i think
+      console.log("[checkIdTokenAuthV2] Setting global auth info");
+      setGlobalAuthInfo({
+        accessToken: oauthDetails.accessToken,
+        expiresAt: oauthDetails.expiresAt,
+        id: oauthDetails.idToken,
+        idToken: oauthDetails.idToken,
+        username: userData.userData?.preferred_username
+      })
 
       // 5. Return authentication response
       return {
@@ -165,10 +190,14 @@ export const checkIdTokenAuthV2 = async (request: Request): Promise<AuthResponse
       };
     } else {
       console.error("[checkIdTokenAuthV2] No oauthDetails available after refresh attempt");
+      // empty global token
+      setGlobalAuthInfo(undefined)
       return { verified: false };
     }
   } catch (e) {
     console.error("[checkIdTokenAuthV2] Error in authentication process:", e);
+    // empty global token
+    setGlobalAuthInfo(undefined)
     return { verified: false };
   }
 };
@@ -187,6 +216,7 @@ type AuthResponse = {
   cookieHeader?: string;
 };
 
+// only used on the cookie page.
 export const checkCookieAuth = async (request: Request): Promise<AuthResponse> => {
   //get x-pg-id cookie from request cookie header
   console.log("Doing Auth");

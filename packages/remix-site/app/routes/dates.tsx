@@ -3,6 +3,7 @@ import * as EB from "~/components/ErrorBoundary";
 import { DEFAULT_URL_LOADER } from "~/utils/utils.server";
 import { AuthGateV2 } from "~/components/AuthGate";
 import { Route } from "./+types/dates";
+import { DEFAULT_CLIENT_LOADER } from "~/utils/utils";
 
 export const meta: MetaFunction = () => [
   {
@@ -10,7 +11,7 @@ export const meta: MetaFunction = () => [
   },
 ];
 
-export const loader = DEFAULT_URL_LOADER;
+export const clientLoader = DEFAULT_CLIENT_LOADER;
 
 export default function DatesLayout({ loaderData }: Route.ComponentProps) {
   return (

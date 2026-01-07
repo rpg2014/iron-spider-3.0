@@ -99,7 +99,7 @@ const DateCard: React.FC<DateCardProps> = ({ date, onClickNav = false }) => {
   return (
     <>
       {onClickNav ? (
-        <Link prefetch="viewport" to={`/dates/${date.id}`} className="block cursor-pointer">
+        <Link prefetch="viewport" to={`/dates/${date.id}`} className="block cursor-pointer" >
           <RenderedCard />
         </Link>
       ) : (

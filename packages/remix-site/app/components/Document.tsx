@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Links, Meta, Scripts, ScrollRestoration } from "react-router";
 import { useTheme } from "~/hooks/useTheme";
+import versionInfo from "~/version.json";
 
 const registerServiceWorker = async () => {
   if ("serviceWorker" in navigator) {
@@ -95,6 +96,8 @@ export function Document({ children, title }: { children: React.ReactNode; title
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta name="theme-color" content="#1b1f2a" />
+        <meta name="build-version" content={`${versionInfo.build}`} />
+        <meta name="build-timestamp" content={versionInfo.timestamp} />
         {title ? <title>{title}</title> : null}
         <Meta />
         <Links />

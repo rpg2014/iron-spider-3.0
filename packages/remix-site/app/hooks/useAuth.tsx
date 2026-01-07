@@ -1,96 +1,156 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useLoaderData, useRevalidator } from "react-router";
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef, ReactNode } from "react";
 import { toast } from "sonner";
-import { setGlobalAuthToken } from "~/utils/globalAuth";
+import { ClientAuthInfo } from "~/contexts/auth";
+import { setGlobalAuthInfo } from "~/utils/globalAuth";
 
-type AuthContextType = {
+type AuthState = ClientAuthInfo & {
   isAuthenticated: boolean;
-  accessToken: string | null;
-  expiresAt: string | null;
+};
+
+type AuthAction =
+  | { type: "SET_AUTH"; payload: Partial<AuthState> }
+  | { type: "CLEAR_AUTH" };
+
+type AuthContextType = AuthState & {
   refreshAuth: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+function authReducer(state: AuthState, action: AuthAction): AuthState {
+  switch (action.type) {
+    case "SET_AUTH":
+      return { ...state, ...action.payload };
+
+    case "CLEAR_AUTH":
+      return {
+        isAuthenticated: false,
+        accessToken: undefined,
+        expiresAt: undefined,
+        id: undefined,
+        idToken: undefined,
+        username: undefined,
+      };
+
+    default:
+      return state;
+  }
+}
+
 export function AuthProvider({
   children,
-  initialAuth = { authenticated: false },
+  initialAuth = { isAuthenticated: false },
 }: {
   children: ReactNode;
-  initialAuth?: {
-    authenticated: boolean;
-    accessToken?: string;
-    expiresAt?: string;
+  initialAuth?: ClientAuthInfo & {
+    isAuthenticated: boolean;
   };
 }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(initialAuth.authenticated);
-  const [accessToken, setAccessToken] = useState(initialAuth.accessToken || null);
-  const [expiresAt, setExpiresAt] = useState(initialAuth.expiresAt || null);
-  const revalidator = useRevalidator();
+  const [state, dispatch] = useReducer(authReducer, {
+    isAuthenticated: initialAuth.isAuthenticated,
+    accessToken: initialAuth.accessToken || undefined,
+    expiresAt: initialAuth.expiresAt || undefined,
+    id: initialAuth.id || undefined,
+    idToken: initialAuth.idToken || undefined,
+    username: initialAuth.username || undefined,
+  });
 
-  // Update state when initialAuth changes (e.g., after navigation/revalidation)
-  useEffect(() => {
-    setIsAuthenticated(initialAuth.authenticated);
-    setAccessToken(initialAuth.accessToken || null);
-    setExpiresAt(initialAuth.expiresAt || null);
-  }, [initialAuth.authenticated, initialAuth.accessToken, initialAuth.expiresAt]);
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
-  const refreshAuth = async () => {
+  const refreshAuth = useCallback(async () => {
     const loadingToast = toast.loading("Refreshing auth state from server");
     console.log("Refreshing auth state from server");
     try {
       const response = await fetch("/api/auth/tokens");
       if (response.ok) {
         const data = await response.json();
-        setIsAuthenticated(data.authenticated);
-        setAccessToken(data.accessToken || null);
-        setExpiresAt(data.expiresAt || null);
-        toast.success("Auth state refreshed from server");
+        dispatch({
+          type: "SET_AUTH",
+          payload: {
+            isAuthenticated: data.isAuthenticated,
+            accessToken: data.accessToken ?? undefined,
+            expiresAt: data.expiresAt ?? undefined,
+            id: data.id ?? undefined,
+            idToken: data.idToken ?? undefined,
+            username: data.username ?? undefined,
+          }
+        });
+        toast.success("Auth state refreshed from server", {
+          description: `Old expires at ${state.expiresAt}, new expires at ${data.expiresAt}`,
+          duration: Infinity
+        });
         return data;
       } else {
-        setIsAuthenticated(false);
-        setAccessToken(null);
-        setExpiresAt(null);
-        toast.error("Failed to refresh auth state from server", { description: "Response was recieved but not ok" });
-        return { authenticated: false };
+        dispatch({ type: "CLEAR_AUTH" });
+        toast.error("Failed to refresh auth state from server", {
+          description: "Response was received but not ok"
+        });
+        return { isAuthenticated: false };
       }
     } catch (error) {
       console.error("Failed to refresh auth state:", error);
-      toast.error("Failed to refresh auth state from server", { description: error instanceof Error ? error.message : "Unknown error" });
-      return { authenticated: false };
+      toast.error("Failed to refresh auth state from server", {
+        description: error instanceof Error ? error.message : "Unknown error"
+      });
+      return { isAuthenticated: false };
     } finally {
       toast.dismiss(loadingToast);
     }
-  };
+  }, [state.expiresAt]);
 
+  // Update state when initialAuth changes (e.g., after navigation/revalidation)
   useEffect(() => {
-    if (!expiresAt || !isAuthenticated) return;
+    dispatch({
+      type: "SET_AUTH",
+      payload: initialAuth
+    });
+  }, [initialAuth]);
 
-    const expiresTime = new Date(expiresAt).getTime();
+  /**
+   * Auto-refresh auth state before token expiration via setTimeout
+   */
+  useEffect(() => {
+    // Clear any existing timeout
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
+      timeoutIdRef.current = null;
+    }
+
+    if (!state.expiresAt || !state.isAuthenticated) return;
+
+    const expiresTime = new Date(state.expiresAt).getTime();
     const now = Date.now();
     const timeUntilExpiry = expiresTime - now;
 
     // Refresh 1 minute before expiration
     const refreshTime = Math.max(timeUntilExpiry - 60000, 0);
-    const timerId = setTimeout(() => {
-      revalidator.revalidate();
+    timeoutIdRef.current = setTimeout(() => {
       refreshAuth();
     }, refreshTime);
 
-    return () => clearTimeout(timerId);
-  }, [expiresAt, isAuthenticated]);
+    return () => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+    };
+  }, [state.expiresAt, state.isAuthenticated, refreshAuth]);
+
+  /**
+   * Set global auth token for API calls + access outside of react 
+   */
   useEffect(() => {
-    console.log("Setting global auth token. Expires: ", expiresAt);
-    setGlobalAuthToken(accessToken, expiresAt);
+    console.log("[useAuth] Setting global auth token. Expires: ", state.expiresAt);
+    setGlobalAuthInfo({
+      ...state
+    });
     toast.success("Global Access token set");
-  }, [accessToken, expiresAt]);
+  }, [state.accessToken, state.expiresAt, state.id, state.idToken]);
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated,
-        accessToken,
-        expiresAt,
+        ...state,
         refreshAuth,
       }}
     >

@@ -1,6 +1,6 @@
 import type { MetaFunction } from "react-router";
 import { Suspense, useEffect, useState } from "react";
-import { Link, useRevalidator } from "react-router";
+import { Link, useOutletContext, useRevalidator } from "react-router";
 import { Activity, CheckCircle, ExternalLink } from "lucide-react";
 import { ProjectsNavItems, mainNavItems } from "~/components/NavMenu/navLinkConfig";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Skeleton } from "~/components/ui";
 import { useFetcher } from "react-router";
 import { Spinner } from "~/components/ui/Spinner";
 import { useAuth } from "~/hooks/useAuth";
+import versionInfo from "~/version.json";
 
 export const meta: MetaFunction = () => {
   return [
@@ -68,7 +69,7 @@ function ToolsSection() {
           <Link
             key={i}
             to={tool.href}
-            prefetch="intent"
+            prefetch="none"
             className="group p-6 bg-secondary border border-border rounded-xl hover:border-accent hover:scale-105 transition-all"
           >
             <div className="flex items-start gap-4">
@@ -78,7 +79,6 @@ function ToolsSection() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-semibold">{tool.name}</h3>
-                  
                 </div>
                 <p className="text-sm text-muted-foreground">{tool.description}</p>
               </div>
@@ -172,7 +172,6 @@ function ServiceWorkerStatusSection() {
       ) : (
         <div className="p-6 bg-card border border-border rounded-xl">
           <div className="space-y-4">
-            
           </div>
         </div>
       )}
@@ -180,46 +179,21 @@ function ServiceWorkerStatusSection() {
   );
 }
 
-function LambdaStatusSection({ revalidated }: { revalidated: boolean }) {
- 
-  return (
-    <section className="my-6">
-      <h2 className="text-2xl font-bold mb-6">Lambda Status</h2>
-      <div className="p-6 bg-secondary border border-border rounded-xl">
-        <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-lg bg-gradient-to-br ${revalidated ? 'from-green-500 to-emerald-500' : 'from-orange-500 to-yellow-500'} transition-all`}>
-            {revalidated ? <CheckCircle size={24} /> : <Spinner scale={0.8} />}
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold mb-1">
-              {revalidated ? 'Lambda Ready' : 'Initializing Lambda'}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {revalidated ? 'Edge function is warmed up and ready' : 'Warming up edge function...'}
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-
-export default function Index() {
+function LambdaStatusSection() {
   const fetcher = useFetcher()
   const revalidator = useRevalidator();
   const [revalidated, setRevalidated] = useState(false);
   const [triggeredRevalidation, setTriggeredRevalidation] = useState(false);
-  
+  const [timedOut, setTimedOut] = useState(false);
 
   // wake the edge lambda by loading the dates index
   useEffect(() => {
     // if on client, load
     console.log("Index route useEffect running");
-    if(typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       console.log("Loading /dates to wake both lambdas");
-      fetcher.load("/dates")
-
+      fetcher.load("/dates/")
+      console.log("Triggering revalidation to wake edge lambda");
       revalidator.revalidate();
       setTriggeredRevalidation(true);
     }
@@ -229,29 +203,87 @@ export default function Index() {
     if (revalidator.state === 'idle' && triggeredRevalidation) {
       setRevalidated(true);
     }
-  },[revalidator.state, triggeredRevalidation])
+  }, [revalidator.state, triggeredRevalidation])
+  //on mount, set 5 min timeout to reset the revalidated
+  useEffect(() => {
+    if (revalidated) {
+      const timeoutId = setTimeout(() => {
+        setRevalidated(false);
+        setTriggeredRevalidation(false);
+        setTimedOut(true)
+      }, 5 * 60 * 1000); // 5 minutes
+      return () => clearTimeout(timeoutId);
+    }
+  }, [revalidated]);
+  return (
+    <section className="my-6">
+      <h2 className="text-2xl font-bold mb-6">Lambda Status</h2>
+      <div className="p-6 bg-secondary border border-border rounded-xl">
+        <div className="flex items-center justify-evenly gap-4">
+          {timedOut ? <>
+            <div className={`p-3 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 transition-all`}>
+              <ExternalLink size={24} />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold mb-1">
+                Lambda Timeout
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Lambda has been warmed up, but is now timed out.
+              </p>
+            </div>
+          </>
+            :
+            <>
+              <div className={`p-3 rounded-lg bg-gradient-to-br ${revalidated ? 'from-green-500 to-emerald-500' : 'from-orange-500 to-yellow-500'} transition-all`}>
+                {revalidated ? <CheckCircle size={24} /> : <Spinner scale={0.8} />}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold mb-1">
+                  {revalidated ? 'Lambda Ready' : 'Initializing Lambda'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {revalidated ? 'Edge function is warmed up and ready' : 'Warming up edge function...'}
+                </p>
+              </div>
+              <div className="border-l border-border pl-4 ml-4 flex-1">
+                <h3 className="font-semibold mb-1">
+                  Date Fetcher Status: {fetcher.state}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {fetcher.state === 'idle' ? 'Ready' : 'Loading...'}
+                </p>
+              </div>
+              </>}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 
-
-  const auth =useAuth();
+export default function Index() {
+  const {isLambda } = useOutletContext<{ isLambda: boolean }>();
+  const auth = useAuth();
   return (
     <div className="min-h-screen text-foreground">
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Parker's Tools</h1>
-          
-        </div> */}
-
         <ToolsSection />
-
+        <LambdaStatusSection />
         <ServiceWorkerStatusSection />
-         <LambdaStatusSection revalidated={revalidated} />
-         
-          <div className="flex items-center gap-2 text-xs my-1">
-            <Activity size={14} className={auth.isAuthenticated  ? 'text-success' : 'text-muted-foreground'} />
+        <div className="flex justify-between text-xs my-1">
+          <div className="flex items-center gap-2 ">
+            <Activity size={14} className={auth.isAuthenticated ? 'text-success' : 'text-muted-foreground'} />
             <span className="text-muted-foreground">isAuthenticated: {auth.isAuthenticated ? "Yes" : 'No'}</span>
-         </div>
-        </main>
+
+          </div>
+          
+            <span className="text-muted-foreground">SSR: {isLambda ? "Yes" : 'No'}</span>
+
+          
+          <span className="text-muted-foreground">v1.0.{versionInfo.build}</span>
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
+import type { HeadersFunction, LinksFunction, LoaderFunctionArgs, ShouldRevalidateFunctionArgs } from "react-router";
 import { Outlet, MetaFunction, useLoaderData, data } from "react-router";
 import globalStylesUrl from "~/styles/global.css?url";
 import themeUrl from "~/styles/themes.css?url";
@@ -17,7 +17,8 @@ import { AuthProvider } from "./hooks/useAuth";
 import { toast } from "sonner";
 import { xrayContext } from "../server/context";
 import { authMiddleware } from "./middleware/auth.server";
-import { authUserContext, isAuthenticatedContext } from "./contexts/auth";
+import { authUserContext, clientAuthContext, isAuthenticatedContext } from "./contexts/auth";
+import { clientAuthMiddleware } from "./middleware/auth.client";
 
 export const links: LinksFunction = () => {
   return [
@@ -42,38 +43,76 @@ export const meta: MetaFunction = () => [
 // Middleware handles auth checking and token refresh
 export const middleware = [authMiddleware];
 
+export const clientMiddleware = [clientAuthMiddleware]
+
 export async function loader({ request, context }: Route.LoaderArgs) {
   console.log(`[root loader] Handling request for ${request.url}, with context ${JSON.stringify(context)}`);
   try {
     console.log(`[root loader] new context: ${context.get(xrayContext)}`)
-  }catch (e) {
+  } catch (e) {
     console.log("error when accessing new context");
   }
-  
+
   // Auth is now handled by middleware - just read from context
   const isAuthenticated = context.get(isAuthenticatedContext);
   const authUser = context.get(authUserContext);
-  
+
   const initialStatus = await MCServerApi.getStatus();
 
   return data({
     auth: {
-      authenticated: isAuthenticated,
+      isAuthenticated,
       accessToken: authUser?.accessToken,
       expiresAt: authUser?.expiresAt,
+      id: authUser?.sub,
+      username: authUser?.preferred_username,
+      idToken: authUser?.idToken,
     },
     initialStatus,
     isLambda: isLambda,
   });
 }
-// export const headers: Route.HeadersFunction = () => ({
-//   // cache control 5 mins
-//   "Cache-Control": "public, max-age=300, s-maxage=300",
-//   "X-Frame-Options": "DENY",
-//   "X-Content-Type-Options": "nosniff",
-//   "Referrer-Policy": "no-referrer",
-//   "Permissions-Policy": "geolocation=(self)",
-// });
+
+export const clientLoader = async ({ request, serverLoader, context }: Route.ClientLoaderArgs) => {
+  console.log(`[root client loader] Handling request for ${request.url}`);
+  // fetch server status, but ignore failures, getStatus can throw.
+  let initialStatus;
+  // try {
+  //   // if this cache misses, it can take some  time for this to fetch, should probably remove this.
+  //   initialStatus = MCServerApi.getStatus();
+  // } catch (e) {
+  //   console.log("[root client loader] Failed to get initial server status", e);
+  // } 
+  const clientAuth = context.get(clientAuthContext);
+
+  if (!clientAuth || !clientAuth.accessToken || !clientAuth.expiresAt) {
+    console.log("[root client loader] Token not found in global auth, running serverLoader")
+    // if no token refetch from backend
+    const serverData = await serverLoader();
+    console.log("[root client loader] Server data fetched, returning");
+    return {
+      initialStatus: serverData.initialStatus,
+      auth: serverData.auth,
+      isLambda: serverData.isLambda,
+    }
+  }
+  // todo need  to get all the jwt fields in here, but hsould be cached. 
+  // context.set(authUserContext, {
+  //   accessToken: token,
+  //   authenticated: !!token,
+  //   expiresAt,
+  // })
+  console.log("[root client loader] Token found in global auth, returning it");
+  return {
+    initialStatus,
+    auth: {
+      isAuthenticated: true,
+      ...clientAuth
+    },
+    isLambda: false,
+  }
+
+}
 
 /**
  * The root module's default export is a component that renders the current
@@ -88,7 +127,7 @@ export default function App() {
   const data = useLoaderData<typeof loader>();
   // this doesn't always work b/c sometimes it takes longer for the toaster to be rendered?
   useEffect(() => {
-    console.log("Running on Lambda", data.isLambda);
+    console.log("[root useEffect] Running on Lambda", data.isLambda);
     if (data.isLambda) {
       setTimeout(() => {
         toast.info("Data fetched from backend", {
@@ -117,7 +156,7 @@ export default function App() {
                   </div>
                 }
               >
-                <Outlet />
+                <Outlet context={{ isLambda: !!data.isLambda }} />
                 <Toaster richColors swipeDirections={["left", "right"]} />
               </Suspense>
             </Layout>
